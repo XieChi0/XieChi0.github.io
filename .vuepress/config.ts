@@ -5,7 +5,7 @@ import footer from "./footer";
 import extraSideBar from "./extraSideBar";
 
 const author = "谢池";
-const domain = "XieChi0.github.io";
+const domain = "";
 const tags = ["程序员", "编程", "计算机"];
 
 export default defineConfig({
