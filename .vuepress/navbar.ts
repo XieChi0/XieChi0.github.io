@@ -48,27 +48,27 @@ export default [
 
         ]
     },
-    {
-        text: "Personal",
-        items: [
-            {
-                text:"个人思路体系规划",
-                link:"/docs/个人思路体系规划/个思.md"
-            },
-            {
-                text: "文创购分",
-                link: '/docs/文创购分.md',
-            },
-            {
-                text: "brand灵感板+定期学习",
-                link: '/docs/brand灵感板+定期学习.md',
-            },
-            {
-                text: "psv",
-                link: '/docs/psv.md',
-            }
-        ]
-    }
+    // {
+    //     text: "Personal",
+    //     items: [
+    //         {
+    //             text:"个人思路体系规划",
+    //             link:"/docs/个人思路体系规划/个思.md"
+    //         },
+    //         {
+    //             text: "文创购分",
+    //             link: '/docs/文创购分.md',
+    //         },
+    //         {
+    //             text: "brand灵感板+定期学习",
+    //             link: '/docs/brand灵感板+定期学习.md',
+    //         },
+    //         {
+    //             text: "psv",
+    //             link: '/docs/psv.md',
+    //         }
+    //     ]
+    // }
 
 
 ] as NavItem[];
