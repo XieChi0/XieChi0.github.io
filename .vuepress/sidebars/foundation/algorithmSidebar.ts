@@ -1,11 +1,11 @@
 export default [
     "",
     {
-      title: "计算机组原理",
+      title: "正式之章",
       collapsable: false,
       children: [
-        "测试1.md",
-        "测试2.md",
+        "acwing基础语法.md",
+        "算法语法杂.md",
       ],
       sidebarDepth:4
     },

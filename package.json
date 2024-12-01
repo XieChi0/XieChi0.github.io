@@ -2,8 +2,8 @@
   "name": "xiechipedia",
   "version": "1.0.0",
   "scripts": {
-    "docs:dev": "vuepress dev . --temp .temp",
-    "docs:build": "set NODE_OPTIONS=--openssl-legacy-provider --max_old_space_size=8192 && vuepress build ."
+    "docs:dev": "vuepress dev . --temp .temp --cache .cache",
+    "docs:build": "vuepress build ."
   },
   "license": "MIT",
   "devDependencies": {

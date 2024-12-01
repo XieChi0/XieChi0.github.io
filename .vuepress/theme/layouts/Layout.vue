@@ -49,14 +49,12 @@
        :page-sidebar-items="pageSidebarItems"
        :sidebar-items="sidebarItems"
     >
-      <slot
-        name="page-sidebar-top"
-        #top
-      />
-      <slot
-        name="page-sidebar-bottom"
-        #bottom
-      />
+      <template #top>
+        <slot name="page-sidebar-top" />
+      </template>
+      <template #bottom>
+        <slot name="page-sidebar-bottom" />
+      </template>
     </PageSidebar>
   </div>
 </template>

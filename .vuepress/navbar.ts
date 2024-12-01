@@ -6,47 +6,18 @@ export default [
         link: '/docs/基本功/',
         items: [
             {
-                text: "计算机组成原理",
-                link: '/docs/基本功/计算机组成原理/',
-            },
-            {
-                text: "操作系统",
-                link: '/docs/基本功/操作系统/',
-            },
-            {
-                text: "计算机网络",
-                link: '/docs/基本功/计算机网络/',
-            },
-            {
                 text: "数据结构",
-                link: '/docs/基本功/数据结构/',
+                link: '/docs/基本功/数据结构/ds.md',
+            },
+            {
+                text:'C++',
+                link:'/docs/基本功/C++/C++.md',
             },
             {
                 text: "算法",
                 link: '/docs/基本功/算法/',
-            },
-            {
-                text: "基础工具",
-                link: '/docs/基本功/基础工具/',
-                items: [
-                    {
-                        text: "Git",
-                        link: '/docs/基本功/基础工具/Git/',
-                    },
-                    {
-                        text: "Linux",
-                        link: '/docs/基本功/基础工具/Linux/',
-                    },
-                    {
-                        text: "Bash",
-                        link: '/docs/基本功/基础工具/Bash/',
-                    },
-                    {
-                        text: "Vim",
-                        link: '/docs/基本功/基础工具/Vim/',
-                    },
-                ]
-            },
+            }
+
 
         ]
     },
@@ -56,71 +27,48 @@ export default [
         items: [
             {
                 text: "HTML",
-                link: '/docs/前端/HTML/',
+                link: '/docs/前端/HTML/html篇.md',
             },
             {
                 text: "CSS",
-                link: '/docs/前端/CSS/',
+                link: '/docs/前端/CSS/css篇.md',
             },
             {
                 text: "JavaScript",
-                link: '/docs/前端/JavaScript/',
-            },
-            {
-                text: "数据结构",
-                link: '/docs/基本功/数据结构/',
+                link: '/docs/前端/JavaScript/js篇.md',
             },
             {
                 text: "Vue",
-                link: '/docs/前端/Vue/',
+                link: '/docs/前端/Vue/vue篇.md',
             },
             {
-                text: "Axios",
-                link: '/docs/前端/Axios/',
-            },
-            {
-                text: "工程化",
-                link: '/docs/前端/工程化/',
-            },
-            {
-                text: "React",
-                link: '/docs/前端/React/',
-            },
-            {
-                text: "React Native",
-                link: '/docs/前端/React Native/',
-            },
-            {
-                text: "Tailwind",
-                link: '/docs/前端/Tailwind/',
-            },
-            {
-                text: "前端库",
-                link: '/docs/前端/前端库/',
-            },
-            {
-                text: "小程序",
-                link: '/docs/前端/小程序/',
-            },
+                text: "Axios及其他",
+                link: '/docs/前端/Axios及其他/其他技术篇.md',
+            }
 
         ]
     },
     {
-        text: "后端",
-        link: '/docs/后端/',
+        text: "Personal",
         items: [
             {
-                text: "Java",
-                link: '/docs/后端/Java/',
+                text:"个人思路体系规划",
+                link:"/docs/个人思路体系规划/个思.md"
             },
             {
-                text: "数据库",
-                link: '/docs/后端/数据库/',
+                text: "文创购分",
+                link: '/docs/文创购分.md',
             },
             {
-                text: "Spring",
-                link: '/docs/后端/Spring/',
+                text: "brand灵感板+定期学习",
+                link: '/docs/brand灵感板+定期学习.md',
             },
+            {
+                text: "psv",
+                link: '/docs/psv.md',
+            }
         ]
-    },
+    }
+
+
 ] as NavItem[];

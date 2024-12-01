@@ -5,11 +5,11 @@ import footer from "./footer";
 import extraSideBar from "./extraSideBar";
 
 const author = "谢池";
-const domain = "";
-const tags = ["程序员", "编程", "计算机"];
+const domain = "https://XieChi0.github.io/";
+const tags = ["程序员", "编程", "博客"];
 
 export default defineConfig({
-  title: "谢池的个人网站",
+  title: "XChi的个人网站",
   description: "这是我网站的描述",
   head: [
     // 站点图标
@@ -20,7 +20,7 @@ export default defineConfig({
       {
         name: "keywords",
         content:
-          "谢池的网站简介",
+          "谢池的网站简介,A,B",
       },
     ],
     // 百度统计
@@ -41,8 +41,8 @@ export default defineConfig({
   // permalink: "/:slug",
 
   // 监听文件变化，热更新
-  extraWatchFiles: [".vuepress/*.ts", ".vuepress/sidebars/*/*"],
-  markdown: {
+  extraWatchFiles: [".vuepress/*.ts", ".vuepress/sidebars/*/*"],  //允许额外触发热更新的文件范围
+  markdown: { //自定义额外的md渲染规则
     // 开启代码块的行号
     lineNumbers: true,
     // 支持 4 级以上的标题渲染
@@ -140,9 +140,11 @@ export default defineConfig({
   ],
   // 主题配置
   themeConfig: {
-    logo: "/logo.png",
+    // logo: "/logo.png",
+    logo:"https://s1.imagehub.cc/images/2024/11/27/0ead02493a39c5b0e7a6333222bb3a35.th.jpg",
     nav: navbar,
     sidebar,
+    sidebarDepth: 4,
     lastUpdated: "最近更新",
 
     // GitHub 仓库位置
@@ -150,8 +152,8 @@ export default defineConfig({
     // docsBranch: "",
 
     // 编辑链接
-    editLinks: false,
-    //editLinkText: "完善页面",
+    editLinks: true,
+    editLinkText: "完善页面",
 
     // @ts-ignore
     // 底部版权信息
@@ -159,4 +161,16 @@ export default defineConfig({
     // 额外右侧边栏
     extraSideBar,
   },
+  devServer: {
+    hot: true,
+    port: 8080,
+    host: 'localhost',
+    watchOptions: {
+      poll: true,      // 启用轮询
+      ignored: /node_modules/,
+      aggregateTimeout: 300  // 防抖时间
+    }
+  },
+  // 设置首页的 permalink
+  // permalink: "/",
 });
