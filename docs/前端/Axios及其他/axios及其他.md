@@ -506,3 +506,98 @@ axios.interceptors.request.eject(myInterceptor);
 
 ![image-20241201110048753](C:/Users/朱嘉宜/AppData/Roaming/Typora/typora-user-images/image-20241201110048753.png)
 
+#### Git命令大全
+
+> 其他版本命令大全https://blog.csdn.net/XH_jing/article/details/121900458
+
+Git是一个强大的版本控制系统，它允许多人协作开发项目，同时跟踪和管理代码的变更历史。Git命令大全涵盖了从仓库的创建、管理到与远程仓库交互的一系列命令。以下是一些常用的Git命令及其用法：
+
+初始化和配置
+
+- *git init*: 初始化一个新的Git仓库。
+- *git config --global user.name "xxx"*: 配置全局用户名。
+- *git config --global user.email "xxx@xxx.com"*: 配置全局用户邮箱。
+
+基本操作
+
+- *git add <file>*: 将文件添加到暂存区。
+- *git commit -m 'message'*: 提交暂存区的内容到仓库。
+- *git status*: 查看仓库当前状态，显示有变更的文件。
+- *git rm <file>*: 从仓库中删除文件。
+- *git log*: 查看提交历史。
+
+分支管理
+
+- *git branch*: 列出所有本地分支。
+- *git checkout <branch>*: 切换到(已存在的)指定分支。
+- *git checkout -b <branch>* : 创建新的分支并切换到分支。
+- *git merge <branch>*: 合并指定分支到当前分支。
+- *git branch -d <branch>*: 删除本地分支。
+
+远程仓库
+
+- *git clone <url>*: 克隆远程仓库。
+- *git remote -v* : 显示当前Git仓库的远程仓库信息。
+- *git push* : 推进内容到远程仓库。
+- *git push <remote> <branch>*: 将本地分支推送到远程仓库。
+- *git pull <remote> <branch>*: 从远程仓库拉取最新内容并合并到本地分支。
+- *git remote add <name> <url>*: 添加新的远程仓库。
+
+高级功能
+
+- *git stash*: 暂存当前工作区的变更。
+- *git rebase*: 变基操作，用于整理提交历史。
+- *git tag*: 创建标签，用于标记重要的提交点。
+
+这些命令是Git操作的基础，掌握它们可以有效地管理和维护项目代码。更多详细的命令和选项可以通过*git help <command>*查询，或参考在线文档和教程[1](https://www.runoob.com/note/56524)[2](https://blog.csdn.net/qtiao/article/details/97783243)[3](https://blog.csdn.net/XH_jing/article/details/121900458)。
+
+> git commin提交后，会出现这个，我们如果需要修改
+>
+> <img src="/C:/Users/朱嘉宜/AppData/Roaming/Typora/typora-user-images/image-20241201151848314.png" alt="image-20241201151848314" style="zoom:70%;" />
+>
+> 按`i`进行修改，输入内容，按`esc`退出编辑模式，按`:wq`保存并退出编辑器。
+
+
+
+#### gitignore
+
+在 Git 中，`.gitignore` 文件用于告诉 Git 哪些文件或目录需要**忽略**，即不被纳入版本控制中。
+
+**1.创建`.gitignore` 文件**
+
+```
+# 在项目根目录创建
+touch .gitignore
+```
+
+
+
+**2.将需要忽略的文件写在.gitinore文件中**
+
+![image-20241201153233198](/C:/Users/朱嘉宜/AppData/Roaming/Typora/typora-user-images/image-20241201153233198.png)
+
+
+
+#### branch分支
+
+分支管理
+
+- *git branch*: 列出所有本地分支。
+- *git branch <branch>*：创建分支并加上分支的名字（但不会调到新分支上）
+- *git checkout <branch>*: 切换到指定分支。
+- *git merge <branch>*: 合并指定分支到当前分支。
+- *git branch -d <branch>*: 删除本地分支。
+
+
+
+#### 不懂的地方的解释
+
+```
+先手动删除本地文件，
+再
+git commit -a -m "删库跑路"
+```
+
+![image-20241201154302814](/C:/Users/朱嘉宜/AppData/Roaming/Typora/typora-user-images/image-20241201154302814.png)
+
+`-a` 选项相当于**跳过了手动运行 `git add` 的步骤**，但它只对已经被 Git 跟踪的文件有效。对于未被 Git 跟踪的新文件，`-a` 不会起作用，你还是需要手动用 `git add` 添加它们。
