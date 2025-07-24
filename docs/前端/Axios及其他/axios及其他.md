@@ -4,6 +4,10 @@
 
 https://www.dengruicode.com/course_content?uuid=ec75e79577634343ae5cfb0b0fd1aeb4
 
+## 🐬 利用vite快速启动项目
+
+https://www.dengruicode.com/course_content?uuid=ec75e79577634343ae5cfb0b0fd1aeb4
+
 ## 🐬Node.js
 
 V8引擎可以把JS代码编译成机器代码，方便机器理解

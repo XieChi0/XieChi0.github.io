@@ -527,6 +527,10 @@ index是当前元素的索引。
 
 
 
+
+
+
+
 ### 动态类名绑定
 
 *简单说说，因为vue文档讲的更为具体 https://v2.cn.vuejs.org/v2/guide/class-and-style.html*
