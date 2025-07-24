@@ -43,7 +43,7 @@ export default [
             },
             {
                 text: "Axios及其他",
-                link: '/docs/前端/Axios及其他/其他技术篇.md',
+                link: '/docs/前端/Axios及其他/axios及其他.md',
             }
 
         ]
