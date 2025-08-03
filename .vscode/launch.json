@@ -1,3 +1,4 @@
+// 配置VSCode的调试器，用于在浏览器中调试VuePress文档
 {
     "configurations": [
         {

@@ -600,6 +600,7 @@ v-model是负责专用于表单元素进行双向数据绑定，比如< input>�
 
 ### 目录结构理解
 
+```
 my-vue-project/
 
 ├── node_modules/
@@ -616,6 +617,7 @@ my-vue-project/
 ├── package.json
 ├── README.md
 └── yarn.lock / package-lock.json
+```
 
 >  node_modules：存放所有项目依赖包。所有通过npm或者yarn安装的依赖都会下载到这个文件夹中，这都是自动生成的，不需要修改。
 >

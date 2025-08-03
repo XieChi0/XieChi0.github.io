@@ -69,6 +69,33 @@ export default [
     //         }
     //     ]
     // }
-
+    {
+        text:"框架",
+        link:"/docs/框架/",
+        items:[
+            {
+                text:"Nodejs",
+                link:"/docs/框架/Nodejs/nodejs篇.md",
+            },
+            {
+                text:"Electron",
+                link:"/docs/框架/Electron/electron篇.md",
+            }
+        ]
+    },
+    {
+        text:'业务',
+        link:'/docs/业务/',
+        items:[
+            {
+                text:"sw",
+                link:"/docs/业务/sw/sw.md",
+            },
+            {
+                text:"st",
+                link:"/docs/业务/st/st.md",
+            }
+        ]
+    }
 
 ] as NavItem[];
