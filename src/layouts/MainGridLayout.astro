@@ -12,6 +12,7 @@ import {
 	BANNER_HEIGHT,
 	BANNER_HEIGHT_EXTEND,
 	MAIN_PANEL_OVERLAPS_BANNER_HEIGHT,
+	BANNER_BLUR_HEIGHT,
 } from "../constants/constants";
 import Layout from "./Layout.astro";
 
@@ -57,6 +58,8 @@ const mainPanelTop = siteConfig.banner.enable
                   src={siteConfig.banner.src} position={siteConfig.banner.position}
     >
     </ImageWrapper>
+    <!-- Banner bottom blur/gradient fade -->
+    <div id="banner-blur" class="absolute w-full pointer-events-none transition duration-700" style={`bottom: 0; height: ${BANNER_BLUR_HEIGHT}rem; background: linear-gradient(to top, rgba(255,255,255,0.95) 0%, transparent 100%);`}></div>
 </div>}
 
 <!-- Main content -->
