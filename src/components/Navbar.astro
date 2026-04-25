@@ -1,13 +1,15 @@
 ---
 import { Icon } from "astro-icon/components";
-import { navBarConfig, siteConfig } from "../config";
-import { LinkPresets } from "../constants/link-presets";
-import { LinkPreset, type NavBarLink } from "../types/config";
+// 和链接相关的
+import { LinkPreset, type NavBarLink } from "../types/config";   //types/config.ts表示类型定义
+import { navBarConfig, siteConfig } from "../config";   //config.ts表示针对types/config实际配置值（具体数值）
+import { LinkPresets } from "../constants/link-presets";   //link-presets.ts表示路由预设值
 import { url } from "../utils/url-utils";
-import LightDarkSwitch from "./LightDarkSwitch.svelte";
-import Search from "./Search.svelte";
-import DisplaySettings from "./widget/DisplaySettings.svelte";
-import NavMenuPanel from "./widget/NavMenuPanel.astro";
+// 和小组件相关的
+import LightDarkSwitch from "./LightDarkSwitch.svelte"; //明暗主题切换
+import Search from "./Search.svelte"; //全文搜索
+import DisplaySettings from "./widget/DisplaySettings.svelte"; //主题色选择面板
+import NavMenuPanel from "./widget/NavMenuPanel.astro"; //移动端菜单面板
 
 const className = Astro.props.class;
 
