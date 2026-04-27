@@ -1,5 +1,6 @@
 import { defineCollection, z } from "astro:content";
 
+// 定义每篇文章的frontMatter字段
 const postsCollection = defineCollection({
 	schema: z.object({
 		title: z.string(),
