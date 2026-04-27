@@ -1,16 +1,62 @@
+<!-- 这个文件负责渲染博客侧边栏中的"分类"小部件。原来只能渲染单级，改造后支持任意多层级递归渲染 -->
 ---
 import I18nKey from "../../i18n/i18nKey";
 import { i18n } from "../../i18n/translation";
-import { getCategoryList } from "../../utils/content-utils";
-import ButtonLink from "../control/ButtonLink.astro";
+import { getCategoryTree, type CategoryNode } from "../../utils/content-utils";
 import WidgetLayout from "./WidgetLayout.astro";
 
-const categories = await getCategoryList();
+const categoryTree = await getCategoryTree();
 
 const COLLAPSED_HEIGHT = "7.5rem";
 const COLLAPSE_THRESHOLD = 5;
 
-const isCollapsed = categories.length >= COLLAPSE_THRESHOLD;
+// 递归计算总分类数（支持任意层级）
+function countAllCategories(nodes: CategoryNode[]): number {
+    let count = 0;
+    nodes.forEach(node => {
+        count += 1;
+        if (node.children && node.children.length > 0) {
+            count += countAllCategories(node.children);
+        }
+    });
+    return count;
+}
+
+// 递归渲染分类树节点，返回 HTML 字符串
+// indent 是缩进深度，每深入一层增加 1.25rem
+function renderCategoryNodes(nodes: CategoryNode[], indent: number = 0): string {
+    return nodes.map(node => {
+        const paddingLeft = `${0.75 + indent * 1.25}rem`;
+        const hasChildren = node.children && node.children.length > 0;
+
+        if (hasChildren) {
+            // 有子分类：用 details 折叠
+            return `
+                <details class="category-parent" open>
+                    <summary class="category-summary" style="padding-left: ${paddingLeft}">
+                        <a href="${node.url}" class="category-link">${node.name.trim()}</a>
+                        <span class="category-count">${node.count}</span>
+                    </summary>
+                    <div class="category-children">
+                        ${renderCategoryNodes(node.children, indent + 1)}
+                    </div>
+                </details>
+            `;
+        } else {
+            // 叶子节点：普通链接按钮样式
+            return `
+                <a href="${node.url}" class="category-leaf" style="padding-left: ${paddingLeft}">
+                    <span class="leaf-name">${node.name.trim()}</span>
+                    <span class="category-count">${node.count}</span>
+                </a>
+            `;
+        }
+    }).join('');
+}
+
+const totalCategories = countAllCategories(categoryTree);
+const isCollapsed = totalCategories >= COLLAPSE_THRESHOLD;
+const categoryTreeHtml = renderCategoryNodes(categoryTree);
 
 interface Props {
 	class?: string;
@@ -23,13 +69,98 @@ const style = Astro.props.style;
 <WidgetLayout name={i18n(I18nKey.categories)} id="categories" isCollapsed={isCollapsed} collapsedHeight={COLLAPSED_HEIGHT}
                 class={className} style={style}
 >
-    {categories.map((c) =>
-        <ButtonLink
-            url={c.url}
-            badge={String(c.count)}
-            label={`View all posts in the ${c.name.trim()} category`}
-        >
-            {c.name.trim()}
-        </ButtonLink>
-    )}
+    <div class="category-tree" set:html={categoryTreeHtml}></div>
 </WidgetLayout>
+
+<style>
+    .category-tree {
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+    }
+
+    .category-parent {
+        border: none;
+        padding: 0;
+        background: transparent;
+    }
+
+    .category-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        list-style: none;
+        transition: background-color 0.2s;
+    }
+
+    .category-summary:hover {
+        background-color: var(--btn-plain-bg-hover);
+    }
+
+    .category-summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .category-summary::before {
+        content: "▶";
+        font-size: 0.625rem;
+        color: var(--text-secondary);
+        margin-right: 0.5rem;
+        transition: transform 0.2s;
+        flex-shrink: 0;
+    }
+
+    details[open] .category-summary::before {
+        transform: rotate(90deg);
+    }
+
+    .category-link {
+        flex: 1;
+        font-weight: 600;
+        color: var(--text-primary);
+        text-decoration: none;
+    }
+
+    .category-link:hover {
+        color: var(--primary);
+    }
+
+    .category-count {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        background-color: var(--badge-bg);
+        padding: 0.125rem 0.5rem;
+        border-radius: 9999px;
+        margin-left: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    .category-children {
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+        border-left: 1px solid var(--border);
+        margin-left: 0.5rem;
+    }
+
+    .category-leaf {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-radius: 0.375rem;
+        text-decoration: none;
+        color: var(--text-secondary);
+        transition: all 0.2s;
+    }
+
+    .category-leaf:hover {
+        background-color: var(--btn-plain-bg-hover);
+        color: var(--primary);
+    }
+
+    .leaf-name {
+        font-weight: 500;
+    }
+</style>

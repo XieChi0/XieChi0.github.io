@@ -53,9 +53,14 @@ onMount(async () => {
 	}
 
 	if (categories.length > 0) {
-		filteredPosts = filteredPosts.filter(
-			(post) => post.data.category && categories.includes(post.data.category),
-		);
+		filteredPosts = filteredPosts.filter((post) => {
+			if (!post.data.category) return false;
+			// 支持精确匹配和前缀匹配（如选择 "JavaScript" 时也匹配 "JavaScript/进阶"，选择一个分类应该显示该分类及其所有子分类下的文章）
+			return categories.some(cat => 
+				post.data.category === cat || 
+				post.data.category.startsWith(cat + '/')
+			);
+		});
 	}
 
 	if (uncategorized) {
