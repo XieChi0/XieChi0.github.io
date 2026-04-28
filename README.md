@@ -29,3 +29,6 @@ git push -u astro-boke main
 
 这样以后只需要输入 `git push` 就会自动推送到 `astro-boke` 仓库了。
 
+## 三、如果git push推送失败，该怎么做
+首先确保你在powershell环境下，执行```ssh -T git@github.com```
+然后再git push
