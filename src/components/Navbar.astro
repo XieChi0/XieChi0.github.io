@@ -1,18 +1,18 @@
 <!-- 导航栏负责把从 `getCategoryTree()` 获取的分类树数据，转成 `CascadeSelector` 需要的格式，然后渲染出来。 -->
 ---
 import { Icon } from "astro-icon/components";
+import { navBarConfig, siteConfig } from "../config"; //config.ts表示针对types/config实际配置值（具体数值）
+import { LinkPresets } from "../constants/link-presets"; //link-presets.ts表示路由预设值
 // 和链接相关的
-import { LinkPreset, type NavBarLink } from "../types/config";   //types/config.ts表示类型定义
-import { navBarConfig, siteConfig } from "../config";   //config.ts表示针对types/config实际配置值（具体数值）
-import { LinkPresets } from "../constants/link-presets";   //link-presets.ts表示路由预设值
+import { LinkPreset, type NavBarLink } from "../types/config"; //types/config.ts表示类型定义
+import { getCategoryTree } from "../utils/content-utils"; // 获取分类树数据
 import { url } from "../utils/url-utils";
-import { getCategoryTree } from "../utils/content-utils";  // 获取分类树数据
+import CascadeSelector from "./CascadeSelector.svelte"; //层级分类选择器
 // 和小组件相关的
 import LightDarkSwitch from "./LightDarkSwitch.svelte"; //明暗主题切换
 import Search from "./Search.svelte"; //全文搜索
 import DisplaySettings from "./widget/DisplaySettings.svelte"; //主题色选择面板
 import NavMenuPanel from "./widget/NavMenuPanel.astro"; //移动端菜单面板
-import CascadeSelector from "./CascadeSelector.svelte"; //层级分类选择器
 
 const className = Astro.props.class;
 
@@ -20,17 +20,18 @@ const className = Astro.props.class;
 const categoryTree = await getCategoryTree();
 
 // 将分类树转换为级联选择器需要的格式
-function convertToCascaderOptions(tree: any[], parentPath: string = ""): any[] {
-    return tree.map(node => {
-        const fullPath = parentPath ? `${parentPath}/${node.name}` : node.name;
-        return {
-            value: fullPath,  // 使用完整路径，如 "编程/算法"
-            label: node.name,
-            children: node.children && node.children.length > 0
-                ? convertToCascaderOptions(node.children, fullPath)
-                : undefined
-        };
-    });
+function convertToCascaderOptions(tree: any[], parentPath = ""): any[] {
+	return tree.map((node) => {
+		const fullPath = parentPath ? `${parentPath}/${node.name}` : node.name;
+		return {
+			value: fullPath, // 使用完整路径，如 "编程/算法"
+			label: node.name,
+			children:
+				node.children && node.children.length > 0
+					? convertToCascaderOptions(node.children, fullPath)
+					: undefined,
+		};
+	});
 }
 
 const cascaderOptions = convertToCascaderOptions(categoryTree);
@@ -40,15 +41,15 @@ const normalLinks: NavBarLink[] = [];
 let showCascadeSelector = false;
 
 navBarConfig.links.forEach((item) => {
-    if (typeof item === "number") {
-        if (item === LinkPreset.Category) {
-            showCascadeSelector = true;
-        } else {
-            normalLinks.push(LinkPresets[item]);
-        }
-    } else {
-        normalLinks.push(item);
-    }
+	if (typeof item === "number") {
+		if (item === LinkPreset.Category) {
+			showCascadeSelector = true;
+		} else {
+			normalLinks.push(LinkPresets[item]);
+		}
+	} else {
+		normalLinks.push(item);
+	}
 });
 ---
 <div id="navbar" class="z-50 onload-animation">

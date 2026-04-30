@@ -2,6 +2,7 @@ import { type CollectionEntry, getCollection } from "astro:content";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import { getCategoryUrl } from "@utils/url-utils.ts";
+
 // 文件职责： 提供获取博客文章列表、分类列表、标签列表的工具函数，是内容层的数据中枢。
 
 // // Retrieve posts and sort them by publication date
@@ -78,12 +79,15 @@ export type CategoryNode = {
 	name: string;
 	count: number;
 	url: string;
-	children?: CategoryNode[];	//可选字段：子节点数组，如果有子节点就写，没有的话就是undefined，因为这里的type后面有个问号
+	children?: CategoryNode[]; //可选字段：子节点数组，如果有子节点就写，没有的话就是undefined，因为这里的type后面有个问号
 };
 
 // 路径解析函数，如输入"编程/算法"，则返回["编程", "算法"]
 function parseCategoryPath(path: string): string[] {
-	return path.split('/').map(p => p.trim()).filter(p => p);
+	return path
+		.split("/")
+		.map((p) => p.trim())
+		.filter((p) => p);
 }
 // split接收字符串，输出字符串数组 ["a",' b ','c']（字符串方法）
 // map接收数组，然后逐个处理每个字符串，该有的前后空格去掉 ["a",'b','c']
@@ -92,25 +96,23 @@ function parseCategoryPath(path: string): string[] {
 // 而filter会对不合格的可以扔掉
 // 将博客文章数组转换为分类树的核心算法
 
-
-
 // 将博客文章数组转换为分类树的核心算法（支持任意层级）
 // 接收格式
-  // Posts = [
-    //     { data: { category: "Examples" }, ... },
-    //     { data: { category: "前端/CSS" }, ... },
-    //     { data: { category: "业务/水文" }, ... },
-    // ]
+// Posts = [
+//     { data: { category: "Examples" }, ... },
+//     { data: { category: "前端/CSS" }, ... },
+//     { data: { category: "业务/水文" }, ... },
+// ]
 function buildCategoryTree(
-	posts: { data: { category: string | null } }[]
+	posts: { data: { category: string | null } }[],
 ): CategoryNode[] {
 	// 统计每个分类的文章数（叶子节点），leftCounts是字典，key是完整路径，val是文章数
-		// leafCounts = {
-		// 	"未分类": 2,
-		// 	"前端/CSS": 1
-		//   }
+	// leafCounts = {
+	// 	"未分类": 2,
+	// 	"前端/CSS": 1
+	//   }
 	const leafCounts: { [key: string]: number } = {};
-	posts.forEach(post => {
+	posts.forEach((post) => {
 		if (!post.data.category) {
 			const ucKey = i18n(I18nKey.uncategorized);
 			leafCounts[ucKey] = (leafCounts[ucKey] || 0) + 1;
@@ -127,20 +129,20 @@ function buildCategoryTree(
 	// 内部函数，只能在buildCategoryTree内部调用
 	function insertNodeRecursive(
 		parent: CategoryNode,
-		parts: string[],  //剩余的路径段
+		parts: string[], //剩余的路径段
 		fullPath: string,
 		count: number,
-		parentPath: string	//从根到目前parent（父节点）的完整路径
+		parentPath: string, //从根到目前parent（父节点）的完整路径
 	) {
 		// 如果没有剩余路径，说明已经插入完了，直接返回，是递归终止条件
 		if (parts.length === 0) return;
 
-		const [currentName, ...rest] = parts;	//把parts的第一个元素叫currentName，剩余元素组成一个数组叫rest（ES6解构赋值）
-		const currentFullPath = `${parentPath}/${currentName}`;	//把currentName拼接到parentPath后面，得到当前的完整路径
+		const [currentName, ...rest] = parts; //把parts的第一个元素叫currentName，剩余元素组成一个数组叫rest（ES6解构赋值）
+		const currentFullPath = `${parentPath}/${currentName}`; //把currentName拼接到parentPath后面，得到当前的完整路径
 
 		// 懒创建 children：只有当需要添加子节点时才创建数组
 		if (!parent.children) parent.children = [];
-		let node = parent.children.find(n => n.name === currentName);	//数组方法，返回让第一个函数返回true的元素
+		let node = parent.children.find((n) => n.name === currentName); //数组方法，返回让第一个函数返回true的元素
 		// 如果rest为空，说明这是叶子节点，直接创建或累加计数
 		if (rest.length === 0) {
 			if (!node) {
@@ -157,20 +159,24 @@ function buildCategoryTree(
 		} else {
 			// 非叶子节点：确保子节点存在，然后继续往下递归
 			if (!node) {
-				node = { name: currentName, count: 0, url: getCategoryUrl(currentFullPath) };
+				node = {
+					name: currentName,
+					count: 0,
+					url: getCategoryUrl(currentFullPath),
+				};
 				parent.children.push(node);
 			}
 			insertNodeRecursive(node, rest, fullPath, count, currentFullPath);
 		}
-	}//insertNodeRecursive函数结束
+	} //insertNodeRecursive函数结束
 
 	// 遍历所有叶子路径，逐个插入树中
-	Object.keys(leafCounts).forEach(fullPath => {
+	Object.keys(leafCounts).forEach((fullPath) => {
 		const parts = parseCategoryPath(fullPath);
 		if (parts.length === 0) return;
 
 		// 尝试在根节点中查找第一个段
-		let node = root.find(n => n.name === parts[0]);
+		let node = root.find((n) => n.name === parts[0]);
 
 		if (parts.length === 1) {
 			// 单级分类：直接在根节点处理
@@ -195,7 +201,13 @@ function buildCategoryTree(
 				root.push(node);
 			}
 			// 递归插入时传入第一段的完整路径作为 parentPath
-			insertNodeRecursive(node, parts.slice(1), fullPath, leafCounts[fullPath] || 0, parts[0]);
+			insertNodeRecursive(
+				node,
+				parts.slice(1),
+				fullPath,
+				leafCounts[fullPath] || 0,
+				parts[0],
+			);
 		}
 	});
 
@@ -210,8 +222,10 @@ function buildCategoryTree(
 
 	// 对所有层级的节点按字母排序（递归）
 	function sortNodes(nodes: CategoryNode[]) {
-		nodes.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
-		nodes.forEach(node => {
+		nodes.sort((a, b) =>
+			a.name.toLowerCase().localeCompare(b.name.toLowerCase()),
+		);
+		nodes.forEach((node) => {
 			if (node.children && node.children.length > 0) {
 				sortNodes(node.children);
 			}

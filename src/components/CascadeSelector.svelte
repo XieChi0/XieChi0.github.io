@@ -1,91 +1,91 @@
 <!-- 这是从零开始写的一个级联选择器组件，负责展开一个多层级面板 -->
 <script lang="ts">
-    interface CategoryNode {
-        value: string;
-        label: string;
-        children?: CategoryNode[];
-    }
+interface CategoryNode {
+	value: string;
+	label: string;
+	children?: CategoryNode[];
+}
 
-    interface Props {
-        options: CategoryNode[];
-    }
+interface Props {
+	options: CategoryNode[];
+}
 
-    let { options }: Props = $props();
+let { options }: Props = $props();
 
-    let isOpen = $state(false);
-    let leaveTimer: ReturnType<typeof setTimeout> | null = null;
+let isOpen = $state(false);
+let leaveTimer: ReturnType<typeof setTimeout> | null = null;
 
-    // activePath tracks which item is hovered in each column
-    // e.g. [1, 2] means column 0 item 1 is hovered, column 1 item 2 is hovered
-    let activePath = $state<number[]>([]);
+// activePath tracks which item is hovered in each column
+// e.g. [1, 2] means column 0 item 1 is hovered, column 1 item 2 is hovered
+let activePath = $state<number[]>([]);
 
-    // menus is an array of columns, each column is an array of items at that depth
-    let menus = $derived.by(() => {
-        let opts = options;
-        const result = [opts];
-        for (const idx of activePath) {
-            if (opts[idx]?.children) {
-                opts = opts[idx].children!;
-                result.push(opts);
-            }
-        }
-        return result;
-    });
+// menus is an array of columns, each column is an array of items at that depth
+let menus = $derived.by(() => {
+	let opts = options;
+	const result = [opts];
+	for (const idx of activePath) {
+		if (opts[idx]?.children) {
+			opts = opts[idx].children!;
+			result.push(opts);
+		}
+	}
+	return result;
+});
 
-    //负责清除定时器，防止快速hover时定时器冲突
-    function handleMouseEnter() {
-        if (leaveTimer) {
-            clearTimeout(leaveTimer);
-            leaveTimer = null;
-        }
-        isOpen = true;
-    }
+//负责清除定时器，防止快速hover时定时器冲突
+function handleMouseEnter() {
+	if (leaveTimer) {
+		clearTimeout(leaveTimer);
+		leaveTimer = null;
+	}
+	isOpen = true;
+}
 
-    //延迟120ms关闭，不然鼠标一移动容易面板消失
-    function handleMouseLeave() {
-        // Delay closing so user has time to move cursor onto the panel
-        leaveTimer = setTimeout(() => {
-            isOpen = false;
-            activePath = [];
-        }, 120);
-    }
+//延迟120ms关闭，不然鼠标一移动容易面板消失
+function handleMouseLeave() {
+	// Delay closing so user has time to move cursor onto the panel
+	leaveTimer = setTimeout(() => {
+		isOpen = false;
+		activePath = [];
+	}, 120);
+}
 
-    // 让 hover 面板本身也能保持面板打开
-    function handlePanelMouseEnter() {
-        if (leaveTimer) {
-            clearTimeout(leaveTimer);
-            leaveTimer = null;
-        }
-        isOpen = true;
-    }
+// 让 hover 面板本身也能保持面板打开
+function handlePanelMouseEnter() {
+	if (leaveTimer) {
+		clearTimeout(leaveTimer);
+		leaveTimer = null;
+	}
+	isOpen = true;
+}
 
-    // Hover on an item in a specific column
-    function hoverItem(colIdx: number, itemIdx: number) {
-        const item = menus[colIdx][itemIdx];
-        // Truncate path back to this column's depth
-        activePath = activePath.slice(0, colIdx);
-        if (item.children && item.children.length > 0) {
-            // Expand to show the next column
-            activePath = [...activePath, itemIdx];
-        }
-    }
+// Hover on an item in a specific column
+function hoverItem(colIdx: number, itemIdx: number) {
+	const item = menus[colIdx][itemIdx];
+	// Truncate path back to this column's depth
+	activePath = activePath.slice(0, colIdx);
+	if (item.children && item.children.length > 0) {
+		// Expand to show the next column
+		activePath = [...activePath, itemIdx];
+	}
+}
 
-    function clickItem(colIdx: number, itemIdx: number) {
-        const item = menus[colIdx][itemIdx];
-        if (!item.children || item.children.length === 0) {
-            isOpen = false;
-            activePath = [];
-            window.location.href = `/archive/?category=${encodeURIComponent(item.value)}`;
-        }
-    }
+function clickItem(colIdx: number, itemIdx: number) {
+	const item = menus[colIdx][itemIdx];
+	if (!item.children || item.children.length === 0) {
+		isOpen = false;
+		activePath = [];
+		window.location.href = `/archive/?category=${encodeURIComponent(item.value)}`;
+	}
+}
 
-    function handleClickOutside(e: MouseEvent) {
-        const target = e.target as HTMLElement;
-        if (!target.closest('.cascader-wrapper')) {
-            isOpen = false;
-            activePath = [];
-        }
-    }
+function handleClickOutside(e: MouseEvent) {
+	const target = e.target as HTMLElement;
+	if (!target.closest(".cascader-wrapper")) {
+		isOpen = false;
+		activePath = [];
+	}
+}
 </script>
 
 <svelte:window onclick={handleClickOutside} />

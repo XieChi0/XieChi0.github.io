@@ -2,7 +2,7 @@
 ---
 import I18nKey from "../../i18n/i18nKey";
 import { i18n } from "../../i18n/translation";
-import { getCategoryTree, type CategoryNode } from "../../utils/content-utils";
+import { type CategoryNode, getCategoryTree } from "../../utils/content-utils";
 import WidgetLayout from "./WidgetLayout.astro";
 
 const categoryTree = await getCategoryTree();
@@ -12,26 +12,27 @@ const COLLAPSE_THRESHOLD = 5;
 
 // 递归计算总分类数（支持任意层级）
 function countAllCategories(nodes: CategoryNode[]): number {
-    let count = 0;
-    nodes.forEach(node => {
-        count += 1;
-        if (node.children && node.children.length > 0) {
-            count += countAllCategories(node.children);
-        }
-    });
-    return count;
+	let count = 0;
+	nodes.forEach((node) => {
+		count += 1;
+		if (node.children && node.children.length > 0) {
+			count += countAllCategories(node.children);
+		}
+	});
+	return count;
 }
 
 // 递归渲染分类树节点，返回 HTML 字符串
 // indent 是缩进深度，每深入一层增加 1.25rem
-function renderCategoryNodes(nodes: CategoryNode[], indent: number = 0): string {
-    return nodes.map(node => {
-        const paddingLeft = `${0.75 + indent * 1.25}rem`;
-        const hasChildren = node.children && node.children.length > 0;
+function renderCategoryNodes(nodes: CategoryNode[], indent = 0): string {
+	return nodes
+		.map((node) => {
+			const paddingLeft = `${0.75 + indent * 1.25}rem`;
+			const hasChildren = node.children && node.children.length > 0;
 
-        if (hasChildren) {
-            // 有子分类：用 details 折叠
-            return `
+			if (hasChildren) {
+				// 有子分类：用 details 折叠
+				return `
                 <details class="category-parent" open>
                     <summary class="category-summary" style="padding-left: ${paddingLeft}">
                         <a href="${node.url}" class="category-link">${node.name.trim()}</a>
@@ -42,16 +43,16 @@ function renderCategoryNodes(nodes: CategoryNode[], indent: number = 0): string 
                     </div>
                 </details>
             `;
-        } else {
-            // 叶子节点：普通链接按钮样式
-            return `
+			}
+			// 叶子节点：普通链接按钮样式
+			return `
                 <a href="${node.url}" class="category-leaf" style="padding-left: ${paddingLeft}">
                     <span class="leaf-name">${node.name.trim()}</span>
                     <span class="category-count">${node.count}</span>
                 </a>
             `;
-        }
-    }).join('');
+		})
+		.join("");
 }
 
 const totalCategories = countAllCategories(categoryTree);
