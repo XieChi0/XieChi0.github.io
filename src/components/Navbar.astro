@@ -5,7 +5,7 @@ import { navBarConfig, siteConfig } from "../config"; //config.ts表示针对typ
 import { LinkPresets } from "../constants/link-presets"; //link-presets.ts表示路由预设值
 // 和链接相关的
 import { LinkPreset, type NavBarLink } from "../types/config"; //types/config.ts表示类型定义
-import { getCategoryTree } from "../utils/content-utils"; // 获取分类树数据
+import { type CategoryNode, getCategoryTree } from "../utils/content-utils"; // 获取分类树数据
 import { url } from "../utils/url-utils";
 import CascadeSelector from "./CascadeSelector.svelte"; //层级分类选择器
 // 和小组件相关的
@@ -20,7 +20,14 @@ const className = Astro.props.class;
 const categoryTree = await getCategoryTree();
 
 // 将分类树转换为级联选择器需要的格式
-function convertToCascaderOptions(tree: any[], parentPath = ""): any[] {
+function convertToCascaderOptions(
+	tree: CategoryNode[],
+	parentPath = "",
+): {
+	value: string;
+	label: string;
+	children?: { value: string; label: string; children?: unknown }[];
+}[] {
 	return tree.map((node) => {
 		const fullPath = parentPath ? `${parentPath}/${node.name}` : node.name;
 		return {

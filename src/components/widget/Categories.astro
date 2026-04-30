@@ -39,7 +39,7 @@ function renderCategoryNodes(nodes: CategoryNode[], indent = 0): string {
                         <span class="category-count">${node.count}</span>
                     </summary>
                     <div class="category-children">
-                        ${renderCategoryNodes(node.children!, indent + 1)}
+                        ${renderCategoryNodes(node.children ?? [], indent + 1)}
                     </div>
                 </details>
             `;

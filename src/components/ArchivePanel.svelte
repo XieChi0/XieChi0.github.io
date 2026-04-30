@@ -59,7 +59,7 @@ onMount(async () => {
 			return categories.some(
 				(cat) =>
 					post.data.category === cat ||
-					post.data.category.startsWith(cat + "/"),
+					post.data.category.startsWith(`${cat}/`),
 			);
 		});
 	}

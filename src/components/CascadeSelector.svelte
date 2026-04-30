@@ -25,7 +25,7 @@ let menus = $derived.by(() => {
 	const result = [opts];
 	for (const idx of activePath) {
 		if (opts[idx]?.children) {
-			opts = opts[idx].children!;
+			opts = opts[idx].children as CategoryNode[];
 			result.push(opts);
 		}
 	}
