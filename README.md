@@ -49,7 +49,7 @@ git push -u astro-boke main
 ## 环境配置
 
 ### 安装 Node.js 22/23
-
+（目前我用的是22.12.0）
 ```bash
 # nvm 用户
 nvm install 22
