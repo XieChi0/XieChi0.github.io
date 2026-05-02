@@ -1,6 +1,5 @@
 ---
-
-## title: 前端框架svelte&astro vs vue/react
+title: '前端框架svelte&astro vs vue/react'
 
 published: 2026-04-30
 updated: 2026-04-30
