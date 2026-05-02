@@ -1,5 +1,6 @@
 #!/bin/bash
 # Install git hooks for astro-boke
+# Creates platform-appropriate hook files
 
 set -e
 
@@ -15,35 +16,34 @@ fi
 # Create hooks directory if it doesn't exist
 mkdir -p .git/hooks
 
-# Detect platform and copy appropriate hook
-if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" || -n "$PROGRAMFILES" ]]; then
-    # Windows: copy PowerShell wrapper and script
-    cp "$HOOKS_DIR/pre-push.ps1" .git/hooks/pre-push.ps1
-    cat > .git/hooks/pre-push << 'EOF'
-# Wrapper for Windows PowerShell pre-push hook
-hookDir="$(dirname "$0")"
-if command -v powershell >/dev/null 2>&1; then
-    powershell -File "$hookDir/pre-push.ps1"
-else
-    echo "Error: PowerShell is not installed"
-    exit 1
-fi
+# Copy PowerShell script
+cp "$HOOKS_DIR/pre-commit.ps1" .git/hooks/pre-commit.ps1
+
+# Detect OS and create appropriate wrapper
+OS="$(uname -s)"
+if [[ "$OS" == *"MINGW"* ]] || [[ "$OS" == *"CYGWIN"* ]] || [[ "$OS" == *"MSYS"* ]] || [[ "$OSTYPE" == "msys" ]]; then
+    # Windows: create batch wrapper
+    cat > .git/hooks/pre-commit << 'EOF'
+@echo off
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0pre-commit.ps1"
+exit /b %ERRORLEVEL%
 EOF
-    chmod +x .git/hooks/pre-push
-    echo "✅ Git hooks installed successfully! (PowerShell version)"
+    cp .git/hooks/pre-commit .git/hooks/pre-commit.cmd
+    echo "✅ Git hooks installed! (Windows)"
 else
-    # Unix-like: copy bash script
-    cp "$HOOKS_DIR/pre-push" .git/hooks/pre-push
-    chmod +x .git/hooks/pre-push
-    echo "✅ Git hooks installed successfully! (Bash version)"
+    # Unix-like: create bash wrapper
+    cat > .git/hooks/pre-commit << 'EOFWRAPPER'
+#!/bin/bash
+powershell -NoProfile -ExecutionPolicy Bypass -File "$(dirname "$0")/pre-commit.ps1"
+exit $?
+EOFWRAPPER
+    chmod +x .git/hooks/pre-commit
+    echo "✅ Git hooks installed! (Unix)"
 fi
 
 echo ""
-echo "The following checks will run before every push:"
-echo "  1. pnpm availability check"
-echo "  2. pnpm install (if needed)"
-echo "  3. Astro check"
-echo "  4. Build"
-echo "  5. Biome lint"
-echo ""
-echo "These checks mirror your GitHub Actions workflows."
+echo "Pre-commit checks:"
+echo "  1. pnpm check"
+echo "  2. Astro check"
+echo "  3. Build"
+echo "  4. Biome lint"

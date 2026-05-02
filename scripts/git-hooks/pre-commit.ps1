@@ -1,4 +1,4 @@
-# Pre-push hook for astro-boke (PowerShell version)
+# Pre-commit hook for astro-boke (PowerShell version)
 # Mirrors the GitHub Actions workflows: build.yml and biome.yml
 
 $ErrorActionPreference = "Stop"
@@ -11,7 +11,7 @@ function Write-Info { param($m) Write-Host "🔍 $m" -ForegroundColor $YELLOW }
 function Write-Success { param($m) Write-Host "✅ $m" -ForegroundColor $GREEN }
 function Write-Fail { param($m) Write-Host "❌ $m" -ForegroundColor $RED }
 
-Write-Info "Running pre-push checks..."
+Write-Info "Running pre-commit checks..."
 Write-Info "Project: astro-boke"
 Write-Host ""
 
@@ -36,7 +36,7 @@ Write-Info "Running Astro check..."
 pnpm astro check
 if ($LASTEXITCODE -ne 0) {
     Write-Fail "Astro type check failed!"
-    Write-Fail "Please fix the errors before pushing."
+    Write-Fail "Please fix the errors before committing."
     exit 1
 }
 Write-Success "Astro check passed"
@@ -46,7 +46,7 @@ Write-Info "Running build..."
 pnpm build
 if ($LASTEXITCODE -ne 0) {
     Write-Fail "Build failed!"
-    Write-Fail "Please fix the build errors before pushing."
+    Write-Fail "Please fix the build errors before committing."
     exit 1
 }
 Write-Success "Build passed"
@@ -56,10 +56,10 @@ Write-Info "Running Biome lint..."
 pnpm biome ci ./src
 if ($LASTEXITCODE -ne 0) {
     Write-Fail "Biome lint failed!"
-    Write-Fail "Please fix the linting errors before pushing."
+    Write-Fail "Please fix the linting errors before committing."
     exit 1
 }
 Write-Success "Biome lint passed"
 
 Write-Host ""
-Write-Success "All pre-push checks passed! Ready to push."
+Write-Success "All pre-commit checks passed! Ready to commit."
