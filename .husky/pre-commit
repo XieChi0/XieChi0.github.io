@@ -1,1 +1,1 @@
-pnpm astro check && pnpm build && pnpm biome ci ./src
+npx astro check && npx astro build && npx biome ci ./src
