@@ -1,1 +1,1 @@
-npx astro check && npx astro build && npx biome ci ./src
+node .husky/pre-commit.cjs
