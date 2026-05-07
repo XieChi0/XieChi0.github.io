@@ -2,7 +2,7 @@
 title: JavaScript 篇
 published: 2024-01-01
 description: JavaScript 学习笔记
-tags: [JavaScript, 前端]
+tags: [JavaScript, 前端, 基础]
 category: 前端/JavaScript
 draft: false
 ---

@@ -2,7 +2,7 @@
 title: HTML 篇
 published: 2024-01-01
 description: HTML 学习笔记，基于 MDN 补充
-tags: [HTML, 前端]
+tags: [HTML, 前端, 基础]
 category: 前端/html
 draft: false
 ---

@@ -2,7 +2,7 @@
 title: Axios 及其他
 published: 2024-09-22
 description: Axios 使用技巧与 Vite 等前端工具笔记
-tags: [Axios, 前端, Vite]
+tags: [Axios, 前端, Vite, HTTP]
 category: 前端/Axios及其他
 draft: false
 ---

@@ -4,7 +4,7 @@ published: 2022-02-01
 updated: 2024-12-01
 description: '参加算法比赛时学到的C++知识'
 image: ''
-tags: [C++]
+tags: [C++, 算法, 基础]
 category: '基本功/C++'
 draft: false 
 ---

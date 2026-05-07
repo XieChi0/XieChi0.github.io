@@ -2,7 +2,7 @@
 title: Vue 篇
 published: 2024-01-01
 description: Vue 学习笔记，基于 B 站教程补充
-tags: [Vue, 前端]
+tags: [Vue, 前端, 框架]
 category: 前端/Vue
 draft: false
 ---
