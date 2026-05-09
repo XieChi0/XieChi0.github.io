@@ -476,7 +476,7 @@ npm install -D nodemon
 >| ----------------- | --------- | ------------- | --------------------------------------- |
 >| `-g / --global`   | 全局安装        |   区分        | 常用小写 `-g`；不要写 `-G`                      |
 >| `-D / --save-dev` | 开发依赖 ，项目正式运行不用       |   区分        | 保存到package.json中 `devDependencies`，比如 nodemon、eslint |
->| `-S / --save`     | 运行时依赖       |   区分        | 保存到package.json中 `dependencies`；npm 5+ 默认就是这个，所以通常省略 |
+>| `-S / --save`     | 运行时依赖，什么环境都要用到       |   区分        | 保存到package.json中 `dependencies`；npm 5+ 默认就是这个，所以通常省略 |
 
 
 ### 环境变量与 .env 文件

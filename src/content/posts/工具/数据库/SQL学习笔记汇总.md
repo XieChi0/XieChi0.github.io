@@ -1,12 +1,11 @@
 ---
-
 title: SQL 数据库入门指南：从零理解数据库与查询
 published: 2026-05-07
 updated: 2026-05-07
 description: 'Read more about Markdown features in Fuwari'
 image: ''
 tags: [SQL, 数据库, 教程]
-category: 'Examples'
+category: '基本功/数据库'
 draft: false
 ---
 
@@ -18,14 +17,21 @@ draft: false
 
 ### SQL 与数据库的关系
 
-- **数据库**：存放数据的“仓库”（如 MySQL、PostgreSQL、SQLite）
-- **SQL**：Structured Query Language，结构化查询语言，是操作关系型数据库的标准编程语言（操作仓库的“语言”）
+- **数据库**：存放数据的"仓库"（如 MySQL、PostgreSQL、SQLite）
+- **SQL**：Structured Query Language，结构化查询语言，是操作关系型数据库的标准编程语言（操作仓库的"语言"）
 
 通过 SQL 可以实现对数据库的各类操作，包括查询数据、插入数据、修改数据、删除数据。
 
 ### DBMS
 
 DBMS = Database Management System，数据库管理系统，是位于用户与数据库之间的系统软件，提供数据存储、检索、更新等功能，并管理数据库的运行和维护。
+> 很多人习惯说"用 MySQL 存数据"，但严格来说，**MySQL 不是数据库，而是数据库管理系统（DBMS）**。
+> - MySQL 是用来管理数据库的**软件系统**
+> - MySQL 创建的"仓库"才是数据库
+> 类似的还有 PostgreSQL、SQLite，它们都是 DBMS 软件，而不是数据库本身。
+
+
+
 
 ### 关系型数据库与非关系型数据库
 
