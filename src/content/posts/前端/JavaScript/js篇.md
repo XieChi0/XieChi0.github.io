@@ -158,7 +158,7 @@ JS是一种脚本编程语言，可以让网页提供实时内容更新。
 **常见定义解释**
 
 * 解释&编译：分别是interpret,compile.先解释编译，编译型语言是说代码要转化成另一种形式才能运行。比如C和C++先要编译成机器码，然后才能由计算机运行。解释型语言是说，代码自上而下运行，且**实时返回运行结果**。
-* `监听控件.addEventListener("监听事件"，“处理器”)  `：监听控件发生的事件并分配处理器
+* `监听控件.addEventListener("监听事件"，"处理器")  `：监听控件发生的事件并分配处理器
 
 
 
@@ -170,6 +170,7 @@ JS是一种脚本编程语言，可以让网页提供实时内容更新。
 * `defer`：（仅对外部脚本有效，而且通常是放到< head>标签中）常见于< script src="script.js" defer>< /script>。defer告知浏览器在遇到 `<script>` 元素时先把HTML 内容解析完以后再执行js脚本，而不是遇见脚本就立即执行。（适用于脚本中有很多DOM的情况）有助于减缓阻塞。（defer的翻译是推迟，延缓）
 * `async`：脚本下载完就立即执行。也就是可能会边解析HTML文档边解析脚本。
 * 如果你直接把js脚本文件放在HTML代码底端，那上面的都是浮云，完全不需要使用了，因为计算机直接运行完上面的再运行js。
+
 
 
 
@@ -251,9 +252,10 @@ name="chris";  var name;
 
 
 
+
 <h5>动态类型</h5>
 
-JavaScript 是一种“动态类型语言”，这意味着不同于其他一些语言 (译者注：如 C、JAVA)，你不需要指定变量将包含什么数据类型（例如 number 或 string）。
+JavaScript 是一种"动态类型语言"，这意味着不同于其他一些语言 (译者注：如 C、JAVA)，你不需要指定变量将包含什么数据类型（例如 number 或 string）。
 
 let myString = "Hello";
 
@@ -266,6 +268,7 @@ let myString = "Hello";
 <h5>模板字面量</h5>
 
 使用反引号声明的字符串是一种特殊字符串，被称为[*模板字面量*](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Template_literals)。在大多数情况下，模板字面量与普通字符串类似，但它具有一些特殊的属性。
+
 
 
 
@@ -287,6 +290,7 @@ console.log(joined); // "你好，请问最近如何？"
 ```
 
 像这样连接字符串被称为*串联*（concatenation）。
+
 
 
 
@@ -312,6 +316,7 @@ console.log(`${greeting}，${name}`); // "你好，克里斯"
 
 
 
+
 更复杂一点的模板字面量中可以包含js表达式：
 
 ```
@@ -323,6 +328,7 @@ const output = `我喜欢歌曲《${song}》。我给它打了 ${
 } 分。`;
 console.log(output); // "我喜欢歌曲《青花瓷》。我给它打了 90 分。"
 ```
+
 
 
 
@@ -451,6 +457,7 @@ name();	//开始使用
 
 
 
+
 <h4>函数与方法</h4>
 
 对象的成员的函数被称为**方法**。
@@ -458,6 +465,7 @@ name();	//开始使用
 很多时候内置代码是同属于函数和方法的。比如string a.replace();
 
 此时这个replace就是属于a对象的方法，但它也是内置函数哦、
+
 
 
 
@@ -472,6 +480,7 @@ name();	//开始使用
 function hello（name）{		};	//指的是name是默认属性
 
 function hello（name="克里斯"）{		}；	//指的是name是默认属性，克里斯是默认值
+
 
 
 
@@ -624,13 +633,14 @@ btn.onclick=function(){  }
 
 <h4>addEventListener()</h4>
 
-addEventListener(“事件”，“调用函数”)
+addEventListener("事件"，"调用函数")
 
 这里的事件可以是
 
 - `focus` 和 `blur`：当按钮被聚焦或失焦时，颜色会改变；尝试按下 tab 键来聚焦于按钮，再次按下该键来使按钮失去焦点。这些事件通常用于在聚焦时显示填入表单字段的信息，或者在表单字段填入不正确的值时显示错误信息。
 - `dblclick`：颜色只在按钮被双击时改变。
 - `mouseover`和 `mouseout`：当鼠标指针在按钮上悬停，或指针移出按钮时，颜色分别会改变。
+
 
 
 
@@ -690,10 +700,10 @@ myElement.addEventListener("click",functionB);
 > 这里后面的函数只会覆盖掉前面的函数。
 
 
-
 内联事件处理器：指的是< button onclick="change()">Click me！< /button>
 
 这样是完全不建议使用的，一是有各种隐患，二是维护不方便。比如你想统一修改触发change的控件，这样就得一个个修改。
+
 
 
 
@@ -720,7 +730,6 @@ function bgChange(e) {
 > 回到代码，e.target指的是控件本身（这里代码没有展示完毕，我们绑定的是button）
 >
 > target是e的属性，负责对元素进行引用。所以这里改变颜色改变的是button的颜色，而不是html背景颜色。
-
 
 
 
@@ -831,6 +840,7 @@ video.addEventListener("click", (event) => {
 
 
 
+
 ## event.target
 
 我们使用 `event.target`来获取事件的目标元素（也就是最里面的元素）。
@@ -856,7 +866,6 @@ video.addEventListener("click", (event) => {
 > 事件冒泡：先在最内层的目标元素上发生，然后在连续较少的嵌套元素上发生。
 >
 > 事件捕获：事件先在*最小嵌套*元素上发生，然后在连续更多的嵌套元素上发生，直到达到目标。
-
 
 
 **事件捕获默认是禁用的，你需要在 `addEventListener()` 的 `capture` 选项中启用它。**
@@ -1010,7 +1019,7 @@ person[myDataName] = myDataValue;
 
 
 
-### “this”的含义
+### "this"的含义
 
 之前我们用到过this
 
@@ -1113,8 +1122,6 @@ frankie.introduceSelf();
 
 ## 对象原型
 
-
-
 ### 原型链
 
 js中所有对象都有一个内置属性，叫做**prototype(原型)**。
@@ -1122,6 +1129,7 @@ js中所有对象都有一个内置属性，叫做**prototype(原型)**。
 原型本身也是一个对象，所以这个对象也有自己的内置属性，故原型也会有自己的原型。这就构成了**原型链**。
 
 原型链止于 null作为其原型的对象。
+
 
 
 
@@ -1169,7 +1177,7 @@ do {
 
 可以看到在下面的第二句就有gapyear，可以知道gapyear是Date中的函数
 
-但是在第三行我们在myDate中又定义了一个gapyear函数，此时你再调用gapyear调用的是myDate中的函数。
+但是在第三行我们在myDate中又定义了一个gapyear函数，此时你再调用gapyear调用的是 myDate中的函数。
 
 ```
 const myDate = new Date(1995, 11, 17);
@@ -1185,8 +1193,7 @@ myDate.getYear(); // '别的东西！'
 
 鉴于对原型链的描述，这应该是可以预测的。当我们调用 `getYear()` 时，浏览器首先在 `myDate` 中寻找具有该名称的属性，如果 `myDate` 没有定义该属性，才检查原型。因此，当我们给 `myDate` 添加 `getYear()` 时，就会调用 `myDate` 中的版本。
 
-这叫做属性的“遮蔽”。
-
+这叫做属性的"遮蔽"。
 
 
 
@@ -1249,90 +1256,221 @@ const jsonObject = {name: "Alice", age: 25};
 
 **JSON.parse()：将JSON字符串解析为JS对象**
 
+```
 const jsonString = '{"name": "Alice", "age": 25}';
 const jsonObject = JSON.parse(jsonString);
 console.log(jsonObject);  // 输出: {name: "Alice", age: 25}
+```
 
 **JSON.stringify()：将JS对象序列化为JSON字符串**
 
+```
 const jsonObject = {name: "Alice", age: 25};
 const jsonString = JSON.stringify(jsonObject);
 console.log(jsonString);  // 输出: '{"name": "Alice", "age": 25}'
-
-
-
-## 异步
-
-异步指的是有这样一种方式，可以让你的程序在执行一个长时间运行任务的同时可以去处理其他的事情，而不是在那里一味地等待程序的运行。
-
-**JavaScript的异步编程指的是在执行某些任务时，代码不会阻塞程序的执行，而是允许程序继续运行其他任务，并在异步操作完成后再处理结果。**
-
-指的是
-
-> 以下是一些可能会长时间运行的函数：
->
-> - 使用 `fetch()`发起 HTTP 请求
-> - 使用 `getUserMedia()` 访问用户的摄像头和麦克风
-> - 使用 `showOpenFilePicker()`请求用户选择文件以供访问
-
-
-
-先来观察什么样的函数是同步运行的
-
-const name = "Miriam";
-const greeting = `Hello, my name is ${name}!`;
-console.log(greeting);
-// "Hello, my name is Miriam!"
-
-这里先定义一个名字和字符串，在调用函数的时候，先传进去name，然后才输出。
-
-这样一行完了再下一行执行的就叫做**同步程序**。
-
-
-
-
-
-## 事件处理程序
-
-之前我们学过事件处理程序，意思就是发生事件后的一些处理程序
-
-不过要知道addEventListener不是事件处理程序，它有两个参数，第二个才是事件处理程序，它只是负责给事件添加事件处理程序的
-
-那为什么说事件处理程序也是异步呢？
-
-因为事件处理程序是在事件发生后才调用，而不是事件发生的同时被调用的
-
-**JavaScript的异步编程指的是在执行某些任务时，代码不会阻塞程序的执行，而是允许程序继续运行其他任务，并在异步操作完成后再处理结果。**
-
-结合一下，事件处理程序放在那里但是不会立即执行，不会阻塞js其余的执行，而是在遇到特定事件才触发，触发完后返回结果。
-
-事件处理程序在事件发生时被放入事件队列（event queue），等待事件循环处理。当主线程空闲时，事件循环会从事件队列中取出事件处理程序并执行它们。
-
-
-
-
+```
 
 
 
 # ⭐
 
-## 回调
+## 异步
 
-事件处理程序是一种特殊的回调函数。
+### 为什么 JavaScript 需要异步
 
-回调函数就是说，把A函数传进B函数，并在适当的时候调用A函数。
+JavaScript 是单线程语言，同一时间只能执行一段 JS 代码。如果所有任务都同步执行，遇到耗时任务（如网络请求、定时器、用户点击等）时，页面就会卡住。
 
-有的时候可能在B执行的时候会立即调用A函数，有的时候B会等一会执行。
+异步的核心思想是：遇到耗时任务时，不让 JS 主线程一直等待，而是把任务交给浏览器运行环境处理。等任务完成后，再把对应的回调函数放入队列，等待主线程空闲时执行。
 
-尽管回调函数通常是通过将一个函数作为参数传递给另一个函数来实现，但只要遵循将操作的控制权交给另一个函数这一核心概念，就可以有多种实现方式。
+常见异步场景：
 
-> 回调函数遵从先传进去一个函数，并在合适的时候再调用这个函数。
+- `setTimeout` / `setInterval`
+- 用户点击、输入等事件
+- `fetch` / Ajax 网络请求
+- `Promise.then`
+- `async` / `await`
 
-==**回调与异步的关系：**回调是我们传进去一个函数，这个函数不需要立即执行。而你的事件处理程序也不需要立即执行，只是等事件发生了再执行事件处理程序，执行完毕我们会返回执行的结果==
-
-同步回调是在主函数执行过程中立即调用的回调函数。
+先来观察什么样的场景程序是**同步运行**的：
 
 ```
+const name = "Miriam";
+const greeting = `Hello, my name is ${name}!`;
+console.log(greeting);
+// "Hello, my name is Miriam!"
+```
+
+一行完了再接着下一行执行，就叫做**同步程序**。
+
+---
+
+### 事件处理程序
+
+事件处理程序是事件发生后执行的处理逻辑。
+
+> 对于addEventListener，它本身不是事件处理程序，它是负责给事件添加事件处理程序，第一个参数是事件，第二个参数是事件处理程序。
+
+`addEventListener` 本身是**同步**调用的，它的作用是注册一个监听器。真正异步执行的是：未来用户触发事件后，被传入的那个回调函数。
+
+```js
+button.addEventListener('click', function() {
+  console.log('clicked')
+})
+
+console.log('end')
+// 先打印 end，用户点击按钮后才打印 clicked
+```
+
+事件处理程序是在事件发生后才被放入事件队列（event queue），等待事件循环处理。当主线程空闲时，事件循环才会取出事件处理程序并执行它们。
+
+---
+
+### 同步任务与异步任务
+
+**同步任务**：没有被引擎挂起，在主线程中排队执行。只有前一个任务完成，才能执行后一个任务。
+
+**异步任务**：被引擎挂起，不进入主线程，而交给运行环境（Web APIs）处理。异步操作完成后，**其回调函数**进入任务队列，等待主线程空闲时执行。
+
+> 真正进入任务队列的，是异步操作完成后的回调函数，而不是异步操作本身。例如 `setTimeout` 的回调在计时到期后才进入队列，而不是 `setTimeout` 这一行代码。
+
+---
+
+### 回调函数 Callback
+
+回调函数是指把一个函数作为参数传给另一个函数，并由另一个函数在合适的时机调用。
+
+回调的核心是：把一段操作逻辑交给另一个函数、API、浏览器或框架，由对方在合适的时机调用。
+
+
+
+#### 回调的常见形式
+
+##### **函数作为参数传给另一个函数**
+
+```js
+greet(sayHello)
+```
+
+###### Promise.then里的回调
+
+Promise 的 `.then()` 方法里传入的函数，也可以看作回调函数。
+
+```js
+const promise = Promise.resolve('成功的数据')
+promise.then(function(data) {
+  console.log('拿到结果：', data)
+})
+```
+
+这里的回调函数不会在代码执行到 `.then()` 时立刻执行，而是等 Promise 状态变成 `fulfilled` 后，再进入微任务队列等待执行。
+
+```
+创建 Promise
+↓
+给 Promise 注册 then 回调
+↓
+Promise 成功完成
+↓
+then 里的回调进入微任务队列
+↓
+当前同步代码执行完
+↓
+执行 then 回调
+```
+
+> Promise.then 属于函数作为参数传给另一个函数。
+>
+> promise.then(function(data) {
+>   console.log(data)
+> })
+>
+> 这里的
+>
+> function(data) {
+>   console.log(data)
+> }
+>
+> 就是作为参数传给了 `.then()`。
+>
+> 但之所以另起标题是因为
+>
+> >  `.then()` 里的回调不是普通同步回调，而是 Promise 完成后进入微任务队列执行。
+
+
+
+#### 其他回调形式
+
+**1. 作为对象属性传入**
+
+```js
+const options = {
+  success: function(data) {
+    console.log('成功：', data)
+  }
+}
+request(options)
+```
+
+**2. 事件监听里的回调**
+
+把控制权交给浏览器，按钮被点击时，浏览器帮我们执行回调：
+
+```js
+button.addEventListener('click', function() {
+  console.log('按钮被点击了')
+})
+```
+
+**3. 数组方法里的同步回调**
+
+```js
+const arr = [1, 2, 3]
+arr.forEach(function(item) {
+  console.log(item)
+})
+```
+
+##### async/await中的后续逻辑
+
+`async / await` 表面上看不到回调函数，但它本质上是 Promise 的更简洁写法。
+
+```js
+async function main() {
+  const data = await Promise.resolve('成功的数据')
+  console.log('拿到结果：', data)
+}
+
+main()
+```
+
+这里的console.log('拿到结果：', data)不是以普通同步代码立即执行的，
+
+它会等 `await` 后面的 Promise 完成之后，才继续执行。
+
+```
+执行 async 函数
+↓
+遇到 await
+↓
+暂停当前 async 函数后面的代码
+↓
+等待 Promise 完成
+↓
+Promise 完成后
+↓
+await 后面的代码进入微任务队列
+↓
+继续执行后续代码
+```
+
+
+
+#### 
+
+#### 同步回调
+
+回调函数在当前函数调用过程中被立即执行，不等待未来事件。
+
+```js
 function greet(name, callback) {
     console.log('Hello ' + name);
     callback();
@@ -1343,15 +1481,15 @@ function sayGoodbye() {
 }
 
 greet('Alice', sayGoodbye);
+// Hello Alice
+// Goodbye!
 ```
 
-最后一行调用greet，传入name和函数，由于consolelog忽略不计，基本可以当saygoodbye一传进去就执行了，所以是同步回调
+#### 异步回调
 
+回调函数不会立刻执行，而是在未来某个时机执行。
 
-
-**异步回调**
-
-```
+```js
 function fetchData(callback) {
     setTimeout(function() {
         console.log('Data fetched');
@@ -1364,144 +1502,84 @@ function processData(data) {
 }
 
 fetchData(processData);
+// 2秒后才输出 Processing: Data
 ```
 
-这里的processData等了一会儿才执行的
 
 
+#### 回调地狱
 
-**回调例子**
+多个异步操作互相依赖，导致回调一层套一层，代码缩进越来越深，可读性越来越差，错误处理也很混乱。
 
+```js
+login(function(user) {
+  getUserInfo(user.id, function(info) {
+    getOrders(info.id, function(orders) {
+      getOrderDetail(orders[0].id, function(detail) {
+        console.log(detail)
+      })
+    })
+  })
+})
 ```
-document.getElementById('myButton').addEventListener('click', function() {
-    console.log('Button clicked!');
-});
+
+改写成 async/await 后：
+
+```js
+const user = await login()
+const info = await getUserInfo(user.id)
+const orders = await getOrders(info.id)
+const detail = await getOrderDetail(orders[0].id)
+console.log(detail)
 ```
 
-这里的function() {console.log('Button clicked!');}就是回调函数。当按钮被点击，回调函数被调用
-
-
-
-**回调地狱**
-
-拿上面举例，指的是function() {}里面还调用了其他函数，这个其他函数里还调用函数。这就是回调地狱。我们利用promises解决。
-
-## 易搞混总结
-
-
-
-## promise
-
-**Promise** 是现代 JavaScript 中异步编程的基础。它是一个**由异步函数返回的对象**，可以指示操作当前所处的状态。在 Promise 返回给调用者的时候，操作往往还没有完成，但 Promise 对象提供了方法来处理操作最终的成功或失败。
-
-> 首先想想异步是什么，你可以这么想象，现在有一支士兵队伍在浩浩荡荡的行进，在途中碰到了一个村庄，士兵长让其中一个士兵A去村庄拿些药物来，然后其他士兵继续行进。A取药并不影响其他士兵向前行进。这就是异步，我认为这个A可以当做异步函数，因为1.他确实与其他人步调不一致2.他并不影响其他程序执行3.他取药的结果会反馈到主程序
+> 上面那段 **不能无脑直接改成下面那段**。
+>  只有当 `login()`、`getUserInfo()`、`getOrders()`、`getOrderDetail()` 这些函数**返回 Promise** 时，才能用 `await` 这样写。
 >
-> 但是在取药的途中，可能会发生一些事情，比如A发现村庄里的药正在制作，工期比预计的长很多，他想把这个执行过程中的事情告诉长官，所以他可以派一个村民C去反馈取药的途中的一些状态，这个C就是异步函数A返回的对象，它是负责反馈异步函数中途的一些结果。
-
-在上一篇文章中，我们谈到使用回调实现异步函数的方法。在这种设计中，我们需要在调用异步函数的同时传入回调函数。这个异步函数会立即返回，并在操作完成后调用传入的回调。
-
-> 这个回调函数我们也试着理解一下，程序在执行，浩浩荡荡地向下执行，遇到一个事件，但是程序不想因为事件的发生阻塞程序的执行。
+> 这里是怎么改写的呢？
 >
-> document.getElementById('Button').addEventListener('click', function() {console.log('Button clicked!'); });
+> `login(function(user))`意思是等待login完成 把login的结果交给await
 >
-> 拿上面这个举例子，程序遇到了点击事件，那么点击事件后要执行一个function函数，但是程序不想等function执行完返回结果之后才继续执行
->
-> 比如if(发生click){执行function()}
->
-> 上面这样不行，所以程序决定把function()交给别人处理得了，它自己执行。
->
-> 一旦你把function()传入别的函数，被传入函数的那个函数就叫异步函数。比如addEventListener()。function()叫做回调函数。
->
-> 现在我们用一个addEventListener来处理“事件处理程序”（function()），addEventListener执行完一切后会把结果告诉主程序。
+> `getUserInfo(user.id, function(info) {})`意思是等待getUserinfo(user.id)完成后，把结果赋值给info
 
-在基于 Promise 的 API 中，异步函数会启动操作并返回一个 [`Promise`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise) 对象。然后，你可以将处理函数附加到 Promise 对象上，当操作完成时（成功或失败），这些处理函数将被执行。
+---
 
-> OK，现在那个村民C是promise，村民C作为promise对象，告诉长官这个药还有很久才能做完，长官说知道了，C就返回了。不过在现实中，promise对象是有一个处理函数，可以处理操作完成后成功或者失败的结果。当操作成功或者失败，这个处理函数就会执行。
+### 浏览器中的事件循环
 
-## 异步wangdoc
+#### 单线程模型
 
-### 单线程模型
+JavaScript 上只有一个线程（主线程），同一时间只能执行一段代码。JS 设计之初就只想要单线程，因为多线程涉及线程之间的交互设置，过于复杂。但如果遇到耗时很长的函数，卡在那里等着就会造成页面"假死"。
 
-JS上只有一个线程，一个线程只能运行一个脚本（运行的这个叫主线程）（其他线程搁后台待着吧
+所以设计了异步模式：把耗时任务挂起来，继续执行后面的代码，等任务返回一个结果（IO 结果、请求结果）后，再把对应的回调函数放回主线程执行。
 
-JS设计之初就只想要有一个线程，因为多线程还涉及线程之间的交互设置，所以JS压根就没想让你多线程。但是有时候会有一个很漫长的函数，总不能卡在那里等着吧（这叫假死）
+#### 调用栈 Call Stack
 
-所以设计了这样一种模式，把这种任务先挂起来不管，先继续执行后面的代码，等挂着的任务返回一个结果（不是执行完毕的结果，而是IO结果，请求结果）再把这个挂着的任务放到主线程继续执行。
+调用栈（Call Stack）用于存放正在执行的代码。同步代码按顺序入栈、出栈执行。
 
-### 同步、异步任务
+#### Web APIs
 
-同步任务是说没有被引擎挂起，放在主线程中排队执行的任务。只有前一个任务完成，才能执行后一个任务。
+浏览器提供 Web APIs（如 `setTimeout`、DOM 事件、`fetch` 等），用于处理耗时的异步操作。主线程遇到异步 API 时，把任务交给 Web APIs 处理，然后继续往下执行。
 
-异步任务是说被引擎挂在一边，不进入主线程、而进入任务队列的任务。只有主线程的执行栈空了，才会利用回调函数把任务队列中的异步任务放到主线程执行。
+#### 任务队列 Task Queue（宏任务队列）
 
-**异步**：异步任务不进入主线程、而进入**"任务队列"**（task queue）的任务，只有"任务队列"通知主线程，某个异步任务可以执行了，该任务才会进入主线程执行。
+任务队列（也称宏任务队列）用于存放异步操作完成后的**回调函数**。当调用栈为空时，事件循环从任务队列中取出一个回调函数推入调用栈执行。
 
-使用异步的场景：
+#### 微任务队列 Microtask Queue
 
-（1）定时任务，setTimeout，setInterval
+除了宏任务队列，还有一个微任务队列，用于存放 Promise 回调（`.then`、`.catch`）、`MutationObserver` 回调等。
 
-（2）网络请求： ajax请求，动态加载
+#### 宏任务与微任务的执行顺序
 
-（3）事件绑定，点击等交互事件
+事件循环每轮的执行规则是：
 
-<h4>简陋的机制描述</h4>
+1. 执行一个宏任务（从宏任务队列取一个）
+2. 执行所有微任务（清空微任务队列）
+3. 渲染（如有需要）
+4. 下一轮宏任务
 
-执行栈（调用栈）		Event queue
+举例：
 
-> 左边是位于主线程的执行栈，右边是一个事件队列。
->
-> 执行栈空的时候，会从事件队列中取东西出来执行。
-
-<h4>事件监听机制</h4>
-
-我们拿常用的这个函数解释一下为什么它涉及到异步任务以及内部运行的逻辑。
-
-document.getElementById('myButton').addEventListener('click',( )=>{ console.log("ok");});
-
-1. 事件监听器的注册
-
-   * 首先代码通过getElementById*获取到这个DOM元素*，也就是按钮，其次通过addEventListener*注册一个监听器*。
-   * 并且将回调函数( )=>{ console.log("ok"); 作为*参数传递* 给addEventListener方法
-
-2. 事件监听器的内部机制
-
-   * 当代码解析到你这一行，也就是addEventListener方法被调用，浏览器会在后台将时间监听器注册到按钮的点击事件中。（此时并没有执行回调函数，只是设置一个监听器）
-
-3. 事件触发
-
-   * 当用户点击按钮，事件被触发。浏览器检测到点击事件，会将事件及相关信息放到任务队列。（事件队列）
-
-4. 事件循环机制
-
-   * 这个机制以后会讲，就当做一个检查机制，它会帮你检查执行栈有没有空，空了就帮你把任务队列的事件放进去（我们现在addEventlistener的事件就放在任务队列中，排队ing
-
-5. 执行
-
-   执行栈空了，任务队列也排到你了，好了，事件循环机制会把回调函数推到栈中执行，执行完毕。
-
-<h3>任务队列</h3>
-
-我们知道我们会有一个正在运行的主线程，引擎还提供一个任务队列，放置的是需要程序处理的各种异步任务。
-
-（根据异步任务的类型，实际上存在多个任务队列，但是一般为了方便理解，我们假设只有一个任务队列）
-
-我们的主线程会去一直执行同步任务，一旦同步任务执行完，就去看看任务队列里的异步任务，如果满足条件，异步任务就进入主线程开始执行，这时“异步任务”就变成同步任务了。执行完，再去任务列表找下一个异步任务。一旦任务队列清空，程序就结束执行。
-
-> 我们的异步任务在准备进入主线程的时候，需要用到回调函数。为什么？你想想回调函数里面是什么？它毕竟也是个函数，函数里面就是方法，所以函数里面写的就是你该干什么，拿addeventlistener举例，这里的回调函数就是说在发生某个事件后我要执行什么。这个要执行什么就是调回主线程的关键，因为如果你没有要继续执行的东西，把你调到主线程有什么用呢？又不知道要干什么。所以**一个异步任务没有回调函数，就不会进入任务队列**
-
-
-
-### 事件循环
-
-我们先来模拟代码执行的过程，当用到事件循环时，我会加粗显示。
-
-浏览器遇到代码开始执行~同步代码~好~直接执行，异步代码？（比如`setTimeout` 或 AJAX 请求），引擎将其发送到Web API，API处理完异步之后，将回调函数添加到任务队列。
-
-紧接着**事件循环机制**不断地检查调用栈，如果*调用栈*是空的，就再检查*任务队列*。如果任务队列不为空，事件循环会取出队列中的第一个回调函数，将其添加到调用栈，并执行它。此过程不断重复，确保异步回调函数最终得到执行。
-
-总之事件循环就是往返于调用栈和任务队列。
-
-```
+```js
 console.log('Start');
 
 setTimeout(() => {
@@ -1509,182 +1587,66 @@ setTimeout(() => {
 }, 1);
 
 console.log('End');
-
 ```
 
-浏览器先来执行console.log，打印出Start，
+执行顺序：
 
-然后遇见定时器，<u>发送到API</u>，
+1. `console.log('Start')` → 打印 Start
+2. `setTimeout` 交给 Web API 计时，**回调**进入宏任务队列
+3. `console.log('End')` → 打印 End，调用栈空
+4. 事件循环从宏任务队列取出 `setTimeout` 的回调 → 打印 Timeout callback
 
-继续执行console.log end，
+#### addEventListener 的执行流程
 
-API反馈回来（1s到期了），把settimeout的回调函数<u>放到任务队列</u>，
+以 `document.getElementById('myButton').addEventListener('click', () => { console.log("ok"); })` 为例：
 
-事件循环检查执行栈空了，从任务队列中取出settimeout的回调函数并执行console.log('Timeout callback')
+1. **注册监听器**：`getElementById` 获取按钮，`addEventListener` 注册监听器（此时只是设置监听器，回调函数并未执行）
+2. **事件触发**：用户点击按钮，浏览器检测到点击事件
+3. **回调入队**：点击事件的回调被放入宏任务队列
+4. **事件循环**：调用栈为空时，事件循环从队列取出回调，推入调用栈
+5. **执行回调**：`console.log("ok")`
 
-### 异步操作的实现方式
+---
 
-我觉得可以理解为异步操作的应用~
+### 定时器
 
-<h5>回调函数</h5>
+`setTimeout` 和 `setInterval` 的运行机制，是将指定的回调函数移出本轮事件循环，等到下一轮事件循环再检查是否到了指定时间。如果到了，就执行；如果不到，就继续等待。
 
-```
-function f1() {
-  // ...
-}
+由于它们本身是回调函数，待在任务队列中，所以不能保证时间到了事件循环能立即执行，只能等待前面的同步任务全部执行完毕。
 
-function f2() {
-  // ...
-}
-
-f1();
-f2();
-```
-
-这个代码我们的意图是f1完毕，执行f2~
-
-但是如果f1是回调函数，那现在只能是f2先执行，再执行f1~
-
-那如何保证f1是回调的情况下还是先执行f1呢~
-
-> 当然是把f2也写成回调函数~~
->
-> f1(f2)
-
-但是呢~上面这种写法很容易造成f1(f2(f3(f4)))~叫做耦合，一层调一层，是不是看着就复杂~
-
-<h5>事件监听</h5>
-
-```
-f1.on('done', f2);
-```
-
-这句是jquery的写法~意思是f1发生done事件，就触发f2（不用去管done是什么，只要知道是个事件就好啦）
-
-那么怎么触发done事件呢？如下，我们简单写个情况
-
-```
-function f1() {
-  setTimeout(function () {
-    // ...
-    f1.trigger('done');
-  }, 1000);
-}
-```
-
-这样我们也完成了异步的处理，1000ms后就触发done，done就触发f2
-
-虽然和上个例子一样，也是一层触发一层，不过看着简单了一点，而且这个done是事件，可以触发好多个函数，不像上个例子，一个任务只能触发一个函数
-
-但是这样写仍然是有缺点的，因为是任务触发，所以运行流程是很不清晰的
-
-阅读代码很难看出一个主流程
-
-
-
-<h5>发布/订阅</h5>
-
-指的是存在这样一个任务中心，你完成一个啥 你往任务中心发送 “发布” 信号
-
-这样别人就可以向任务中心发送“订阅“信号
-
-不过为了保证你一发布就有人订阅，常常是需要订阅人提前告诉任务中心，”喂，如果有人发布这个什么什么信号，一出现我就要订阅“
-
-```
-jQuery.subscribe('done', f2);
-```
-
-很明显jquery写法，首先f2订阅done信号
-
-```
-function f1() {
-  setTimeout(function () {
-    // ...
-    jQuery.publish('done');
-  }, 1000);
-}
-```
-
-然后f1发布done信号
-
-(f1执行完成就发布这个信号，然后f2就会立刻订阅信号，然后执行f2自己的内容)
-
-f2执行完成后，可以取消订阅
-
-```
-jQuery.unsubscribe('done', f2);
-```
-
-这种方法的性质与“事件监听”类似，但是明显优于后者。因为可以通过查看“消息中心”，了解存在多少信号、每个信号有多少订阅者，从而监控程序的运行。
-
-
-
-## 定时器
-
-原理：`setTimeout`和`setInterval`的运行意思大概是，等待一段时间后再执行这个函数，区别是是否重复执行。但是这些由于本身就是回调函数，本身就待在任务队列中，所以不能够保证时间到了，事件循环也能立即把他们从任务队列拉出来执行，只能说等待同步任务执行结束。
-
-**`setTimeout`和`setInterval`的运行机制，是将指定的代码移出本轮事件循环，等到下一轮事件循环，再检查是否到了指定时间。如果到了，就执行对应的代码；如果不到，就继续等待。**
-
-### setTimeout()
+#### setTimeout
 
 ```
 var timerId = setTimeout(func|code, delay);
 ```
 
-setTimeout函数用来指定一段代码在多少毫秒之后执行，它返回一个整数，表示定时器的编号（这个定时器可以根据编号取消，取消的意思就是不等了，直接执行）
+`setTimeout` 用来指定一段代码在多少毫秒之后执行，返回一个整数（定时器 ID），用于后续 `clearTimeout` 取消（取消的意思是让回调不再执行，而不是立刻执行）。
 
-上面代码中，`setTimeout`函数接受两个参数，第一个参数`func|code`是将要推迟执行的函数名或者一段代码，第二个参数`delay`是推迟执行的毫秒数。
-
-```
-举例一
-setTimeout('console.log(2)',1000);
-举例二
-setTimeout(f,1000);	//这个f指的是函数名，函数在某个地方定义过
-举例三
-setTimeout(f);	//第二个参数如果不写，就默认为0
-举例四
-setTimeout(function (a,b) {
+```js
+// 参数一：函数
+setTimeout(function(a, b) {
   console.log(a + b);
-}, 1000, 1, 1);	//上面代码中，一共有四个参数，第一个参数是推迟执行的函数，第二个是定时器，第三个和第四个是1000ms后，推迟执行的函数（回调函数）的参数）
-
+}, 1000, 1, 1);  // 1000ms 后执行，1 和 1 是回调的参数
 ```
 
-//特殊情况
+特殊注意：把对象的方法传入 `setTimeout` 时，`this` 会丢失绑定，指向全局对象。
 
-```
-var x = 1;
-
+```js
 var obj = {
   x: 2,
-  y: function () {
-    console.log(this.x);
-  }
+  y: function() { console.log(this.x); }
 };
-
-setTimeout(obj.y, 1000)
-// 1
+setTimeout(obj.y, 1000);  // 输出 undefined，而不是 2
 ```
 
-先看最后一行，我们传入了对象obj的方法，也就是obj内部的函数，但是这时obj.y内部的this已经不指向obj了，已经指向全局了
+> this不指向obj，而是全局。
+> ![image-20260511225205597](./assets/image-20260511225205597.png)
 
-具体来说，当你把对象的方法作为参数传递时，这个方法会丧失其原始对象的上下文绑定，**变成**一个**独立的函数**。此时，函数的 `this` 关键字不会再指向原始对象，而是默认指向全局对象（在浏览器中是 `window`）或 `undefined`（严格模式下）。
+#### setInterval
 
+`setInterval` 的用法与 `setTimeout` 完全一致，区别在于它每隔一段时间就执行一次，无限重复，直到 `clearInterval`。
 
-
-### setInterval()
-
-`setInterval`函数的用法与`setTimeout`完全一致，区别仅仅在于`setInterval`指定某个任务每隔一段时间就执行一次，也就是无限次的定时执行。
-
-```
-var i = 1
-var timer = setInterval(function() {
-  console.log(2);
-}, 1000)
-```
-
-上面代码中，每隔1000毫秒就输出一个2，会无限运行下去，直到关闭当前窗口。
-
-```
+```js
 var div = document.getElementById('someDiv');
 var opacity = 1;
 var fader = setInterval(function() {
@@ -1697,68 +1659,113 @@ var fader = setInterval(function() {
 }, 100);
 ```
 
-上面代码每隔100毫秒，设置一次`div`元素的透明度，直至其完全透明为止。
+注意：`setInterval` 的间隔包含回调执行的时间。如果回调本身需要较长时间，实际间隔会比设定值更短。
 
-> 不过这个函数有个细节，就是假设你现在设置每隔1000ms执行，但是任务需要执行100ms，根据函数的设计，实际上过去900ms就开始执行任务了。因为这个1000ms是包含中间空余的时间和执行任务的时间。
->
-> 如果你想修订这个设计，可以这么写
->
-> ```
-> var i = 1;
-> var timer = setTimeout(function f() {
->   timer = setTimeout(f, 2000);
->   timer = setTimeout(f, 2000);
->   timer = setTimeout(f, 2000);
->   // ...
-> }, 2000);
-> ```
->
-> 跟着我的思路~首先我们是等待2000ms后开始执行function f(){}，先执行第一句，等待2000ms执行f，再等待2000ms执行f...
->
-> 这样写的好处就是确保下一次执行总是在本次执行结束的2000ms开始。
+#### 定时器不一定准时的原因
+
+`setTimeout(fn, 1000)` 并不是精确的 1000ms 后执行，而是"最快"在 1000ms 后执行。如果此时调用栈中有其他同步代码在执行，`fn` 必须等调用栈清空后才能被推入执行。
+
+---
 
 
 
-<h3>解答疑问</h3>
+### Promise
 
-<h4>什么样的任务会被认为是异步任务</h4>
+#### Promise 是什么
 
-使用 `setTimeout` 和 `setInterval` 创建的定时器任务。
+Promise 是 JavaScript 中表示"一个未来结果"的对象。它常常由异步 API（如 `fetch()`）返回，但也可以通过 `new Promise()` 手动创建，并不一定必须由异步函数返回。
 
-网络请求，例如通过 `XMLHttpRequest` 或 `fetch` 发起的请求。
+比喻：主队伍行进途中，派一个士兵去取药，主队伍不等待士兵回来，继续前进。手里留下一张"取药凭证"（Promise）——此时上面是Pending。士兵成功取回药，凭证变为 fulfilled 并带回药；士兵失败了，凭证变为 rejected 并带回失败原因，总之士兵一定会回来，要么成功，要么失败。
 
-文件和数据库 I/O 操作。
+所以 Promise 不是任务本身，而是表示这个异步任务未来结果的对象。
 
-用户交互事件处理函数。
+Promise 既是一个对象（由异步 API 返回），也是一个构造函数（可用 `new Promise()` 创建）。
 
-使用 `Promise` 和 `async/await` 处理的任务。
+#### Promise 的三种状态（学到这里）
 
-放入微任务队列的任务，例如 Promise 回调和 MutationObserver 回调。
+Promise 实例具有三种状态：
 
-Web Workers 等其他异步 API。
+- `pending`（待定）：操作未完成
+- `fulfilled`（已兑现）：操作成功
+- `rejected`（已拒绝）：操作失败
 
-**这些任务在执行时不会阻塞主线程，而是通过事件循环机制安排在未来某个时刻执行。**
+状态只能变化一次（凝固），最终只能是 fulfilled 或 rejected 之一。
 
-
-
-## promise
-
-这里用的是MDN的写法。狗日的王道写的内谁能看得懂，我又不是写博士论文。
-
-**Promise** 是现代 JavaScript 中异步编程的基础。它是一个由异步函数返回的对象，可以指示操作当前所处的状态。在 Promise 返回给调用者的时候，操作往往还没有完成，但 Promise 对象提供了方法来处理操作最终的成功或失败。
-
-> 现在你的主线程正在运行，now~遇见一个异步函数，OK，我们让它先去运行着，你可以让这个异步函数先返回一个值，这个值叫做promise（promise是个对象），这个值它并不代表最终的结果，不过它的意思叫“承诺”，它会告诉代码，你需要我做的事情等异步函数结束我就会执行的！
-
-
-
-**举例：**
-
+```js
+let myPromise = new Promise(function(resolve, reject) {
+    let success = true;
+    if (success) {
+        resolve("操作成功");
+    } else {
+        reject("操作失败");
+    }
+});
 ```
+
+- `resolve(value)`：将 Promise 变为 fulfilled，并携带成功结果
+- `reject(error)`：将 Promise 变为 rejected，并携带失败原因
+
+> myPromise 右边 new Promise 创建的就是一个 “承诺”，它最终只会有成功或失败两种结果，中间状态是 “等待”。
+>
+> **异步操作的逻辑和决定结果的 resolve、reject 调用，都要放在 Promise 构造函数的执行器函数里。这样 Promise 才能管理异步操作的状态变化，确保 resolve 或 reject 只执行一次，避免状态混乱。**
+>
+> 里面的箭头函数是 Promise 的执行器函数，它接收的两个参数 resolve 和 reject 其实也是函数。当异步操作成功时，就调用 resolve 并传入结果，这时候 Promise 状态会从 “等待” 变成 “成功”；
+>
+> 如果失败，调用 reject 并传入错误信息，状态就变成 “失败”。
+
+#### then / catch / finally
+
+- `then(onFulfilled)`：处理成功结果
+- `catch(onRejected)`：处理失败结果
+- `finally(onFinally)`：无论成功失败都执行
+
+```js
+myPromise
+    .then(function(value) {
+        console.log(value); // 操作成功
+    })
+    .catch(function(error) {
+        console.error(error); // 操作失败
+    })
+    .finally(function() {
+        console.log('无论成功失败都执行');
+    });
+```
+
+是的，then 和 catch 里的函数不会立即执行，它们会 “等待” Promise 的状态变化。只有当 Promise 从 “等待” 变成 “成功” 时，then 里的函数才会被调用并接收结果；变成 “失败” 时，catch 里的函数才会执行。在 Promise 还没确定结果前，then 和 catch 就像 “待命” 一样，不会有任何动作。
+
+> then方法里的参数是一个函数，这个函数的参数value，就是Promise执行器里调用resolve时传入的值；
+>
+> catch方法里的函数参数error，就是调用reject时传入的值。
+>
+> 比如例子中如果success是true，resolve传了“操作成功...”，then的result就拿到这个字符串并打印；如果success是false，reject传“操作失败...”，catch的error就拿到这个字符串并打印。
+
+#### Promise 链式调用
+
+一个 Promise 的 `.then()` 返回另一个 Promise，因此可以链式调用。
+
+```js
+fetch('/api/data.json')
+  .then(response => response.json())   // 返回 Promise，自动传给下一个
+  .then(data => {
+    console.log(data[0].name);
+  })
+  .catch(error => {
+    console.error('请求失败：', error);
+  });
+```
+
+#### fetch 示例
+
+`fetch()` 是基于 Promise 的网络请求 API：
+
+```js
 const fetchPromise = fetch(
   "https://mdn.github.io/learning-area/javascript/apis/fetching-data/can-store/products.json",
 );
 
 console.log(fetchPromise);
+// Promise { <state>: "pending" }
 
 fetchPromise.then((response) => {
   console.log(`已收到响应：${response.status}`);
@@ -1767,127 +1774,88 @@ fetchPromise.then((response) => {
 console.log("已发送请求……");
 ```
 
-fetch会返回一个promise对象，我们把对象赋值给fetchpromise变量
-
-输出该变量，输出结果应该是这样：`Promise { <state>: "pending" }`。（意思是fetchpromise是一个Promise对象，它有一个state属性，值是“pending"。pending的意思其实是操作正在进行中）
-
-调用Promise对象的then方法，表示如果操作成功，就执行then（respond代表服务器响应的对象）
-
-完整的结果：
+输出顺序：
 
 ```
 Promise { <state>: "pending" }
 已发送请求……
+// 网络响应到达后
 已收到响应：200
 ```
 
+---
 
+### async / await
 
-### 链式使用
-
-拿上文举例，我们在收到response后想获得JSON格式的数据里面的东西。首先我们需要收到response后把数据转化成JSON格式，然后再调取JSON格式内的东西。
-
-但由于转化成JSON格式也是一个异步函数，所以我们这里需要好几个函数的链式使用。
-
-```
-const fetchPromise = fetch(
-  "https://mdn.github.io/learning-area/javascript/apis/fetching-data/can-store/products.json",
-);
-
-fetchPromise
-  .then((response) => response.json())
-  .then((data) => {
-    console.log(data[0].name);
-  });
-```
-
-//具体的代码含义一会儿理解 这些只是引子 现在让我们开始正式的学院派教学吧~
-
-
-
-### 概述
-
-首先需要知道，**所有的异步任务都返回一个Promise实例**
-
-Promise既是一个对象，也是一个构造函数。
-
-对象是指promise可以由异步任务返回一个对象，也拥有自己的属性、方法。
-
-构造函数是指对象可以用Promise new指令创建出来 var p1=new Promise(f1);	//f1是异步函数
-
-### Promise对象状态
-
-Promise 对象通过自身的状态，来控制异步操作。Promise 实例具有三种状态。
-
-- 异步操作未完成（pending）
-- 异步操作成功/完成（fulfilled）
-- 异步操作失败（rejected）
-
-> 有时我们用**已敲定**（settled）这个词来同时表示**已兑现**（fulfilled）和**已拒绝**（rejected）两种情况。
-
-如果一个 Promise 已敲定，或者如果它被“锁定”以跟随另一个 Promise 的状态，那么它就是**已解决**（**resolved**）的。
-
-resolved 是指 Promise 已经有了最终的状态（要么是 fulfilled 要么是 rejected），但这只是描述性的术语，而不是规范中的状态码。
-
-
-
-### Promise 状态转换
-
-> 注意，这里的“成功”或“失败”的含义取决于所使用的 API：例如，`fetch()` 认为服务器返回一个错误（如 [404 Not Found](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Status/404)）时请求成功，但如果网络错误阻止请求被发送，则认为请求失败。
-
-> 这三种的状态的变化途径只有两种。
->
-> - 从“未完成”到“成功”
-> - 从“未完成”到“失败”
->
-> 一旦状态发生变化，就凝固了，不会再有新的状态变化。这也是 Promise 这个名字的由来，它的英语意思是“承诺”，一旦承诺成效，就不得再改变了。这也意味着，Promise 实例的状态变化只可能发生一次。
->
-> 因此，Promise 的最终结果只有两种。
->
-> - 异步操作成功，Promise 实例传回一个值（value），状态变为`fulfilled`。
-> - 异步操作失败，Promise 实例抛出一个错误（error），状态变为`rejected`。
+`async/await` 是 Promise 的语法糖，让异步代码看起来像同步代码。
 
 ```js
-let promise = new Promise(function(resolve, reject) {
-    try {
-        let result = someOperation(); // 假设这是一个可能抛出错误的操作
-        resolve(result);
-    } catch (error) {
-        reject(error);
-    }
-});
+// Promise 链式调用
+fetch('/api/user')
+  .then(response => response.json())
+  .then(data => console.log(data))
 
-promise.then(function(value) {
-    console.log(value);
-}).catch(function(error) {
-    console.error("操作失败:", error);
-});
+// async/await 版本
+const response = await fetch('/api/user')
+const data = await response.json()
+console.log(data)
 ```
 
-上面是一个Promise构造函数，构造函数的创建实例的时候就能立刻执行。此时这个构造函数的参数是一个函数，这个执行函数接受两个参数，
+`async` 函数始终返回一个 Promise。`await` 等待右侧的 Promise resolve，然后返回其结果。
 
-**resolve**: 用于将 Promise 从“待定”（pending）状态变为“已完成”（fulfilled）状态，并传递一个值(data)作为成功的结果。
+---
 
-**reject**: 用于将 Promise 从“待定”（pending）状态变为“已拒绝”（rejected）状态，并传递一个原因(error)（通常是错误对象）作为失败的原因。
+### 事件监听、发布订阅与回调的关系
 
-> 下面是应用，第一个函数用于改变实例的状态，第二个函数用于接收状态做出决定（then负责接收fulfilled状态，catch负责接收）
+这三种都是"异步操作的实现方式"，但抽象层次不同。
+
+#### 回调函数
+
+最基础的方式，把函数作为参数传入：
 
 ```js
-let promise = new Promise(function(resolve, reject) {
-    let success = true;
-    if (success) {
-        resolve("操作成功");	//resolve接收一个data数据，用于传递给以后要处理data的函数
-    } else {
-        reject("操作失败");		//reject接受一个error数据，也可以叫reson数据，就是失败原因，以后也会传递给要处理error的函数
-    }
-});
-
-promise.then(function(value) {
-    console.log(value); // 输出 "操作成功"
-}).catch(function(error) {
-    console.log(error);
-});
+f1(function() {
+  f2();
+})
 ```
 
+缺点：多层嵌套时容易形成回调地狱，一层套一层。
 
+#### 事件监听（EventEmitter）
 
+通过事件名来触发回调，一个事件可以触发多个函数：
+
+```js
+emitter.on('done', f2);
+emitter.on('done', f3);
+emitter.emit('done');  // 同时触发 f2 和 f3
+```
+
+运行流程比纯回调清晰一些，但整体流程仍然不线性。
+
+#### 发布/订阅（Pub/Sub）
+
+有一个独立的消息中心（事件总线），发布者和订阅者不直接交互：
+
+```js
+// 订阅
+eventBus.on('dataLoaded', handleData);
+
+// 发布
+function loadData() {
+  // ... 加载数据
+  eventBus.emit('dataLoaded', data);
+}
+```
+
+这种模式的好处是：可以随时查看消息中心，了解有多少信号、各有多少订阅者，从而监控程序运行。
+
+#### 三者的关系
+
+| 模式 | 核心机制 | 适用场景 |
+|------|---------|---------|
+| 回调 | 函数作为参数传递 | 一次性、线性依赖 |
+| 事件监听 | 事件名 + 回调列表 | 多次触发、同一事件多个处理 |
+| 发布/订阅 | 消息中心解耦 | 多模块通信、事件广播 |
+
+回调是一种写法，事件监听和发布订阅是组织回调的架构模式。它们经常一起使用，但概念上处于不同层次。

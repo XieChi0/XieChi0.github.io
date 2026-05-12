@@ -43,7 +43,7 @@ Express 最常用于以下全栈技术栈：
 
 > 在组成里，又有Node.js又有Express是因为Node.js是运行环境，负责让Express这套JS后端跑起来，而Express是后端框架。
 
-### （Web frameWork）Opinionated vs Unopinionated
+### (Web frameWork)Opinionated vs Unopinionated
 
 Web 框架分为两种类型：
 
@@ -471,10 +471,83 @@ app.use(express.urlencoded({ extended: false }));
 
 ### 什么是中间件？
 
-中间件是**介于请求和响应之间的函数**，可以：
+中间件是*介于请求和响应之间的**函数***。
+
+```
+function middleware(req,res,next){
+	do sth...
+	next()
+}
+
+```
+
+**核心参数**
+
+```
+req		//请求对象：前端发来的请求信息
+res		//响应对象：后端准备发给前端的信息
+next	//放行函数：调用后，请求继续进入下一个中间件
+```
+
+中间件可以：
+
 - 访问 `req`、`res` 对象
-- 调用下一个中间件（通过 `next()`）
 - 处理日志、认证、修改请求等
+- 调用下一个中间件（通过 `next()`）
+
+```
+请求 → 中间件1 → 中间件2 → 路由处理 → 响应
+         ↓          ↓
+       next()     next()
+```
+
+**中间件们就像工厂流水线，每个中间件只负责一个小事**
+
+来源：
+
+1. Express 内置的：express.json()
+2. 第三方下载的：cors、morgan、body-parser
+3. 自己写的：logger、authenticate
+
+### app.use()是什么
+
+`app.use()` 是 Express 用来注册中间件或路由模块的方法。
+
+最常见语法：
+
+```
+app.use(中间件函数)
+```
+
+例如：
+
+```
+app.use(express.json())
+```
+
+意思是：
+
+> 给整个应用注册一个中间件，所有请求都会经过它。
+
+也可以加路径：
+
+```
+app.use('/api', 中间件函数)
+```
+
+例如：
+
+```
+app.use('/api', authenticate)
+```
+
+意思是：
+
+> 只有 `/api` 开头的请求，才会经过这个中间件。
+
+#### 与app.get()的区别
+
+app.use()不限制请求方法，而app.get()只处理get请求。
 
 ### 自定义日志中间件
 
@@ -488,13 +561,13 @@ const logger = (req, res, next) => {
   const originalUrl = req.originalUrl; // 完整路径
   
   console.log(`${method} ${protocol}://${hostname}${originalUrl}`);
-  next();
+  next();	// 必须调用 next() 才能继续
 };
 
 module.exports = logger;
 ```
 
-**req 对象常用属性：**
+#### req 对象常用属性
 
 | 属性 | 说明 |
 |------|------|
@@ -507,7 +580,7 @@ module.exports = logger;
 | `req.body` | 请求体（需中间件解析） |
 | `req.headers` | 请求头 |
 
-**res 对象常用方法：**
+#### res 对象常用方法
 
 | 方法 | 说明 |
 |------|------|
@@ -517,6 +590,8 @@ module.exports = logger;
 | `res.render()` | 渲染模板 |
 | `res.sendFile()` | 发送文件 |
 | `res.redirect()` | 重定向 |
+
+
 
 ### 使用中间件
 
@@ -531,11 +606,7 @@ app.use(logger);
 
 一般公共中间件写在路由前面：
 
-![image-20260505173619346](./assets/image-20260505173619346.png)
-
-
-
-
+![image-20260511221227474](./assets/image-20260511221227474.png)
 
 #### **路由级中间件**（特定路由）
 
@@ -545,9 +616,7 @@ router.get('/', logger, (req, res) => {
 });
 ```
 
-
-
-![image-20260505173651575](./assets/image-20260505173651575.png)
+![image-20260511221210907](./assets/image-20260511221210907.png)
 
 
 
@@ -575,18 +644,64 @@ app.get('/', (req, res) => {
 });
 ```
 
-### 常见内置中间件
+### body-parser 
+
+`body-parser` 是一个专门用来 **解析请求体 body** 的中间件库。
+
+`body-parser` 提供 JSON、Raw、Text、URL-encoded form 等几类解析器；同时它不处理复杂的大文件 `multipart` 请求，比如文件上传通常要用 `multer` 这类工具。
 
 ```javascript
-// 静态文件服务
-app.use(express.static('public'));
-
-// 解析 JSON 请求体
-app.use(express.json());
-
-// 解析 URL 编码
-app.use(express.urlencoded({ extended: false }));
+app.use(bodyParser.json({limit: '500mb'}));
 ```
+
+解析前端传来的json类型（Content-Type: application/json）的数据，把json解析成js对象，然后把结果放到 `req.body` 上。
+
+> 经过这个中间件之后，后面的路由里就可以这样拿：
+>
+> ```
+> app.post('/user', (req, res) => {
+>   console.log(req.body.name)
+>   console.log(req.body.age)
+> })
+> ```
+
+
+
+
+
+```
+app.use(bodyParser.urlencoded({ extended: false, limit: '500mb' }));
+```
+
+解析表单格式数据
+
+> 某些关于表单的接口（application/x-www-form-urlencoded）用这种格式：
+>
+> ```
+> name=张三&age=18
+> ```
+>
+> 它会帮你解析成：
+>
+> ```
+> req.body = {
+>   name: '张三',
+>   age: '18'
+> }
+> ```
+
+#### 现在 Express 还必须用 body-parser 吗？
+
+现在 Express 自己已经内置了类似功能，比如：
+
+```
+app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
+```
+
+Express 官方 API 里说明，`express.json()` 和 `express.urlencoded()` 都是内置中间件，并且是基于 `body-parser` 的。
+
+
 
 ### 添加彩色日志
 

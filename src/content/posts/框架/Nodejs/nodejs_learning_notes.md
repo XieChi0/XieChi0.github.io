@@ -13,25 +13,12 @@ draft: false
 
 > 基于 wc-Backend 项目源码分析
 >
-> 更新日期：2026-05-08
 
 ---
 
-# 第零阶段：项目整体目录分析
+# 第一阶段：项目整体目录分析
 
-## 0.1 目录结构概览
-
-> **💡 说明：** `"type": "commonjs"` 在 `package.json` 中是**默认值**，可以省略不写。Node.js 默认使用 CommonJS 规范（`require/module.exports`），只有使用 ES Module（`import/export`）时才需要写 `"type": "module"`。
->
-> 如果要使用esmodule
->
-> 方法一：在package.json的type里说明"type":"module"
->
-> 方法二：直接把文件后缀由js改为`mjs`
->
-> 反之，如果你在package.json里写了type:module，意味着你整个文件都是esmodule，如果你想用`commonjs`，
->
-> 只需要把这个文件后缀改为`cjs`
+## 1.1 目录结构概览
 
 ### 项目根目录结构
 
@@ -125,7 +112,7 @@ src/
     └── *.js                  # 各种测试脚本
 ```
 
-## 0.2 各层职责说明
+## 1.2 各层职责说明
 
 | 层级 | 目录 | 职责 | 本笔记对应章节 |
 |------|------|------|---------------|
@@ -137,7 +124,7 @@ src/
 | **框架层** | `framework/` | 数据源、路由封装、工具函数 | 第一/六阶段 |
 | **公共层** | `framework/utils/` | 参数校验、文件处理、拦截器 | 第一阶段 |
 
-## 0.3 代码文件位置速查表
+## 1.3 代码文件位置速查表
 
 ### 入口与配置
 | 功能 | 文件路径 |
@@ -175,702 +162,9 @@ src/
 | 参数校验 | `src/framework/utils/argument_utils.js` |
 | 文件处理 | `src/framework/utils/file_utils.js` |
 
----
+# 第二阶段：深入异步：Promise、async/await与并发锁机制
 
----
-
-# 第一阶段：Node.js 模块系统与 npm 包管理
-
-## 1.1 Node.js 模块系统概述
-
-> **📍 位置：** `src/` 整体架构
->
-> Node.js 使用 **模块化架构**，每个 `.js` 文件都是一个独立的模块。
-
-### 项目中的模块引入示例
-
-```javascript
-// app.js 中的模块引入
-require('dotenv').config()
-const argumentUtils = require('./framework/utils/argument_utils')
-const fileUtils = require('./framework/utils/file_utils')
-const express = require('express');
-const bodyParser = require('body-parser');
-const routeLoader = require('./framework/load');
-const userService = require('./business/service/user')
-```
-
-### 三种引入类型
-
-| 类型 | 写法 | 示例 |
-|------|------|------|
-| **核心模块** | `require('模块名')` | `require('fs')`, `require('path')` |
-| **第三方模块** | `require('模块名')` | `require('express')`, `require('sequelize')` |
-| **自定义模块** | `require('./路径')` | `require('./framework/load')` |
-
----
-
-## 1.2 CommonJS 规范
-
-> **📍 位置：** `src/package.json` 中定义模块规范
->
-> 项目 `package.json` 中 `"type": "commonjs"`，使用 CommonJS 模块规范。
-
-### 导出方式
-
-```javascript
-// 方式1: 导出整个对象
-module.exports = {
-    func1: function() {},
-    func2: function() {}
-};
-
-// 方式2: 导出单个函数（项目常用）
-module.exports = async function authenticate(req, res, next) {
-    // ...
-};
-
-// 方式3: 同时导出多个
-module.exports.func1 = function() {};
-module.exports.func2 = function() {};
-```
-
-### 项目中的自定义路由封装
-
-```javascript
-// src/framework/route/custumrouter.js
-const express = require("express");
-const router = express.Router();
-
-module.exports = {
-    post(path, serviceFunc) {
-        router.post(path, (req, res) => {
-            serviceFunc(req.body, req.user).then((result) => {
-                res.send({ code: 200, data: result });
-            }).catch((error) => {
-                res.send({ code: 500, msg: error.message });
-            });
-        });
-    },
-    get(path, serviceFunc) {
-        router.get(path, (req, res) => {
-            serviceFunc(req.query, req.user).then((result) => {
-                res.send({ code: 200, data: result });
-            }).catch((error) => {
-                res.send({ code: 500, msg: error.message });
-            });
-        });
-    },
-    router() { return router; }
-};
-```
-
----
-
-## 1.3 package.json 详解
-
-> **📍 位置：** `src/package.json`
->
-> ```json
-{
-  "name": "WCH1D",
-  "version": "2.4.2",
-  "private": true,
-  "main": "./src/app.js",
-  "bin": "./src/app.js",
-  "type": "commonjs",
-  "scripts": {
-    "start": "node src/app"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "sequelize": "^6.29.0",
-    "axios": "^1.9.0"
-  },
-  "devDependencies": {
-    "eslint": "^8.57.0"
-  },
-  "pkg": {
-    "targets": ["win"],
-    "assets": ["node_modules/.store/**"]
-  }
-}
-```
-
-### 关键字段
-
-| 字段 | 含义 |
-|------|------|
-| `"main"` | 模块入口文件 |
-| `"type"` | 模块系统：`commonjs` 或 `module` |
-| `"dependencies"` | 生产环境依赖 |
-| `"devDependencies"` | 开发环境依赖 |
-
-### 版本号规则
-
-```
-^4.18.2  →  >=4.18.2 且 <5.0.0
-
-> 大版本锁死，第一位不变
-
-~4.18.2  →  >=4.18.2 且 <4.19.0（允许修订号更新）
-
-> 小版本锁死，前两位不变
-
-4.18.2   →  精确版本
-
-```
-
----
-
-## 1.4 npm 常用命令
-
-| 命令 | 说明 |
-|------|------|
-| `npm install` | 安装所有依赖 |
-| `npm install <package>` | 安装单个包 |
-| `npm install --save <package>` | 添加到 dependencies |
-| `npm install --save-dev <package>` | 添加到 devDependencies |
-| `npm run <script>` | 运行 npm 脚本 |
-| `npm list` | 查看已安装的包 |
-| `npm outdated` | 检查过期依赖 |
-| `npm update` | 更新依赖 |
-
----
-```
-
-# 第二阶段：事件循环与异步编程
-
-## 2.1 事件循环机制
-
-> **📍 位置：** Node.js 运行时机制（与具体文件无关）
->
-> Node.js 基于 Chrome V8 引擎，使用事件循环处理异步操作。
-
-### 误区
-
-**只有「IO 类、监听类、需要等待内核 / 资源就绪」的事件，才需要事件循环做注册监听。**
-
-**普通一次性异步任务（比如 setTimeout、Promise）根本不需要注册 “监听事件”。**
-
-如果这个api有回调，事件循环会帮它把回调绑在事件上
-
-> 监听是指告诉 **操作系统 /libuv**：
->
-> 「我有个回调函数，**你后台帮我盯着**，等这件事干完了，**记得帮我把回调扔进任务队列**」。
->
-> **注册监听器 = 委托后台（libuv / 系统）帮我 “盯着这件事”**
->
-> 1.主线程**不用阻塞等待**
->
-> 2.事件循环**不用轮询查询**做完没
->
-> 3.后台搞定后**自动把回调丢进队列**
->
-> 4.事件循环只管从队列拿任务执行
->
-> **注册监听器就是为了：异步、不阻塞、后台通知。**
->
->  
->
-> 套进 setTimeout 真实流程
->
-> ```
-> setTimeout(fn, 1000)
-> ```
->
-> 1. **注册监听**：向 libuv 注册一个「1 秒定时事件」，让后台帮我盯着时间
-> 2. **绑定回调**：把 `fn` 绑到这个定时事件上
-> 3. 后台倒计时走完 → 触发监听事件
-> 4. libuv 把绑定好的 **回调 fn** 扔进任务队列
-> 5. 事件循环取出执行
-
-------
-
-先分两类，你瞬间就懂
-
-第一类：真・需要「注册监听」的
-
-特点：**长时间挂着、等某个资源就绪**
-
-- 文件读写 `fs.readFile`
-- 网络请求、TCP 服务、HTTP
-- 流、管道、socket
-- 定时器其实也算底层事件监听
-
-这类：
-
-调用 API → **事件循环帮你向 libuv / 系统内核注册事件监听** → 后台等就绪 → 就绪后 libuv 塞回调入队列。
-
-------
-
-第二类：**不需要注册监听** 的异步
-
-就是**一次性、无持续监听**的：
-
-- Promise .then/.catch 微任务
-- process.nextTick
-- 一次性普通回调、手动异步封装
-
-这类**根本不沾 “事件监听”**：
-
-没有向内核注册、没有挂起等待资源，
-
-只是**把回调丢到微任务队列**，等同步代码走完立刻执行。
-
-👉 关键点：
-
-**不是所有异步都叫「事件」，也不是所有异步都要事件循环注册监听。**
-
-------
-
-回答你原话：
-
-> 如果这个事件不是监听类型的，事件循环也要去注册监听吗？
-
-**不需要，完全不用。**
-
-- 监听型异步 → 要注册事件、挂在内核 /libuv 上等就绪
-- 非监听型异步（微任务、一次性回调）→ **无任何注册监听动作**，直接进队列排队
-
-
-
-1. 事件循环确实会「注册监听」，但**不负责执行异步干活**
-
-举例子：`setTimeout`、`fs.readFile`
-
-1. 你调用异步 API
-
-2. 事件循环 / 底层帮你把这个事件「注册」到 libuv
-
-   
-
-   ✅ 这一步：事件循环有参与
-
-   登记、注册事件
-
-3. 但是！
-
-   真正耗时的异步工作（计时、读文件、网络 IO）
-
-   
-
-   是 libuv 线程池 / 系统内核在后台跑
-
-   
-
-   ❌ 事件循环
-
-   不参与干活、不阻塞、不等待
-
-👉 总结：
-
-**事件循环只做「登记注册」，不做「异步任务实际执行」**
-
-------
-
-2. 异步任务做完以后，**也不是事件循环主动收**
-
-后台 IO / 定时器干完了：
-
-- 不是通知事件循环
-- 不是事件循环主动去轮询查完没
-
-而是：
-
-**libuv 底层感知任务完成 → 主动把回调塞进对应的任务队列**
-
-（宏任务队列 / 微任务队列）
-
-👉 事件循环**根本不用管**任务完没完，它只做一件事：
-
-**我一轮一轮跑，只要队列里有回调，我就拿出来执行**
-
-------
-
-3 一句话把你疑惑彻底解开
-
-1. **事件循环参与：异步事件的注册、监听调度框架**
-
-2. **事件循环不参与：异步任务实际耗时执行**
-
-3. 事件循环不参与：任务完成后把回调塞进队列
-
-   
-
-   这步是 libuv 底层做的
-
-------
-
-# 用人话流程重新走一遍
-
-1. 你写 `setTimeout(cb, 1000)`
-2. Node 告诉**事件循环**：帮我登记一个定时事件
-3. 事件循环把它**交给 libuv 后台**
-4. libuv 自己倒计时，**事件循环该干啥干啥，不等待**
-5. 时间到 → **libuv 主动把 cb 放进宏任务队列**
-6. 下一轮事件循环切片，发现队列有任务，拿出来执行
-
-------
-
-## 再给你一句极简口诀
-
-**IO / 网络 / 定时器 = 要注册监听**
-
-**Promise/nextTick 微任务 = 不注册、不监听、直接入队**
-
-### 执行阶段顺序
-
-```
-   ┌───────────────────────────┐
-   │        timers             │  setTimeout, setInterval
-   │  pending callbacks        │  I/O callbacks
-   │  idle, prepare            │  内部使用
-   │        poll              │  获取新的 I/O 事件
-   │        check             │  setImmediate
-   │   close callbacks        │  socket.on('close')
-   └───────────────────────────┘
-```
-
-### 经典面试题：执行顺序
-
-```javascript
-setTimeout(() => console.log('setTimeout'), 0);
-setImmediate(() => console.log('setImmediate'));
-Promise.resolve().then(() => console.log('Promise then'));
-process.nextTick(() => console.log('nextTick'));
-
-console.log('同步代码');
-```
-
-**输出顺序：**
-```
-同步代码
-nextTick
-Promise then
-setTimeout (或 setImmediate - 取决于 I/O)
-setImmediate (或 setTimeout)
-```
-
-### 2.1 事件循环机制（详细版）
-
-#### 什么是事件循环？
-
-Node.js 是**单线程**的，但它能处理大量并发请求，秘密就在于**事件循环**。
-
-Node.js 基于 Chrome V8 引擎，使用事件循环处理异步操作。
-
-**比喻理解：**
-
-```
-餐厅服务员（单线程） = Node.js
-事件循环 = 服务员脑子里记住的"待办清单"
-顾客点单 = 异步任务（I/O操作）
-
-服务员的处理方式：
-1. 接到点单 → 告诉厨房去做（异步，不等待）
-2. 去服务下一桌 → 接到更多点单
-3. 厨房做好了 → 服务员端菜上桌（回调执行）
-
-这就是"非阻塞异步 I/O"！
-```
-
-#### 为什么需要事件循环？
-
-**传统同步方式（阻塞）：**
-
-```
-请求1: 读取文件(等3秒) → 读取完成 → 返回结果
-请求2: (要等请求1完成才能开始) → 读取文件(等3秒) → 返回结果
-请求3: (要等请求2完成) → ...
-
-总耗时：9秒
-```
-
-**Node.js 异步方式（非阻塞）：**
-
-```
-请求1: 发起读取文件(交给系统) ──────────────────→ 3秒后收到结果
-请求2: 发起读取文件(交给系统) ────────→ 3秒后收到结果
-请求3: 发起读取文件(交给系统) ─→ 3秒后收到结果
-
-总耗时：3秒（三个请求同时进行）
-```
-
-#### 事件循环工作原理
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      Node.js 事件循环流程                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│   ┌──────────────┐                                              │
-│   │   Call Stack │  执行栈，存放要执行的代码                      │
-│   │   (调用栈)    │  同步代码在这里执行                           │
-│   └──────┬───────┘                                              │
-│          │                                                      │
-│          ▼                                                      │
-│   ┌──────────────┐                                              │
-│   │  Node.js API │  异步任务注册的地方                           │
-│   │  (Web APIs)  │  setTimeout, fs.readFile 等                   │
-│   └──────┬───────┘                                              │
-│          │                                                      │
-│          ▼                                                      │
-│   ┌──────────────┐                                              │
-│   │  Event Queue │  任务队列，存放完成的异步任务                  │
-│   │   (队列)     │  等待被 Call Stack 执行                       │
-│   └──────┬───────┘                                              │
-│          │                                                      │
-│          │ 事件循环：不断检查 Call Stack 是否为空                 │
-│          │         为空就把队列里的任务搬过来执行                │
-│          ▼                                                      │
-│   ┌──────────────┐                                              │
-│   │   无限循环   │  永远不停，直到没有任务                       │
-│   │             │                                              │
-│   └──────────────┘                                              │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**通俗解释：**
-
-```
-1. Call Stack（调用栈）= 服务员的"手"，一次只能做一件事
-2. Event Queue（事件队列）= 服务员的"记事本"，记着待完成的任务
-3. 事件循环 = 服务员处理完当前事后，查看记事本
-
-流程：
-1. 服务员接到任务A → 交给厨房（异步）
-2. 服务员接到任务B → 交给厨房（异步）
-3. 任务A做好了 → 写到记事本上
-4. 服务员处理完当前任务 → 看记事本 → 执行任务A
-```
-
-
-
-#### 执行阶段顺序
-
-Node.js 事件循环有多个**阶段（Phase）**，每个阶段处理不同类型的任务：
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      事件循环的六个阶段                            │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│   ① timers（计时器阶段）                                         │
-│   │   ├── setTimeout(回调, 1000)                                │
-│   │   └── setInterval(回调, 1000)                               │
-│   │   执行：到期的定时器回调                                       │
-│   │                                                               │
-│   ② pending callbacks（待定回调阶段）                            │
-│   │   执行：延迟到下一个循环的 I/O 回调                           │
-│   │                                                               │
-│   ③ idle, prepare（空闲/准备阶段）                                │
-│   │   内部使用，开发者无需关心                                     │
-│   │                                                               │
-│   ④ poll（轮询阶段）⭐ 重要                                       │
-│   │   ├── 获取新的 I/O 事件                                      │
-│   │   ├── 执行 I/O 回调（文件读取、网络请求等）                   │
-│   │   └── 如果没有回调，停留等待                                   │
-│   │                                                               │
-│   ⑤ check（检查阶段）                                            │
-│   │   └── 执行 setImmediate 回调                                  │
-│   │                                                               │
-│   ⑥ close callbacks（关闭回调阶段）                              │
-│       └── 执行 socket.on('close') 等关闭回调                     │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**阶段执行顺序图：**
-
-```
-timers → pending callbacks → idle/prepare → poll → check → close callbacks
-   ↑                                                            │
-   └──────────────────── 循环继续 ──────────────────────────────┘
-```
-
-#### 什么是微任务（Microtask）？
-
-**微任务优先级高于普通阶段！**
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      微任务 vs 宏任务                            │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│   宏任务（MacroTask）- 按阶段执行                                │
-│   ├── setTimeout 回调                                           │
-│   ├── setInterval 回调                                          │
-│   ├── setImmediate 回调                                         │
-│   └── I/O 回调                                                  │
-│                                                                 │
-│   微任务（MicroTask）- 阶段之间执行，优先级更高                   │
-│   ├── Promise.then()                                           │
-│   ├── Promise.catch()                                          │
-│   └── process.nextTick() ⭐ 最高优先级                          │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**执行顺序：**
-
-```
-每个阶段执行完后 → 先清空所有 nextTick → 再清空所有微任务 → 进入下一阶段
-
-阶段1 → nextTick队列 → 微任务队列 → 阶段2 → nextTick队列 → 微任务队列 → ...
-```
-
-#### 经典面试题：执行顺序
-
-```javascript
-setTimeout(() => console.log('setTimeout'), 0);
-setImmediate(() => console.log('setImmediate'));
-Promise.resolve().then(() => console.log('Promise then'));
-process.nextTick(() => console.log('nextTick'));
-
-console.log('同步代码');
-```
-
-**输出顺序：**
-
-```
-1. 同步代码           ← 最先执行（调用栈）
-2. nextTick          ← 微任务，最高优先级
-3. Promise then      ← 微任务
-4. setTimeout 或 setImmediate  ← 取决于 I/O 情况
-5. setImmediate 或 setTimeout
-```
-
-**为什么 setTimeout 和 setImmediate 顺序不确定？**
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│   setTimeout(() => {}, 0) 和 setImmediate()                     │
-│                                                                 │
-│   如果在主模块（不是 I/O 回调中）执行：                           │
-│   → 取决于系统性能，可能 timers 先也可能 check 先                │
-│                                                                 │
-│   如果在 I/O 回调中执行：                                        │
-│   → setImmediate 几乎总是先于 setTimeout 执行                    │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-#### 各阶段特点
-
-| 阶段 | 特点 | 示例 |
-|------|------|------|
-| **timers** | 执行到期的 setTimeout/setInterval | `setTimeout(() => {}, 1000)` |
-| **pending callbacks** | 执行延迟的 I/O 回调 | 某些系统错误回调 |
-| **idle, prepare** | 内部使用 | Node.js 内部使用 |
-| **poll** | 轮询 I/O，执行 I/O 回调 | `fs.readFile()` 回调 |
-| **check** | 执行 setImmediate | `setImmediate(() => {})` |
-| **close callbacks** | 执行关闭回调 | `socket.on('close')` |
-
-#### 微任务优先级
-
-| 类型 | 优先级 | 示例 |
-|------|--------|------|
-| **process.nextTick** | 最高 | `process.nextTick(() => {})` |
-| **Promise.then** | 高 | `Promise.resolve().then()` |
-| **setTimeout** | 普通 | `setTimeout(() => {}, 0)` |
-| **setImmediate** | 普通 | `setImmediate(() => {})` |
-
-#### 实际代码演示
-
-**例1：理解执行顺序**
-
-```javascript
-console.log('1 - 同步代码开始');
-
-setTimeout(() => console.log('2 - setTimeout 0ms'), 0);
-setTimeout(() => console.log('3 - setTimeout 100ms'), 100);
-
-Promise.resolve().then(() => console.log('4 - Promise then'));
-
-process.nextTick(() => console.log('5 - nextTick'));
-
-console.log('6 - 同步代码结束');
-```
-
-**输出：**
-```
-1 - 同步代码开始
-6 - 同步代码结束
-5 - nextTick
-4 - Promise then
-2 - setTimeout 0ms
-3 - setTimeout 100ms
-```
-
-**解释：**
-```
-1. 同步代码立刻执行 → 输出 1、6
-2. nextTick 在当前阶段后立即执行 → 输出 5
-3. Promise then 在微任务队列 → 输出 4
-4. setTimeout 进入 timers 阶段 → 输出 2、3
-```
-
-**例2：I/O 回调中的执行顺序**
-
-```javascript
-const fs = require('fs');
-
-fs.readFile(__filename, () => {
-    console.log('1 - I/O 回调');
-    setTimeout(() => console.log('2 - setTimeout in I/O'), 0);
-    setImmediate(() => console.log('3 - setImmediate in I/O'));
-    process.nextTick(() => console.log('4 - nextTick in I/O'));
-});
-
-console.log('同步代码');
-```
-
-**输出：**
-```
-同步代码
-1 - I/O 回调
-4 - nextTick in I/O
-3 - setImmediate in I/O
-2 - setTimeout in I/O
-```
-
-**解释：**
-```
-在 I/O 回调中：
-1. 同步代码先执行
-2. I/O 回调在 poll 阶段执行 → 输出 1
-3. nextTick 立即执行 → 输出 4
-4. setImmediate 在 check 阶段 → 输出 3
-5. setTimeout 在 timers 阶段 → 输出 2
-```
-
-#### 项目中的实际应用
-
-**计算锁机制使用 setImmediate：**
-
-```javascript
-// src/framework/utils/interceptor.js
-// 计算中时，立即返回不阻塞
-if (project.isCalculating) {
-    return setImmediate(() => {
-        // 立即返回响应，不阻塞事件循环
-        return res.status(423).json({ message: "计算正在进行中..." });
-    });
-}
-```
-
-**原因：** 使用 `setImmediate` 让出当前调用栈，让事件循环继续处理其他请求。
-
----
-
-### 2.2 Promise 与 async/await
-
-> **📍 位置：** `src/business/service/user.js` 中有大量使用
->
-> ### Promise 三种状态
+Promise 三种状态
 
 ```
 pending (待定) → fulfilled (已兑现) 或 rejected (已拒绝)
@@ -909,9 +203,7 @@ async function login(param) {
 }
 ```
 
----
-
-## 2.3 项目中的计算锁机制
+### 项目中的计算锁机制
 
 > **📍 位置：** `src/framework/utils/interceptor.js`
 >
@@ -946,7 +238,7 @@ module.exports = {
 >
 > 理解项目的启动流程是掌握整个架构的关键。
 
-### 入口文件定义
+### 入口文件定义处
 
 ```json
 // package.json
@@ -1051,43 +343,7 @@ module.exports = {
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### 数据流向图
 
-```
-客户端请求
-     │
-     ▼
-┌────────────┐
-│  Express   │  ← app.js 创建
-│  Router     │  ← routeLoader 加载
-└─────┬──────┘
-      │ 匹配路由
-      ▼
-┌────────────┐
-│ 中间件链    │  ← authenticate (JWT验证)
-│            │  ← bodyParser (请求体解析)
-└─────┬──────┘
-      │ next()
-      ▼
-┌────────────┐
-│ Service层  │  ← business/service/*.js
-│ 业务逻辑   │
-└─────┬──────┘
-      │
-      ▼
-┌────────────┐
-│ Repository │  ← business/repository/*.js
-│ 数据访问   │
-└─────┬──────┘
-      │
-      ▼
-┌────────────┐
-│  Sequelize  │  ← ORM
-│  数据库操作 │
-└────────────┘
-```
-
-### 启动流程代码详解
 
 ```javascript
 // src/app.js 完整启动流程
@@ -1127,7 +383,7 @@ routeLoader.loadDatabase(app).then(r => {
 })
 ```
 
-### 启动阶段总结表
+
 
 | 阶段 | 执行顺序 | 涉及文件 | 作用 |
 |------|---------|----------|------|
@@ -1140,19 +396,47 @@ routeLoader.loadDatabase(app).then(r => {
 | **服务启动** | 7 | `app.js` | 监听端口 |
 | **任务清理** | 8 | `projectService.interrupt()` | 中断之前的计算任务 |
 
----
+
+
+### 数据流向图
+
+```
+客户端请求
+     │
+     ▼
+┌────────────┐
+│  Express   │  ← app.js 创建
+│  Router     │  ← routeLoader 加载
+└─────┬──────┘
+      │ 匹配路由
+      ▼
+┌────────────┐
+│ 中间件链    │  ← authenticate (JWT验证)
+│            │  ← bodyParser (请求体解析)
+└─────┬──────┘
+      │ next()
+      ▼
+┌────────────┐
+│ Service层  │  ← business/service/*.js
+│ 业务逻辑   │
+└─────┬──────┘
+      │
+      ▼
+┌────────────┐
+│ Repository │  ← business/repository/*.js
+│ 数据访问   │
+└─────┬──────┘
+      │
+      ▼
+┌────────────┐
+│  Sequelize  │  ← ORM
+│  数据库操作 │
+└────────────┘
+```
 
 ## 3.2 中间件机制
 
-### 中间件执行流程
-
-```
-请求 → 中间件1 → 中间件2 → 路由处理 → 响应
-         ↓          ↓
-       next()     next()
-```
-
-### 项目中的中间件配置
+这里拿了app.js用到的一些中间件举例
 
 ```javascript
 // src/app.js
@@ -1171,15 +455,138 @@ app.use(userService.authenticate)
 routeLoader.loadRemoteRoute(app)
 ```
 
-### 中间件类型
 
-| 类型 | 说明 | 项目实例 |
-|------|------|----------|
-| **应用级** | `app.use()`, `app.get()` | 认证中间件 |
-| **路由级** | `router.use()` | 路由分组 |
-| **错误处理** | `app.use((err, req, res, next) => {})` | 统一错误处理 |
 
----
+### 入口文件代码详细介绍
+
+这里的流程是请求进来后-->解析JSON请求体-->解析表单/URL编码请求体-->认证用户合法性-->进入具体路由-->返回响应。
+
+```
+const app = express()
+```
+
+创建Express应用实例。
+
+app是整个后端服务的核心对象，后面的东西基本都是挂载在它的身上。比如app.use/app.get/app.listen..
+
+```
+bodyParser.json({ limit: '500mb' })
+```
+
+解析前端传来的json数据，把json解析成js对象
+
+```
+bodyParser.urlencoded({ extended: false, limit: '500mb' })
+```
+
+解析表单格式数据
+
+> 某些关于表单的接口用这种格式：
+>
+> ```
+> name=张三&age=18
+> ```
+>
+> 它会帮你解析成：
+>
+> ```
+> req.body = {
+>   name: '张三',
+>   age: '18'
+> }
+> ```
+
+```
+extended: false
+```
+
+只解析简单对象，不解析复杂嵌套对象。
+
+
+
+```
+app.use(userService.authenticate)
+```
+
+认证中间件，用来判断请求里面的token、权限。
+
+> 比如前端请求接口时带 token：
+>
+> ```
+> axios.get('/api/user/list', {
+>   headers: {
+>     Authorization: 'Bearer xxxxxx'
+>   }
+> })
+> ```
+>
+> 后端的 `authenticate` 可能会做这些事：
+>
+> ```
+> function authenticate(req, res, next) {
+>   const token = req.headers.authorization
+> 
+>   if (!token) {
+>     return res.status(401).json({
+>       message: '未登录'
+>     })
+>   }
+> 
+>   // 校验 token 是否有效
+>   // 如果有效，把用户信息挂到 req 上
+>   req.user = {
+>     id: 1,
+>     name: '张三'
+>   }
+> 
+>   next()   //认证通过调用next，否则就res.status(401).json(...)
+> }
+> ```
+
+```
+routeLoader.loadRemoteRoute(app)
+```
+
+路由加载函数，把很多路由统一注册到app上。（集中加载路由到app上）
+
+### 中间件顺序
+
+认证中间件要放在路由前面，因为认证过了才能加载路由。
+
+但是要是登录的路由也放在了 路由统一加载的那个部分里，就会发生如下事情
+
+> 只有登录后才有token，但是现在想去接触登录的这个路由，必须先有token。
+>
+> 类似于想进大楼必须要刷卡，但是没有卡，办卡的房间在大楼里面。
+
+**做法一：**
+
+先单独放出登录路由-->认证中间价-->放所有路由
+
+```
+app.use('/api/login', loginRouter)
+
+app.use(userService.authenticate)
+
+app.use('/api/user', userRouter)
+app.use('/api/order', orderRouter)
+```
+
+**做法二：**
+
+在认证中间件里，先单独放行login
+
+```
+function authenticate(req, res, next) {
+  if (req.path === '/login') {
+    return next()
+  }
+
+  // 其他接口继续校验 token
+}
+```
+
+
 
 ## 3.3 路由系统
 
@@ -1337,7 +744,6 @@ if (datasource_type === "mysql") {
 
 
 
-```
 
 ### 连接池配置说明
 
@@ -1348,7 +754,8 @@ if (datasource_type === "mysql") {
 | idle | 空闲超时(ms) | 10000 |
 | acquire | 获取连接超时(ms) | 3000 |
 
----
+
+
 
 # 第五阶段：认证与安全
 
