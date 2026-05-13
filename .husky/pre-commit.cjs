@@ -78,12 +78,9 @@ const updateUpdatedField = () => {
 
       // 检查是否已有 updated 字段
       if (/^updated:/.test(frontmatter)) {
-        // 检查日期是否已经是今天的
-        const currentUpdated = frontmatter.match(/^updated:\s*(.+)$/m)?.[1];
-        if (currentUpdated !== today) {
-          newFrontmatter = frontmatter.replace(/^updated:.*$/m, `updated: ${today}`);
-          needsUpdate = true;
-        }
+        // 直接更新为今天（每次提交都更新时间）
+        newFrontmatter = frontmatter.replace(/^updated:.*$/m, `updated: ${today}`);
+        needsUpdate = true;
       } else {
         // 添加新的 updated 字段（在 published 字段后）
         if (/^published:/.test(frontmatter)) {
