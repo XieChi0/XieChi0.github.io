@@ -142,7 +142,7 @@ src/
 ### 入口文件 main.ts
 
 ```typescript
-// main.ts - 入口文件
+// main.ts - 入口文件 
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
