@@ -12,7 +12,6 @@ draft: false
 
 > 本教程基于 YouTube [NestJS Crash Course](https://www.youtube.com/watch?v=FcioMucBc0Q) 视频翻译整理，大概百分之三十五参考。
 >
-> **视频年代**：约 2018 年（7年前），部分内容可能已过时，我会根据目前的情况整理。
 
 ## 目录
 
