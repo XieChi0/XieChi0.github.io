@@ -16,6 +16,102 @@ const log = (color, symbol, ...args) => {
   console.log(`${color}${symbol}${colors.reset}`, ...args);
 };
 
+// 自动更新 updated 字段
+const updateUpdatedField = () => {
+  console.log(`\n${colors.cyan}[Auto Update]${colors.reset} Checking for files needing updated field...`);
+  console.log('─'.repeat(50));
+
+  const postsDir = path.join(process.cwd(), 'src', 'content', 'posts');
+  const today = new Date().toISOString().split('T')[0]; // 格式: 2026-05-13
+  let updatedCount = 0;
+
+  try {
+    // 获取 staged 的 .md 文件
+    const stagedFiles = execSync('git diff --cached --name-only', { encoding: 'utf-8' })
+      .trim().split('\n').filter(Boolean);
+
+    // 获取未跟踪的新文件
+    const newFiles = execSync('git ls-files --others --exclude-standard -- ' + postsDir, { encoding: 'utf-8' })
+      .trim().split('\n').filter(f => f.endsWith('.md'));
+
+    const mdFiles = stagedFiles
+      .filter(f => f.startsWith('src/content/posts/') && f.endsWith('.md'));
+
+    const filesToProcess = [...mdFiles, ...newFiles];
+
+    if (filesToProcess.length === 0) {
+      log(colors.green, '✓', 'No modified posts found');
+      return true;
+    }
+
+    for (const relativePath of filesToProcess) {
+      const fullPath = path.join(process.cwd(), relativePath);
+
+      if (!fs.existsSync(fullPath)) continue;
+
+      const content = fs.readFileSync(fullPath, 'utf-8');
+      const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+
+      if (!frontmatterMatch) continue;
+
+      const frontmatter = frontmatterMatch[1];
+      const hasDraft = /^draft:\s*true/m.test(frontmatter);
+
+      // 跳过草稿文件
+      if (hasDraft) continue;
+
+      let newFrontmatter;
+      let needsUpdate = false;
+
+      // 检查是否已有 updated 字段
+      if (/^updated:/.test(frontmatter)) {
+        // 检查日期是否已经是今天的
+        const currentUpdated = frontmatter.match(/^updated:\s*(.+)$/m)?.[1];
+        if (currentUpdated !== today) {
+          newFrontmatter = frontmatter.replace(/^updated:.*$/m, `updated: ${today}`);
+          needsUpdate = true;
+        }
+      } else {
+        // 添加新的 updated 字段（在 published 字段后）
+        if (/^published:/.test(frontmatter)) {
+          newFrontmatter = frontmatter.replace(/^published:.*$/m, `$&` + `\nupdated: ${today}`);
+        } else {
+          // 如果没有 published，就在开头添加
+          newFrontmatter = `updated: ${today}\n` + frontmatter;
+        }
+        needsUpdate = true;
+      }
+
+      if (needsUpdate) {
+        const newContent = content.replace(/^---\n[\s\S]*?\n---/, `---\n${newFrontmatter}\n---`);
+        fs.writeFileSync(fullPath, newContent, 'utf-8');
+
+        // 重新 stage 修改后的文件
+        execSync(`git add "${fullPath}"`, { stdio: 'ignore' });
+
+        console.log(`  ${colors.green}✓${colors.reset} Updated: ${relativePath}`);
+        updatedCount++;
+      }
+    }
+
+    if (updatedCount > 0) {
+      console.log(`\n${colors.green}✓${colors.reset} Updated ${updatedCount} file(s) with 'updated: ${today}'`);
+    } else {
+      log(colors.green, '✓', 'All posts already have updated field');
+    }
+
+    return true;
+  } catch (error) {
+    // 如果不是 git 仓库或其他错误，不阻止流程
+    if (error.message.includes('not a git repository')) {
+      log(colors.yellow, '⚠', 'Not a git repository, skipping auto-update');
+      return true;
+    }
+    console.log(`${colors.yellow}⚠${colors.reset} Auto-update error: ${error.message}`);
+    return true; // 不阻止流程
+  }
+};
+
 const run = (command, name) => {
   console.log(`\n${colors.yellow}[${name}]${colors.reset} Running: ${command}`);
   console.log('─'.repeat(50));
@@ -106,6 +202,9 @@ if (!checkFrontmatter()) {
   console.log(`${colors.yellow}═══════════════════════════════════════════\n`);
   process.exit(1);
 }
+
+// 自动更新 updated 字段
+updateUpdatedField();
 
 const steps = [
   { cmd: 'astro check', name: '1/3 Astro Check' },
