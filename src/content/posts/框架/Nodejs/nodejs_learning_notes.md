@@ -1,7 +1,7 @@
 ---
 title: Nodejs learning notes
 published: 2026-05-09
-updated: 2026-05-09
+updated: 2026-05-13
 description: 'Read more about Markdown features in Fuwari'
 image: ''
 tags: [Nodejs]
@@ -170,20 +170,20 @@ Promise 三种状态
 pending (待定) → fulfilled (已兑现) 或 rejected (已拒绝)
 ```
 
-### 项目中的 Promise 使用
+### async/await 错误处理：JWT 验证
 
 ```javascript
 // src/business/service/user.js
-jwt.verify(token, secretKey, (err, decoded) => {
-    if (err) {
-        return res.status(403).json({ message: "无效的身份验证令牌" });
-    }
+try {
+    const decoded = await jwt.verify(token, secretKey);
     req.user = decoded;
     next();
-});
+} catch (err) {
+    return res.status(403).json({ message: "无效的身份验证令牌" });
+}
 ```
 
-### async/await 语法
+### async/await 完整函数：登录逻辑
 
 ```javascript
 // 同步写法
