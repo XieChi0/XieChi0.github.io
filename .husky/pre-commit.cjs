@@ -46,10 +46,23 @@ const updateUpdatedField = () => {
 
     for (const relativePath of filesToProcess) {
       const fullPath = path.join(process.cwd(), relativePath);
+      const isNewFile = newFiles.includes(relativePath);
 
       if (!fs.existsSync(fullPath)) continue;
 
-      const content = fs.readFileSync(fullPath, 'utf-8');
+      // 从 staged 区域读取内容（新文件从工作目录读取）
+      let content;
+      if (isNewFile) {
+        content = fs.readFileSync(fullPath, 'utf-8');
+      } else {
+        // 从 git 暂存区读取（git show :filepath 读取 staged 的快照）
+        try {
+          content = execSync(`git show :${relativePath}`, { encoding: 'utf-8' });
+        } catch {
+          content = fs.readFileSync(fullPath, 'utf-8');
+        }
+      }
+
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
 
       if (!frontmatterMatch) continue;
