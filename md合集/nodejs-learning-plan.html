@@ -1,0 +1,2010 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js 后端学习计划</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-600: #4b5563;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --bg-color: #fafafa;
+            --card-bg: #ffffff;
+            --code-bg: #1e1e1e;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-color);
+            color: var(--gray-800);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 2rem 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header-content {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        /* Progress Bar */
+        .progress-section {
+            max-width: 1000px;
+            margin: 1.5rem auto;
+            padding: 0 1rem;
+        }
+
+        .progress-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .progress-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .progress-percentage {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: var(--gray-200);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--success) 100%);
+            border-radius: 6px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .progress-stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-icon {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .stat-completed .stat-icon { background: var(--success); }
+        .stat-remaining .stat-icon { background: var(--gray-300); }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        /* Stage Section */
+        .stage {
+            margin-bottom: 1.5rem;
+        }
+
+        .stage-header {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: all 0.2s ease;
+        }
+
+        .stage-header:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stage-number {
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .stage.expanded .stage-number {
+            background: var(--success);
+        }
+
+        .stage-number.completed {
+            background: var(--success);
+        }
+
+        .stage-info {
+            flex: 1;
+        }
+
+        .stage-title {
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stage-subtitle {
+            font-size: 0.8rem;
+            color: var(--gray-600);
+            margin-top: 0.25rem;
+        }
+
+        .stage-progress {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+
+        .stage-toggle {
+            width: 24px;
+            height: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .stage-toggle svg {
+            width: 100%;
+            height: 100%;
+            fill: var(--gray-600);
+        }
+
+        .stage.expanded .stage-toggle {
+            transform: rotate(180deg);
+        }
+
+        /* Chapter List */
+        .chapter-list {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        /* 确保章节列表可见 */
+        .stage .chapter-list .chapter {
+            margin-left: 0.5rem;
+            margin-right: 0.5rem;
+        }
+
+        .stage.expanded .chapter-list {
+            max-height: 10000px;
+            padding-top: 0.75rem;
+        }
+
+        .chapter {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border-left: 4px solid transparent;
+            transition: border-color 0.2s ease;
+        }
+
+        .chapter.completed {
+            border-left-color: var(--success);
+        }
+
+        .chapter-header {
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .chapter-checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--gray-300);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+            margin-top: 2px;
+        }
+
+        .chapter-checkbox:hover {
+            border-color: var(--primary);
+        }
+
+        .chapter.completed .chapter-checkbox {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .chapter-checkbox svg {
+            width: 14px;
+            height: 14px;
+            fill: white;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .chapter.completed .chapter-checkbox svg {
+            opacity: 1;
+        }
+
+        .chapter-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chapter-title {
+            font-weight: 500;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .chapter-tags {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .tag-frequency {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .tag-frequency.high { background: #fee2e2; color: #991b1b; }
+        .tag-frequency.medium { background: #fef3c7; color: #92400e; }
+        .tag-frequency.low { background: #e0e7ff; color: #3730a3; }
+
+        .tag-time {
+            background: var(--gray-100);
+            color: var(--gray-600);
+        }
+
+        /* Code Section */
+        .code-section {
+            background: #1a1a1a;
+            border-radius: 12px;
+            margin-top: 1rem;
+            overflow: hidden;
+            border: 2px solid #444444;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #2d2d2d;
+            border-bottom: 1px solid #444444;
+        }
+
+        .code-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #a0a0b0;
+        }
+
+        .code-toggle {
+            font-size: 0.85rem;
+            color: #818cf8;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-weight: 500;
+        }
+        .code-toggle:hover {
+            text-decoration: underline;
+        }
+
+        .code-block {
+            position: relative;
+            background: #0d0d0d;
+            padding: 1rem;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            color: #999999;
+        }
+
+        .code-block code {
+            color: #999999;
+        }
+
+        .code-line {
+            display: flex;
+            transition: background 0.15s ease;
+            padding: 2px 0;
+        }
+
+        .code-line:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .line-number {
+            color: #888888;
+            user-select: none;
+            min-width: 3rem;
+            text-align: right;
+            padding-right: 1.5rem;
+            font-weight: 500;
+        }
+
+        .line-content {
+            flex: 1;
+            white-space: pre;
+            color: #999999;
+        }
+
+        .code-comments {
+            display: none;
+            background: #1a1a1a;
+            padding: 1.25rem;
+            border-top: 2px solid #444444;
+        }
+
+        .code-comments.show {
+            display: block;
+        }
+
+        .comment-line {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 0.85rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .comment-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .comment-line-number {
+            color: #cba6f7;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            min-width: 2.5rem;
+            background: #313244;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .comment-text {
+            color: #a6e3a1;
+            line-height: 1.6;
+        }
+
+        /* Professional Tip */
+        .pro-tip {
+            background: linear-gradient(135deg, #1e3a2f 0%, #1a2e25 100%);
+            border: 1px solid #4ade80;
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin-top: 1rem;
+        }
+
+        .pro-tip-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: #4ade80;
+            font-size: 0.9rem;
+        }
+
+        .pro-tip-header svg {
+            width: 18px;
+            height: 18px;
+            fill: #4ade80;
+        }
+
+        .pro-tip-content {
+            font-size: 0.9rem;
+            color: #a7f3d0;
+            line-height: 1.6;
+        }
+
+        .pro-tip-content code {
+            background: rgba(74, 222, 128, 0.15);
+            color: #86efac;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--gray-600);
+            font-size: 0.85rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .header h1 {
+                font-size: 1.4rem;
+            }
+
+            .progress-stats {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .stage-header {
+                padding: 0.75rem 1rem;
+            }
+
+            .chapter-header {
+                padding: 0.75rem 1rem;
+            }
+
+            .code-block {
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stage {
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .stage:nth-child(1) { animation-delay: 0.05s; }
+        .stage:nth-child(2) { animation-delay: 0.1s; }
+        .stage:nth-child(3) { animation-delay: 0.15s; }
+        .stage:nth-child(4) { animation-delay: 0.2s; }
+        .stage:nth-child(5) { animation-delay: 0.25s; }
+        .stage:nth-child(6) { animation-delay: 0.3s; }
+        .stage:nth-child(7) { animation-delay: 0.35s; }
+        .stage:nth-child(8) { animation-delay: 0.4s; }
+        .stage:nth-child(9) { animation-delay: 0.45s; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>Node.js 后端工程师学习计划</h1>
+            <p>基于 wc-Backend + tb-dock-server 实战项目 | 面试导向学习路径</p>
+        </div>
+    </header>
+
+    <section class="progress-section">
+        <div class="progress-card">
+            <div class="progress-header">
+                <h2>学习进度</h2>
+                <span class="progress-percentage" id="progressPercent">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-stats">
+                <div class="stat-item stat-completed">
+                    <span class="stat-icon"></span>
+                    <span>已完成 <strong id="completedCount">0</strong> / <span id="totalCount">0</span> 章节</span>
+                </div>
+                <div class="stat-item stat-remaining">
+                    <span class="stat-icon"></span>
+                    <span>预计学习时长：约 <strong>15</strong> 小时</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="main-content" id="mainContent">
+        <!-- Stages will be generated by JavaScript -->
+    </main>
+
+    <footer class="footer">
+        <p>点击章节前的复选框标记已完成 | 进度自动保存到本地</p>
+    </footer>
+
+    <script>
+        // Learning plan data structure
+        const learningPlan = [
+            {
+                id: 1,
+                title: "入门基础",
+                subtitle: "目录结构 · 各层职责",
+                totalTime: "60min",
+                chapters: [
+                    {
+                        id: "1-1",
+                        title: "项目目录结构概览",
+                        frequency: "低",
+                        frequencyLevel: "low",
+                        time: "30min",
+                        code: `wch1d_modelingtool_crossplatform/
+├── src/                        # 源代码目录【核心】
+│   ├── app.js                  # Express 应用入口
+│   ├── business/               # 业务逻辑层
+│   │   ├── model/             # Sequelize 数据模型
+│   │   ├── repository/        # 数据访问层
+│   │   └── service/           # 业务服务层
+│   ├── framework/              # 框架基础设施层
+│   └── routes/                 # 路由定义层
+└── projects/                   # 用户项目数据存储`,
+                        comments: [
+                            { line: "1-2", text: "src/ 是核心目录，所有业务代码都在这里" },
+                            { line: "4-6", text: "business 层采用经典三层架构：Model → Repository → Service" },
+                            { line: "7", text: "framework 封装了通用工具，避免重复代码" },
+                            { line: "9", text: "projects 存放用户上传的文件和数据，与代码分离" }
+                        ]
+                    },
+                    {
+                        id: "1-2",
+                        title: "各层职责说明",
+                        frequency: "低",
+                        frequencyLevel: "low",
+                        time: "20min",
+                        code: `┌─────────────────────────────────────┐
+│           routes/ (路由层)        │  ← API 入口，接收请求
+├─────────────────────────────────────┤
+│           service/ (服务层)        │  ← 业务逻辑处理
+├─────────────────────────────────────┤
+│         repository/ (数据访问层)    │  ← 数据库 CRUD
+├─────────────────────────────────────┤
+│           model/ (模型层)          │  ← 数据结构定义
+└─────────────────────────────────────┘`,
+                        comments: [
+                            { line: "1", text: "路由层：只负责接收请求、参数校验、分发到服务层" },
+                            { line: "3", text: "服务层：写核心业务逻辑，如「用户登录」「计算引擎」" },
+                            { line: "5", text: "数据访问层：封装数据库操作，其他层不直接操作数据库" },
+                            { line: "7", text: "模型层：定义数据表结构，如字段类型、默认值、关联关系" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 2,
+                title: "JWT 认证 (面试高频)",
+                subtitle: "Token · 验证 · 刷新",
+                totalTime: "125min",
+                chapters: [
+                    {
+                        id: "2-1",
+                        title: "JWT Token 生成与验证",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "45min",
+                        code: `// 生成 Token - 用户登录成功后
+const jwt = require('jsonwebtoken');
+const secretKey = process.env.JWT_SECRET;
+
+async function login(param) {
+    // 1. 验证用户身份（查询数据库）
+    const user = await userRepository.getUser(param.name);
+    if (!user || user.password !== param.password) {
+        throw new Error("用户名或密码错误");
+    }
+    
+    // 2. 生成 Token
+    const token = jwt.sign(
+        { name: user.name, id: user.id },  // payload：存放用户信息
+        secretKey,                           // secret：签名密钥
+        { expiresIn: '24h' }               // 24小时后过期
+    );
+    return token;
+}`,
+                        comments: [
+                            { line: "1-2", text: "jwt.sign() 是 jsonwebtoken 库的函数，用于生成 Token" },
+                            { line: "7-9", text: "先验证用户身份，确保账号密码正确" },
+                            { line: "12-15", text: "jwt.sign() 接收三个参数：payload(数据)、secret(密钥)、options(配置)" },
+                            { line: "13", text: "payload 存放需要存储的用户信息，可以被解码，但不能被篡改（因为有签名保护）" },
+                            { line: "15", text: "expiresIn 设置过期时间，这里是 24 小时，过期后需要重新登录" }
+                        ],
+                        proTip: "专业项目中，JWT 通常会包含更丰富的信息：<br><br><code>{<br>&nbsp;&nbsp;userId: user.id,<br>&nbsp;&nbsp;username: user.name,<br>&nbsp;&nbsp;role: user.role,<br>&nbsp;&nbsp;iat: (issued at) 发布时间,<br>&nbsp;&nbsp;exp: (expiration) 过期时间<br>}</code><br><br>同时会使用 RS256 算法（非对称加密）而非 HS256，提高安全性。"
+                    },
+                    {
+                        id: "2-2",
+                        title: "JWT Token 验证中间件",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "30min",
+                        code: `// 验证 Token 中间件
+async function authenticate(req, res, next) {
+    // 1. 从请求头获取 Token
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: "未提供 Token" });
+    }
+    const token = authHeader.substring(7); // 去掉 "Bearer " 前缀
+    
+    try {
+        // 2. 验证 Token 是否有效
+        const decoded = jwt.verify(token, secretKey);
+        
+        // 3. 把用户信息挂到请求对象上
+        req.user = decoded;
+        next(); // 继续处理下一个中间件
+    } catch (err) {
+        // 4. Token 无效或已过期
+        return res.status(403).json({ message: "无效的身份验证令牌" });
+    }
+}`,
+                        comments: [
+                            { line: "5-7", text: "从请求头 Authorization 字段获取 Token，格式是 'Bearer xxxxx'" },
+                            { line: "9", text: "jwt.verify() 验证 Token 签名和有效期，如果过期或被篡改会抛出错误" },
+                            { line: "11-13", text: "验证成功后，把解码后的用户信息挂到 req.user，后续接口可以直接用" },
+                            { line: "14", text: "next() 很重要！调用它才能继续执行后续的中间件和路由处理函数" },
+                            { line: "16-18", text: "如果 Token 无效（过期、签名错误、格式错误），返回 403 禁止访问" }
+                        ],
+                        proTip: "专业项目中，验证会更加严格：<br><br>1. <strong>检查 Token 是否被撤销</strong>（存入 Redis）<br>2. <strong>检查用户是否被禁用</strong><br>3. <strong>验证 IP 地址</strong>（防止异地登录）<br>4. <strong>记录验证日志</strong>（安全审计）<br><br><code>const revoked = await redis.get(\\`token:${token}\\`);<br>if (revoked) throw new Error('Token已撤销');</code>"
+                    },
+                    {
+                        id: "2-3",
+                        title: "JWT 结构详解 (Header/Payload/Signature)",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "25min",
+                        code: `// JWT 由三部分组成，用 . 分隔
+// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiYWRtaW4iLCJpYXQiOjE2MTYxNTEwMDB9.abc123
+
+┌─────────────────────────────────────────────────────────────┐
+│  Header (头部)                                              │
+│  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9                      │
+│  {"alg":"HS256", "typ":"JWT"}                               │
+├─────────────────────────────────────────────────────────────┤
+│  Payload (载荷)                                             │
+│  eyJuYW1lIjoiYWRtaW4iLCJpYXQiOjE2MTYxNTEwMDB9              │
+│  {"name":"admin", "iat":1616151000}                        │
+├─────────────────────────────────────────────────────────────┤
+│  Signature (签名)                                           │
+│  abc123                                                     │
+│  HMACSHA256(Header + "." + Payload, secretKey)              │
+└─────────────────────────────────────────────────────────────┘`,
+                        comments: [
+                            { line: "3", text: "JWT 看起来是一串乱码，其实是三段 Base64 编码的拼接" },
+                            { line: "6-7", text: "Header：声明算法(HS256)和类型(JWT)，用 Base64 编码" },
+                            { line: "9-10", text: "Payload：存放业务数据，如用户名、发布/过期时间" },
+                            { line: "12-13", text: "Signature：Header + Payload 用密钥签名，防止数据被篡改" },
+                            { line: "13", text: "如果有人改了 Payload 里的用户名，签名就对不上了，因为签名需要密钥" }
+                        ]
+                    },
+                    {
+                        id: "2-4",
+                        title: "白名单机制",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "25min",
+                        code: `// 公开接口白名单 - 不需要登录就能访问
+const whiteList = [
+    "/user/login",                          // 登录
+    "/user/register",                       // 注册
+    "/business/hydrologic/exportResult",   // 导出结果（可能需要）
+];
+
+function isInWhiteList(url) {
+    return whiteList.some(path => url.startsWith(path));
+}
+
+// 在认证中间件中判断
+async function authenticate(req, res, next) {
+    // 如果在白名单中，直接跳过验证
+    if (isInWhiteList(req.path)) {
+        return next();
+    }
+    // 否则验证 Token...
+}`,
+                        comments: [
+                            { line: "2-4", text: "白名单：这些接口不需要 Token 就能访问（如登录、注册）" },
+                            { line: "6-8", text: "startsWith() 是模糊匹配，'/user' 会匹配 '/user/login' 和 '/user/register'" },
+                            { line: "12-15", text: "认证中间件里先检查是否白名单，是则直接放行" },
+                            { line: "16-17", text: "不是白名单才验证 Token，确保只有登录用户才能访问" }
+                        ],
+                        proTip: "专业项目中，白名单配置更规范：<br><br><code>// 白名单支持多种格式<br>const whiteList = [<br>&nbsp;&nbsp;'/user/login',<br>&nbsp;&nbsp;'/public/*',&nbsp;&nbsp;// 公开接口<br>&nbsp;&nbsp;'/health'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 健康检查<br>];</code><br><br>同时会配置黑名单（已撤销的 Token 列表）和 IP 白名单（内网接口）。"
+                    }
+                ]
+            },
+            {
+                id: 3,
+                title: "异步编程 (面试高频)",
+                subtitle: "Promise · async/await · 并发",
+                totalTime: "110min",
+                chapters: [
+                    {
+                        id: "3-1",
+                        title: "Promise 三种状态",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "30min",
+                        code: `// Promise 的三种状态
+//        ┌──────────────┐
+//        │   pending    │ ← 初始状态（等待中）
+//        └──────┬───────┘
+//               │ 成功 / 失败
+//        ┌─────┴─────┐
+//        │           │
+//        ▼           ▼
+//   ┌────────┐  ┌────────┐
+//   │fulfilled│  │rejected│
+//   │(已兑现) │  │(已拒绝) │
+//   └────────┘  └────────┘
+
+// 状态转换只能进行一次
+const promise = new Promise((resolve, reject) => {
+    // pending → fulfilled
+    resolve("成功数据");
+    // 或者 pending → rejected
+    reject(new Error("失败原因"));
+});`,
+                        comments: [
+                            { line: "7", text: "pending：初始状态，Promise 创建后立即进入等待状态" },
+                            { line: "8", text: "fulfilled（已兑现）：表示操作成功，调用了 resolve()" },
+                            { line: "9", text: "rejected（已拒绝）：表示操作失败，调用了 reject()" },
+                            { line: "11", text: "重要：状态一旦转换就不能再改变，只能从 pending 变成成功或失败" },
+                            { line: "14-17", text: "resolve() 和 reject() 是 Promise 构造函数传入的两个参数，它们是函数" }
+                        ]
+                    },
+                    {
+                        id: "3-2",
+                        title: "async/await 错误处理",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "25min",
+                        code: `// async/await 的错误处理 - 推荐写法
+async function verifyToken(token) {
+    try {
+        // await 会等待 Promise 完成
+        const decoded = await jwt.verify(token, secretKey);
+        
+        // 验证通过，存入 req
+        req.user = decoded;
+        next();
+        
+    } catch (err) {
+        // jwt.verify() 失败时会进入这里
+        // 包括：Token 过期、签名错误、格式错误
+        console.error("验证失败:", err.message);
+        return res.status(403).json({ 
+            message: "无效的身份验证令牌" 
+        });
+    }
+}`,
+                        comments: [
+                            { line: "2", text: "async 函数会自动返回 Promise，不需要手动 new Promise()" },
+                            { line: "5", text: "await 暂停函数执行，等待 jwt.verify() 完成才继续" },
+                            { line: "6", text: "jwt.verify() 内部会检查 Token 签名和过期时间" },
+                            { line: "9", text: "try 块里的代码正常执行，没有错误就跳过 catch" },
+                            { line: "12-17", text: "catch 捕获所有错误（Token 过期、签名错误、格式错误等）" },
+                            { line: "15", text: "err.message 包含具体错误信息，方便调试" }
+                        ],
+                        proTip: "专业项目中的错误处理更规范：<br><br><code>class AuthError extends Error {<br>&nbsp;&nbsp;constructor(message, statusCode = 401) {<br>&nbsp;&nbsp;&nbsp;&nbsp;super(message);<br>&nbsp;&nbsp;&nbsp;&nbsp;this.name = 'AuthError';<br>&nbsp;&nbsp;}<br>}<br><br>// 使用自定义错误<br>if (tokenExpired) {<br>&nbsp;&nbsp;throw new AuthError('Token已过期', 401);<br>}</code><br><br>这样可以统一处理不同类型的认证错误。"
+                    },
+                    {
+                        id: "3-3",
+                        title: "Promise.all vs Promise.race",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "25min",
+                        code: `// Promise.all - 全部成功才成功，有一个失败就整体失败
+const results = await Promise.all([
+    fetchUser(userId),      // 获取用户信息
+    fetchPosts(userId),     // 获取用户文章
+    fetchComments(userId),  // 获取用户评论
+]);
+// results[0] = 用户信息
+// results[1] = 文章列表
+// results[2] = 评论列表
+
+// Promise.race - 返回最快完成的（无论成功失败）
+const result = await Promise.race([
+    fetchWithTimeout(dataApi, 3000),  // 3秒超时
+    fetchFromCache(dataApi),          // 缓存（可能更快）
+]);
+// 哪个先完成就返回哪个的结果`,
+                        comments: [
+                            { line: "2", text: "Promise.all() 接收一个 Promise 数组" },
+                            { line: "3-5", text: "三个请求同时发起（并发），等全部完成才返回" },
+                            { line: "6-8", text: "results 顺序与传入顺序一致，不管谁先完成" },
+                            { line: "9", text: "只要有一个失败，整体立即 reject，不会等其他的" },
+                            { line: "13", text: "Promise.race() 也是同时发起，返回最快的那个" },
+                            { line: "14-15", text: "常用于实现请求超时：3秒内完成就返回，否则用缓存" }
+                        ],
+                        proTip: "更多 Promise 组合用法：<br><br><code>// Promise.allSettled - 全部完成才返回<br>const results = await Promise.allSettled([<br>&nbsp;&nbsp;fetchUser(), fetchPost()<br>]);<br>// 即使有失败，也会等待全部完成<br><br>// Promise.any - 返回第一个成功的<br>const first = await Promise.any([<br>&nbsp;&nbsp;fetchFast(), fetchSlow()<br>]);<br>// 只要有一个成功就返回"
+                    },
+                    {
+                        id: "3-4",
+                        title: "计算锁机制（防止并发计算）",
+                        frequency: "中",
+                        frequencyLevel: "low",
+                        time: "30min",
+                        code: `// 计算锁 - 防止同一项目同时进行多个计算
+async function withCalculateLock(projectId, calculateFn) {
+    // 1. 尝试获取锁
+    const success = await projectRepository.startCalculate(projectId);
+    if (!success) {
+        throw new Error("工程正在计算");  // 锁被占用，直接报错
+    }
+    
+    try {
+        // 2. 执行计算任务
+        return await calculateFn();
+        
+    } catch (e) {
+        // 3. 出错时释放锁
+        await projectRepository.stopCalculate(projectId);
+        throw e;  // 重新抛出错误
+        
+    } finally {
+        // 4. 无论成功失败，都要释放锁
+        await projectRepository.stopCalculate(projectId);
+    }
+}`,
+                        comments: [
+                            { line: "4-5", text: "startCalculate() 尝试获取锁，返回 true 表示成功，false 表示已被占用" },
+                            { line: "7-8", text: "如果项目正在计算中，抛出错误，不允许再次发起计算" },
+                            { line: "11-13", text: "calculateFn 是要执行的计算任务，在这里调用它" },
+                            { line: "15-17", text: "catch 里释放锁，保证出错时锁也能被释放" },
+                            { line: "19-21", text: "finally 里也释放锁，保证无论成功失败都释放锁" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 4,
+                title: "Express 框架 (面试高频)",
+                subtitle: "中间件 · 路由 · 响应",
+                totalTime: "110min",
+                chapters: [
+                    {
+                        id: "4-1",
+                        title: "中间件机制与执行顺序",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "40min",
+                        code: `// Express 中间件按顺序执行
+const app = express();
+
+// 第1个中间件 - 记录日志
+app.use((req, res, next) => {
+    console.log('1. 开始处理请求');
+    next();  // 必须调用 next() 才能继续
+});
+
+// 第2个中间件 - 解析 JSON
+app.use(bodyParser.json());
+
+// 第3个中间件 - 用户认证
+app.use(userService.authenticate);
+
+// 路由
+app.get('/api/user', (req, res) => {
+    console.log('4. 进入路由处理函数');
+    res.json({ user: req.user });
+});
+
+// 请求流程: 1 → 2 → 3 → 4 → 响应`,
+                        comments: [
+                            { line: "7-13", text: "中间件函数有 3 个参数：req(请求)、res(响应)、next(下一个)" },
+                            { line: "11", text: "next() 非常重要！不调用 next() 请求就卡在这里了" },
+                            { line: "14-15", text: "bodyParser.json() 解析前端发送的 JSON 数据" },
+                            { line: "17", text: "authenticate 认证中间件，验证用户 Token 是否有效" },
+                            { line: "20-23", text: "路由处理函数，最后一步，返回响应给前端" },
+                            { line: "26", text: "完整流程：日志 → JSON解析 → 认证 → 路由 → 响应" }
+                        ],
+                        proTip: "中间件的分类：<br><br><strong>1. 应用级中间件</strong> - app.use(), app.get() 等<br><strong>2. 路由级中间件</strong> - router.use()，只在该路由生效<br><strong>3. 错误处理中间件</strong> - (err, req, res, next) 专门处理错误<br><br><code>// 错误处理中间件（必须有4个参数）<br>app.use((err, req, res, next) => {<br>&nbsp;&nbsp;console.error(err.stack);<br>&nbsp;&nbsp;res.status(500).json({ error: err.message });<br>});</code>"
+                    },
+                    {
+                        id: "4-2",
+                        title: "项目启动流程",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "30min",
+                        code: `// app.js 完整启动流程
+
+// 1. 加载环境变量（最早执行）
+require('dotenv').config();  // 读取 .env 文件
+
+// 2. 初始化工具模块
+const argumentUtils = require('./framework/utils/argument_utils');
+const fileUtils = require('./framework/utils/file_utils');
+fileUtils.setRootPath(argumentUtils.getRootPath());
+
+// 3. 创建 Express 应用
+const app = express();
+
+// 4. 配置中间件
+app.use(bodyParser.json({limit: '500mb'}));  // 解析 JSON
+
+// 5. 注册路由
+routeLoader.loadRemoteRoute(app);
+
+// 6. 连接数据库
+await routeLoader.loadDatabase(app);
+
+// 7. 启动 HTTP 服务器
+app.listen(port, () => {
+    console.log(\`服务已启动，端口: \${port}\`);
+});`,
+                        comments: [
+                            { line: "5", text: "dotenv.config() 加载 .env 文件，使 process.env 可用" },
+                            { line: "8-9", text: "初始化工具类，确定项目根目录路径" },
+                            { line: "12", text: "创建 Express 应用实例，这是整个应用的核心对象" },
+                            { line: "15", text: "bodyParser.json() 解析请求体，500mb 允许大文件上传" },
+                            { line: "18", text: "loadRemoteRoute() 自动扫描 routes/ 目录，注册所有路由" },
+                            { line: "21-24", text: "连接数据库，然后监听端口，开始接收 HTTP 请求" }
+                        ]
+                    },
+                    {
+                        id: "4-3",
+                        title: "RESTful API 路由设计",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "25min",
+                        code: `// RESTful API 设计 - 用 HTTP 方法表达操作
+// 路由定义
+router.post('/business/project/create', projectService.create);   // 创建
+router.get('/business/project/queryAll', projectService.queryAll); // 查询列表
+router.get('/business/project/query/:id', projectService.queryById); // 查询单个
+router.post('/business/project/update', projectService.update);    // 更新
+router.delete('/business/project/delete/:id', projectService.delete); // 删除
+
+// RESTful 规范对应关系
+┌────────┬──────────────────────┬─────────────┐
+│ Method │        URL           │    操作     │
+├────────┼──────────────────────┼─────────────┤
+│ GET    │ /projects           │ 获取列表     │
+│ GET    │ /projects/:id       │ 获取单个     │
+│ POST   │ /projects           │ 创建        │
+│ PUT    │ /projects/:id       │ 更新        │
+│ DELETE │ /projects/:id       │ 删除        │
+└────────┴──────────────────────┴─────────────┘`,
+                        comments: [
+                            { line: "3-7", text: "POST 通常用于创建资源，GET 用于获取" },
+                            { line: "9", text: "RESTful 是一种 API 设计规范，用 HTTP 方法表达操作语义" },
+                            { line: "15", text: "GET /projects - 获取所有项目列表" },
+                            { line: "16", text: "GET /projects/:id - 获取 id 对应的单个项目" },
+                            { line: "17", text: "POST /projects - 创建一个新项目（请求体里有数据）" },
+                            { line: "18", text: "PUT /projects/:id - 更新 id 对应的项目" },
+                            { line: "19", text: "DELETE /projects/:id - 删除 id 对应的项目" }
+                        ]
+                    },
+                    {
+                        id: "4-4",
+                        title: "统一响应格式",
+                        frequency: "中",
+                        frequencyLevel: "low",
+                        time: "15min",
+                        code: `// 统一响应格式
+// 成功响应
+res.send({
+    code: 200,      // 业务状态码
+    data: result    // 数据
+});
+
+// 错误响应
+res.send({
+    code: 500,      // 错误码
+    msg: error.message  // 错误信息
+});
+
+// 文件下载响应
+res.attachment(filename);        // 设置下载文件名
+res.setHeader("Content-Type", mimeType);  // 设置文件类型
+res.send(buffer);               // 发送文件内容`,
+                        comments: [
+                            { line: "3-6", text: "成功时 code=200，data 存放返回的数据" },
+                            { line: "9-12", text: "失败时 code=500（或 400 等），msg 存放错误信息" },
+                            { line: "15-18", text: "文件下载需要设置文件名和 MIME 类型" },
+                            { line: "18", text: "buffer 是文件的二进制内容，可以是图片、PDF 等" }
+                        ],
+                        proTip: "专业项目统一响应格式更完整：<br><br><code>{<br>&nbsp;&nbsp;code: 200,<br>&nbsp;&nbsp;msg: 'success',<br>&nbsp;&nbsp;data: { ... },<br>&nbsp;&nbsp;timestamp: Date.now(),&nbsp;&nbsp;// 时间戳<br>&nbsp;&nbsp;requestId: req.id&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 请求追踪ID<br>}</code><br><br>通过拦截器统一包装，不需要每个接口手动处理。"
+                    }
+                ]
+            },
+            {
+                id: 5,
+                title: "数据库与 ORM",
+                subtitle: "Sequelize · Repository",
+                totalTime: "115min",
+                chapters: [
+                    {
+                        id: "5-1",
+                        title: "Sequelize 模型定义",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "35min",
+                        code: `// 定义 Project 数据模型
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../../framework/datasource/datasourcemanager");
+
+const Project = sequelize.define("Project", {
+    // 主键
+    id: { 
+        type: DataTypes.STRING, 
+        primaryKey: true 
+    },
+    // 项目名称
+    name: { type: DataTypes.STRING },
+    // 模型类型
+    modelTypes: { type: DataTypes.STRING },
+    // 创建时间
+    createTime: { type: DataTypes.DATE },
+    // 是否已计算
+    isCalculated: { type: DataTypes.BOOLEAN },
+    // 是否正在计算（计算锁）
+    isCalculating: { type: DataTypes.BOOLEAN, defaultValue: false },
+}, { 
+    tableName: "t_project"  // 对应的数据库表名
+});
+
+module.exports = Project;`,
+                        comments: [
+                            { line: "2", text: "DataTypes 定义字段类型（STRING, INTEGER, BOOLEAN 等）" },
+                            { line: "3", text: "sequelize 实例由 datasourcemanager 提供，连接数据库" },
+                            { line: "6", text: "sequelize.define() 定义一个模型，参数：模型名、字段配置、选项" },
+                            { line: "8-10", text: "primaryKey: true 表示这是主键字段" },
+                            { line: "18", text: "defaultValue: false 设置默认值，新创建的项目默认不处于计算状态" },
+                            { line: "21", text: "tableName 指定数据库表名，不写会用模型名的复数形式" }
+                        ]
+                    },
+                    {
+                        id: "5-2",
+                        title: "Repository 数据访问层",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "30min",
+                        code: `// Repository 层 - 封装所有数据库操作
+module.exports = {
+    // 保存/更新项目
+    async save(project, t) {
+        project.updateTime = Date.now();
+        return Project.upsert(project, { transaction: t });
+    },
+    
+    // 查询所有项目
+    async queryAll(param) {
+        const whereClause = {};
+        if (!param.isAdmin) {
+            // 非管理员只能看自己的项目
+            whereClause.userName = param.userName;
+        }
+        return Project.findAll({
+            order: [["updateTime", "DESC"]],  // 按更新时间倒序
+            where: whereClause
+        });
+    },
+    
+    // 删除项目
+    async deleteByIds(ids) {
+        return Project.destroy({ 
+            where: { id: { [Op.in]: ids } }  // IN 查询
+        });
+    }
+};`,
+                        comments: [
+                            { line: "3-6", text: "upsert() 是 insert + update，存在就更新，不存在就插入" },
+                            { line: "5", text: "transaction: t 支持事务，传入事务对象保证操作原子性" },
+                            { line: "9-17", text: "queryAll() 封装了查询逻辑，根据参数动态构建查询条件" },
+                            { line: "13-15", text: "非管理员只能看到 userName 等于自己用户名的项目" },
+                            { line: "16", text: "order: [['updateTime', 'DESC']] 按更新时间倒序，最新的在前" },
+                            { line: "20-23", text: "destroy() 删除数据，Op.in 运算符表示 ID 在数组中的记录" }
+                        ],
+                        proTip: "专业项目中，Repository 会更完善：<br><br><code>// 分页查询<br>async findPage(params) {<br>&nbsp;&nbsp;const { page = 1, size = 10 } = params;<br>&nbsp;&nbsp;const { rows, count } = await Project.findAndCountAll({<br>&nbsp;&nbsp;&nbsp;&nbsp;limit: size,<br>&nbsp;&nbsp;&nbsp;&nbsp;offset: (page - 1) * size,<br>&nbsp;&nbsp;&nbsp;&nbsp;where: {...}<br>&nbsp;&nbsp;});<br>&nbsp;&nbsp;return { list: rows, total: count };<br>}</code><br><br>findAndCountAll 同时返回数据列表和总数，适合分页。"
+                    },
+                    {
+                        id: "5-3",
+                        title: "数据库连接池配置",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "20min",
+                        code: `// datasourcemanager.js - 数据库连接配置
+const sequelize = new Sequelize({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_DATABASE,
+    dialect: "mysql",
+    
+    // 连接池配置
+    pool: { 
+        max: 10,      // 最大连接数
+        min: 0,       // 最小连接数
+        idle: 10000,  // 空闲超时(ms)，10秒
+        acquire: 3000 // 获取连接超时(ms)，3秒
+    },
+    
+    timezone: '+08:00'  // 时区设为北京时间
+});`,
+                        comments: [
+                            { line: "3-8", text: "连接 MySQL 需要：主机、端口、用户名、密码、数据库名" },
+                            { line: "11-15", text: "连接池复用连接，避免每次请求都新建连接，提高性能" },
+                            { line: "12", text: "max: 10 表示最多同时维持 10 个连接" },
+                            { line: "14", text: "idle: 10000 表示空闲 10 秒后释放连接" },
+                            { line: "15", text: "acquire: 3000 表示获取连接超时 3 秒，防止死锁" },
+                            { line: "17", text: "timezone 很重要，否则时间会相差 8 小时（UTC vs 北京时间）" }
+                        ]
+                    },
+                    {
+                        id: "5-4",
+                        title: "事务处理（补充）",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "30min",
+                        code: `// 事务处理 - 保证数据一致性
+async function createProjectWithUser(projectData, userId) {
+    // 1. 开启事务
+    const t = await sequelize.transaction();
+    
+    try {
+        // 2. 在事务中执行多个操作
+        const project = await Project.create(projectData, { transaction: t });
+        
+        // 创建项目后，关联用户
+        await UserProject.create({
+            userId: userId,
+            projectId: project.id
+        }, { transaction: t });
+        
+        // 3. 提交事务
+        await t.commit();
+        
+        return project;
+    } catch (error) {
+        // 4. 出错时回滚
+        await t.rollback();
+        throw error;
+    }
+}`,
+                        comments: [
+                            { line: "4", text: "sequelize.transaction() 开启一个新事务" },
+                            { line: "8", text: "Project.create() 创建项目，注意传入了 { transaction: t }" },
+                            { line: "11-13", text: "UserProject.create() 创建关联记录，也要在同一个事务里" },
+                            { line: "16", text: "t.commit() 提交事务，所有操作正式生效" },
+                            { line: "20", text: "t.rollback() 回滚事务，所有操作都不生效，保证数据一致性" }
+                        ],
+                        proTip: "事务的 ACID 特性：<br><br><strong>A</strong>tomicity（原子性）：要么全部成功，要么全部失败<br><strong>C</strong>onsistency（一致性）：事务前后数据保持一致<br><strong>I</strong>solation（隔离性）：并发事务互不干扰<br><strong>D</strong>urability（持久性）：事务提交后数据永久保存<br><br>Nest.js 中使用装饰器更简洁：<br><code>@Transactional()<br>async createProject() { ... }</code>"
+                    }
+                ]
+            },
+            {
+                id: 6,
+                title: "框架层详解",
+                subtitle: "custumrouter · logger · 工具",
+                totalTime: "145min",
+                chapters: [
+                    {
+                        id: "6-1",
+                        title: "custumrouter.js 路由封装",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "30min",
+                        code: `// 统一路由封装 - 自动处理响应格式
+module.exports = {
+    post(path, serviceFunc) {
+        router.post(path, async (req, res) => {
+            try {
+                // 调用业务逻辑函数
+                const result = await serviceFunc(req.body, req.user);
+                
+                // 处理普通响应
+                res.send({ code: 200, data: result });
+                
+            } catch (error) {
+                // 统一错误处理
+                res.send({ code: 500, msg: error.message });
+            }
+        });
+    }
+};`,
+                        comments: [
+                            { line: "2-14", text: "封装了路由逻辑，统一处理成功/失败响应" },
+                            { line: "5", text: "try-catch 包裹所有业务逻辑，任何错误都会被捕获" },
+                            { line: "8", text: "serviceFunc(req.body, req.user) 调用业务函数，传入参数和用户信息" },
+                            { line: "10-12", text: "成功时返回 code: 200 和数据" },
+                            { line: "15-17", text: "失败时返回 code: 500 和错误信息，不需要每个接口手动 try-catch" }
+                        ]
+                    },
+                    {
+                        id: "6-2",
+                        title: "logger.js 日志系统",
+                        frequency: "中",
+                        frequencyLevel: "low",
+                        time: "25min",
+                        code: `// Winston 日志配置 - 自动按日期归档
+const DailyRotateFile = require('winston-daily-rotate-file');
+
+const logger = createLogger({
+    transports: [
+        new DailyRotateFile({
+            dirname: 'logs/',                    // 日志目录
+            filename: 'app-%DATE%.log',         // 文件名格式
+            datePattern: 'YYYY-MM-DD',          // 按日期命名
+            maxSize: '10m',                     // 单文件最大 10MB
+            maxFiles: '5d',                     // 保留 5 天
+        })
+    ]
+});
+
+// 重定向 console.log 到日志文件
+['log', 'info', 'warn', 'error'].forEach((level) => {
+    console[level] = (...args) => {
+        logger[level](args.join(' '));
+        originalConsole[level](...args);  // 同时输出到终端
+    };
+});`,
+                        comments: [
+                            { line: "2", text: "winston-daily-rotate-file 自动按日期创建日志文件" },
+                            { line: "7", text: "dirname: 'logs/' 日志存放在 logs 目录" },
+                            { line: "8", text: "filename: 'app-%DATE%.log' 文件名带日期，如 app-2026-05-13.log" },
+                            { line: "10", text: "maxSize: '10m' 单个文件超过 10MB 会创建新文件" },
+                            { line: "11", text: "maxFiles: '5d' 只保留最近 5 天的日志，自动清理旧文件" },
+                            { line: "14-20", text: "把 console.log 等重定向到 logger，既写文件又显示在终端" }
+                        ],
+                        proTip: "专业日志系统会分级记录：<br><br><code>// 开发环境显示彩色日志<br>// 生产环境只记录 warn 和 error<br><br>const logger = createLogger({<br>&nbsp;&nbsp;level: process.env.NODE_ENV === 'prod' ? 'warn' : 'debug',<br>&nbsp;&nbsp;format: combine(<br>&nbsp;&nbsp;&nbsp;&nbsp;format.timestamp(),<br>&nbsp;&nbsp;&nbsp;&nbsp;format.json()&nbsp;&nbsp;// JSON 格式便于 ELK 分析<br>&nbsp;&nbsp;)<br>});</code><br><br>同时记录结构化日志（JSON），方便后续分析。"
+                    },
+                    {
+                        id: "6-3",
+                        title: "file_utils.js 文件操作",
+                        frequency: "中",
+                        frequencyLevel: "low",
+                        time: "30min",
+                        code: `// 文件操作工具 - 路径管理和文件复制
+module.exports = {
+    // 设置项目根目录
+    setRootPath(path) {
+        systemPath = path;
+    },
+    
+    // 获取用户项目目录
+    getWorkPath(pathLabel) {
+        return path.join(
+            this.getProjectPath(), 
+            pathLabel
+        );
+    },
+    
+    // 流式复制大文件（不占内存）
+    copyLargeFileWithName(source, targetDir, name) {
+        const readStream = fs.createReadStream(source);
+        const writeStream = fs.createWriteStream(targetPath);
+        readStream.pipe(writeStream);  // 管道传输
+    },
+    
+    // 解压文件
+    unzipFile(zipPath, targetDir) {
+        return new Promise((resolve, reject) => {
+            fs.createReadStream(zipPath)
+                .pipe(unzipper.Extract({ path: targetDir }))
+                .on('close', resolve);
+        });
+    }
+};`,
+                        comments: [
+                            { line: "3-6", text: "setRootPath() 设置项目根目录，后续所有路径都基于它计算" },
+                            { line: "9-13", text: "getWorkPath() 拼接路径，如 getWorkPath('db') 返回 projects/用户/db" },
+                            { line: "16-18", text: "createReadStream/WriteStream 创建流，边读边写，不占用大量内存" },
+                            { line: "19", text: "pipe() 管道连接，读到的数据直接流向写入流" },
+                            { line: "22-27", text: "unzipFile() 解压 ZIP 文件，使用 unzipper 库" }
+                        ]
+                    },
+                    {
+                        id: "6-4",
+                        title: "stop_hook.js 优雅退出",
+                        frequency: "中",
+                        frequencyLevel: "low",
+                        time: "25min",
+                        code: `// 优雅退出 - 监听多种退出信号并清理资源
+function registerStop() {
+    // 1. 创建启动信号文件
+    const signalPath = 'bin/started.signal';
+    fs.writeFileSync(signalPath, '');
+    
+    // 2. 定义清理函数
+    const cleanup = () => {
+        fs.unlinkSync(signalPath);  // 删除信号文件
+    };
+    
+    // 3. 监听退出信号
+    process.on('exit', cleanup);     // 正常退出
+    process.on('SIGINT', () => {     // Ctrl+C
+        cleanup();
+        process.exit(0);
+    });
+    process.on('SIGTERM', () => {    // 系统终止信号
+        cleanup();
+        process.exit(0);
+    });
+    
+    // 4. 定时检查是否被强制终止
+    setInterval(() => {
+        if (!fs.existsSync(signalPath)) {
+            process.exit(0);  // 信号文件没了，说明被强制终止
+        }
+    }, 1000);
+}`,
+                        comments: [
+                            { line: "6-8", text: "cleanup() 函数负责清理资源，这里是删除信号文件" },
+                            { line: "11", text: "process.on('exit') 进程正常退出时调用" },
+                            { line: "12", text: "SIGINT 是 Ctrl+C 的信号，优雅地停止服务" },
+                            { line: "15", text: "SIGTERM 是系统发送的终止信号，如 kill 命令" },
+                            { line: "19-23", text: "定时检查信号文件，如果文件被删说明被强制杀死，也要退出" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 7,
+                title: "面试题汇总 (必刷)",
+                subtitle: "核心概念 · 手写代码",
+                totalTime: "180min",
+                chapters: [
+                    {
+                        id: "7-1",
+                        title: "核心概念题",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "45min",
+                        code: `// Q1: CommonJS vs ES Module
+// CommonJS (Node.js 默认)
+const fs = require('fs');           // 导入
+module.exports = { name, age };     // 导出
+module.exports = function() {};     // 导出函数
+
+// ES Module (需要 type="module")
+import fs from 'fs';                // 导入
+export const name = 'Tom';          // 导出
+export default function() {};       // 默认导出
+
+// Q2: process.nextTick vs setImmediate
+process.nextTick(() => console.log('nextTick'));  // 立即执行
+setImmediate(() => console.log('setImmediate'));   // 下一阶段执行
+
+// 执行顺序（在 I/O 回调中）：
+// setImmediate → nextTick`,
+                        comments: [
+                            { line: "2-5", text: "CommonJS 是 Node.js 默认的模块系统，同步加载" },
+                            { line: "7-11", text: "ES Module 是 ES6 标准的模块系统，静态导入导出" },
+                            { line: "13-14", text: "nextTick 在当前操作完成后立即执行，优先级最高" },
+                            { line: "14", text: "setImmediate 在当前事件循环阶段结束后执行" },
+                            { line: "17", text: "在 I/O 回调中，setImmediate 通常先于 nextTick 执行" }
+                        ]
+                    },
+                    {
+                        id: "7-2",
+                        title: "防抖函数 debounce",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "20min",
+                        code: `// 防抖 - 触发 n 秒后才执行，n 秒内再次触发则重新计时
+function debounce(fn, delay = 300) {
+    let timer = null;
+    
+    return function(...args) {
+        // 清除之前的定时器
+        clearTimeout(timer);
+        
+        // 设置新的定时器
+        timer = setTimeout(() => {
+            // 延迟 delay 毫秒后执行
+            fn.apply(this, args);
+        }, delay);
+    };
+}
+
+// 使用示例
+const debouncedSearch = debounce(search, 300);
+input.addEventListener('input', debouncedSearch);
+
+// 场景：搜索框输入停止 300ms 后才搜索`,
+                        comments: [
+                            { line: "2", text: "debounce 返回一个新函数" },
+                            { line: "5-15", text: "返回的函数每次调用都会清除之前的定时器，重新计时" },
+                            { line: "9", text: "clearTimeout(timer) 清除之前的定时器" },
+                            { line: "12-14", text: "setTimeout 延迟 delay 毫秒后执行 fn" },
+                            { line: "19-21", text: "防抖的应用场景：搜索框输入、窗口调整大小、按钮点击" }
+                        ],
+                        proTip: "防抖的两种主要形式：<br><br><strong>非立即执行（延迟执行）</strong>：触发 n 秒后执行<br><strong>立即执行</strong>：触发后立即执行，n 秒内不再触发<br><br><code>function debounceImmediate(fn, delay) {<br>&nbsp;&nbsp;let timer = null;<br>&nbsp;&nbsp;let firstCall = true;<br>&nbsp;&nbsp;return function(...args) {<br>&nbsp;&nbsp;&nbsp;&nbsp;if (firstCall) { fn.apply(this, args); firstCall = false; }<br>&nbsp;&nbsp;&nbsp;&nbsp;clearTimeout(timer);<br>&nbsp;&nbsp;&nbsp;&nbsp;timer = setTimeout(() => { firstCall = true; }, delay);<br>&nbsp;&nbsp;};<br>}</code>"
+                    },
+                    {
+                        id: "7-3",
+                        title: "节流函数 throttle",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "20min",
+                        code: `// 节流 - n 秒内只执行一次，稀释执行频率
+function throttle(fn, limit = 100) {
+    let inThrottle = false;
+    
+    return function(...args) {
+        if (!inThrottle) {
+            // 未在冷却中，立即执行
+            fn.apply(this, args);
+            inThrottle = true;
+            
+            // limit 毫秒后解除冷却
+            setTimeout(() => {
+                inThrottle = false;
+            }, limit);
+        }
+    };
+}
+
+// 使用示例
+const throttledScroll = throttle(handleScroll, 100);
+window.addEventListener('scroll', throttledScroll);
+
+// 场景：滚动事件、鼠标移动`,
+                        comments: [
+                            { line: "2", text: "throttle 返回一个新函数" },
+                            { line: "5-16", text: "返回的函数检查是否在冷却中" },
+                            { line: "7-10", text: "不在冷却中时立即执行，然后进入冷却状态" },
+                            { line: "12-14", text: "limit 毫秒后解除冷却，可以再次执行" },
+                            { line: "19-21", text: "节流的应用：滚动事件、鼠标移动、搜索建议" }
+                        ]
+                    },
+                    {
+                        id: "7-4",
+                        title: "深拷贝函数 deepClone",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "25min",
+                        code: `// 深拷贝 - 完整复制一个对象，嵌套对象也复制
+function deepClone(obj, visited = new WeakMap()) {
+    // 1. 处理 null 和基本类型
+    if (obj === null || typeof obj !== 'object') {
+        return obj;
+    }
+    
+    // 2. 处理循环引用
+    if (visited.has(obj)) {
+        return visited.get(obj);
+    }
+    
+    // 3. 处理 Date 和 RegExp
+    if (obj instanceof Date) return new Date(obj);
+    if (obj instanceof RegExp) return new RegExp(obj);
+    
+    // 4. 创建新对象/数组
+    const clone = Array.isArray(obj) ? [] : {};
+    visited.set(obj, clone);  // 记录已拷贝的对象
+    
+    // 5. 递归拷贝所有属性
+    for (const key of Object.keys(obj)) {
+        clone[key] = deepClone(obj[key], visited);
+    }
+    
+    return clone;
+}`,
+                        comments: [
+                            { line: "5-7", text: "null 和基本类型（string/number）直接返回，不需要拷贝" },
+                            { line: "10-12", text: "处理循环引用：对象 A 引用对象 B，对象 B 又引用对象 A" },
+                            { line: "15-17", text: "Date 和 RegExp 需要特殊处理，保持类型正确" },
+                            { line: "20-22", text: "根据 obj 是数组还是对象，创建对应的空容器" },
+                            { line: "24-26", text: "WeakMap 记录已拷贝的对象，相同引用只拷贝一次" },
+                            { line: "28-30", text: "递归拷贝每个属性，传入 visited 记录已拷贝的对象" }
+                        ],
+                        proTip: "现代 JavaScript 可以用更简单的方式：<br><br><code>// JSON 方式（有局限性）<br>const clone = JSON.parse(JSON.stringify(obj));<br>// 缺点：无法拷贝函数、undefined、Symbol、Date<br><br>// structuredClone（现代浏览器/Node 18+）<br>const clone = structuredClone(obj);<br>// 原生支持深拷贝，支持大部分类型，包括 Date、Map、Set</code>"
+                    }
+                ]
+            },
+            {
+                id: 8,
+                title: "Nest.js 项目架构",
+                subtitle: "装饰器 · 依赖注入 · 对比",
+                totalTime: "145min",
+                chapters: [
+                    {
+                        id: "8-1",
+                        title: "Nest.js vs Express 对比",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "40min",
+                        code: `// Express 写法（wc-Backend）
+const express = require('express');
+const router = express.Router();
+
+router.get('/user/:id', async (req, res) => {
+    const user = await userService.getById(req.params.id);
+    res.json({ code: 200, data: user });
+});
+
+// Nest.js 写法（tb-dock-server）
+@Controller('user')
+export class UserController {
+    constructor(private readonly userService: UserService) {}
+    
+    @Get(':id')
+    async getById(@Param('id') id: string) {
+        return this.userService.getById(id);
+    }
+}`,
+                        comments: [
+                            { line: "2-6", text: "Express 是手动定义路由、手动调用 service、手动返回响应" },
+                            { line: "8-16", text: "Nest.js 用装饰器 (@Controller, @Get) 声明式定义路由" },
+                            { line: "9", text: "constructor 注入 UserService，由 Nest.js 自动实例化" },
+                            { line: "11", text: "@Get(':id') 声明这是 GET 请求，:id 是路径参数" },
+                            { line: "12", text: "@Param('id') 从路径提取 id 参数" }
+                        ]
+                    },
+                    {
+                        id: "8-2",
+                        title: "装饰器模式详解",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "30min",
+                        code: `// Nest.js 装饰器链式使用
+@Get('page')
+@UseGuards(JwtAuthGuard)               // 守卫：认证拦截
+@UsePipes(new ValidationPipe())        // 管道：参数校验
+@UseInterceptors(ResWrapperInterceptor) // 拦截器：响应包装
+@SetMetadata('roles', ['admin'])        // 元数据：角色限制
+async getPage(@Query() dto: GetPageDto) {
+    return this.dockService.getPage(dto);
+}
+
+// 等价于 Express 的手动处理：
+// app.use(authMiddleware)
+// app.use(validateMiddleware)
+// router.get('/page', handleRequest)`,
+                        comments: [
+                            { line: "2-7", text: "每个装饰器是一个切面，负责一件事" },
+                            { line: "3", text: "@UseGuards 认证守卫，检查 JWT Token" },
+                            { line: "4", text: "@UsePipes 参数校验管道，自动校验请求参数" },
+                            { line: "5", text: "@UseInterceptors 响应拦截器，统一包装响应格式" },
+                            { line: "6", text: "@SetMetadata 设置元数据，如权限要求" },
+                            { line: "12-14", text: "Express 需要手动写中间件，Nest.js 用装饰器更清晰" }
+                        ],
+                        proTip: "自定义装饰器示例：<br><br><code>// 读取请求头的装饰器<br>export const Headers = createParamDecorator(<br>&nbsp;&nbsp;(key: string, ctx: ExecutionContext) => {<br>&nbsp;&nbsp;&nbsp;&nbsp;const request = ctx.switchToHttp().getRequest();<br>&nbsp;&nbsp;&nbsp;&nbsp;return key ? request.headers[key] : request.headers;<br>&nbsp;&nbsp;}<br>);<br><br>// 使用<br>@Get()<br>async findAll(@Headers('authorization') token: string) {<br>&nbsp;&nbsp;return token;<br>}</code>"
+                    },
+                    {
+                        id: "8-3",
+                        title: "依赖注入原理",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "35min",
+                        code: `// Nest.js 依赖注入
+// 1. 定义服务
+@Injectable()
+export class UserService {
+    constructor(
+        private readonly userRepository: UserRepository,
+        private readonly jwtService: JwtService
+    ) {}
+}
+
+// 2. 注册到模块
+@Module({
+    providers: [UserService, UserRepository, JwtService],
+    exports: [UserService]  // 导出给其他模块用
+})
+export class UserModule {}
+
+// 3. 在其他模块中使用
+@Module({
+    imports: [UserModule],
+    controllers: [UserController]
+})
+export class AppModule {}
+
+// Nest.js 自动实例化并注入
+// UserController.userService -> UserService -> UserRepository + JwtService`,
+                        comments: [
+                            { line: "3-7", text: "@Injectable() 标记这是一个可注入的服务" },
+                            { line: "4-6", text: "constructor 声明依赖，Nest.js 会自动注入实例" },
+                            { line: "11-14", text: "@Module 注册 providers，Nest.js 创建容器管理它们" },
+                            { line: "15", text: "exports 导出服务，其他模块 imports 后才能用" },
+                            { line: "20-24", text: "导入 UserModule 后，UserController 可以使用其中的服务" },
+                            { line: "27", text: "Nest.js IoC 容器自动解析依赖关系并注入" }
+                        ],
+                        proTip: "依赖注入的优势：<br><br><strong>1. 解耦</strong>：类不需要知道依赖如何创建<br><strong>2. 可测试</strong>：可以注入 Mock 对象<br><strong>3. 可替换</strong>：换实现只需改一处<br><br><code>// 测试时注入 Mock<br>const mockUserRepo = { findById: jest.fn() };<n>const service = new UserService(mockUserRepo, mockJwt);</code>"
+                    },
+                    {
+                        id: "8-4",
+                        title: "Express 与 Nest.js 架构对比",
+                        frequency: "中",
+                        frequencyLevel: "low",
+                        time: "40min",
+                        code: `// Express 架构（wc-Backend）
+// 手动分层，手动管理依赖
+src/
+├── routes/           # 路由定义
+├── business/
+│   ├── service/      # 业务逻辑
+│   ├── repository/   # 数据访问
+│   └── model/       # 数据模型
+└── framework/        # 基础设施
+
+// Nest.js 架构（tb-dock-server）
+// 按业务领域组织模块
+src/
+├── user.module/      # 用户模块（包含所有相关代码）
+│   ├── user.controller.ts
+│   ├── user.service.ts
+│   └── user.dto.ts
+├── dock.module/      # Dock 产品模块
+├── auth.module/      # 认证模块
+└── common.module/    # 公共模块`,
+                        comments: [
+                            { line: "3-9", text: "Express 按技术层分层（路由、业务、数据），需要跨目录找代码" },
+                            { line: "12-19", text: "Nest.js 按业务领域分模块，每个模块包含自己的所有代码" },
+                            { line: "13-15", text: "user.module 包含用户相关的控制器、服务、数据传输对象" },
+                            { line: "16", text: "dock.module 包含产品相关的所有代码" },
+                            { line: "17", text: "auth.module 包含认证相关的所有代码" },
+                            { line: "20", text: "按业务分组的优点：修改一个业务只需改一个目录" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 9,
+                title: "架构设计总结",
+                subtitle: "分层架构 · 改进建议",
+                totalTime: "70min",
+                chapters: [
+                    {
+                        id: "9-1",
+                        title: "项目分层架构图解",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "40min",
+                        code: `// 完整请求生命周期
+┌─────────────────────────────────────────┐
+│           HTTP 请求                      │
+└─────────────────┬───────────────────────┘
+                  ▼
+┌─────────────────────────────────────────┐
+│     Middleware (中间件层)                 │
+│  ┌─────────────────────────────────────┐ │
+│  │ 1. bodyParser - 解析请求体           │ │
+│  │ 2. authenticate - JWT 认证          │ │
+│  └─────────────────────────────────────┘ │
+└─────────────────┬───────────────────────┘
+                  ▼
+┌─────────────────────────────────────────┐
+│     custumrouter (路由封装)               │
+│  ┌─────────────────────────────────────┐ │
+│  │ 路由匹配 → 调用 Service → 统一响应     │ │
+│  └─────────────────────────────────────┘ │
+└─────────────────┬───────────────────────┘
+                  ▼
+┌─────────────────────────────────────────┐
+│     Service (业务逻辑层)                  │
+│  ┌─────────────────────────────────────┐ │
+│  │ 1. interceptor.withCalculateLock()  │ │
+│  │ 2. file_utils 文件操作               │ │
+│  └─────────────────────────────────────┘ │
+└─────────────────┬───────────────────────┘
+                  ▼
+┌─────────────────────────────────────────┐
+│     Repository (数据访问层)               │
+│  ┌─────────────────────────────────────┐ │
+│  │ Sequelize ORM 操作数据库              │ │
+│  └─────────────────────────────────────┘ │
+└─────────────────────────────────────────┘`,
+                        comments: [
+                            { line: "1", text: "HTTP 请求进入，从上到下经过各层处理" },
+                            { line: "6-9", text: "中间件层：bodyParser 解析数据，authenticate 验证身份" },
+                            { line: "14-17", text: "路由层：匹配 URL，调用对应的 Service，自动处理响应" },
+                            { line: "23-27", text: "业务层：核心业务逻辑，如计算锁防止并发、文件操作" },
+                            { line: "33-37", text: "数据层：最终与数据库交互，完成数据持久化" }
+                        ]
+                    },
+                    {
+                        id: "9-2",
+                        title: "改进建议与最佳实践",
+                        frequency: "中",
+                        frequencyLevel: "low",
+                        time: "30min",
+                        code: `// 当前项目的问题与改进建议
+
+// 问题 1: 错误处理不统一
+// 现状：只在 custumrouter 中捕获错误
+// 建议：添加全局错误处理中间件
+app.use((err, req, res, next) => {
+    logger.error(err.stack);
+    res.status(err.status || 500).json({
+        code: err.status || 500,
+        msg: err.message,
+        data: process.env.NODE_ENV === 'dev' ? err.stack : null
+    });
+});
+
+// 问题 2: 缺少参数校验
+// 现状：直接使用请求参数
+// 建议：使用 Joi 或 class-validator
+const schema = Joi.object({
+    name: Joi.string().required(),
+    age: Joi.number().min(0)
+});
+
+// 问题 3: 缺少单元测试
+// 建议：添加 Jest 测试
+describe('UserService', () => {
+    it('should login successfully', async () => {
+        const result = await userService.login({...});
+        expect(result).toHaveProperty('token');
+    });
+});`,
+                        comments: [
+                            { line: "5-13", text: "全局错误处理中间件捕获所有未处理的错误" },
+                            { line: "8", text: "err.stack 包含错误堆栈信息，便于调试" },
+                            { line: "10", text: "生产环境不返回堆栈信息，安全考虑" },
+                            { line: "15-19", text: "Joi 是参数校验库，定义 schema 后自动校验" },
+                            { line: "23-29", text: "Jest 是 Node.js 测试框架，编写单元测试保证代码质量" }
+                        ],
+                        proTip: "企业级项目必备要素：<br><br><strong>1. 日志规范</strong>：结构化日志 + ELK/GrayLog 分析<br><strong>2. 参数校验</strong>：Joi/Zod + class-validator<br><strong>3. 单元测试</strong>：Jest/Vitest，覆盖核心逻辑<br><strong>4. API 文档</strong>：Swagger/OpenAPI<br><strong>5. 代码规范</strong>：ESLint + Prettier + Git Hooks<br><strong>6. CI/CD</strong>：自动化测试和部署"
+                    }
+                ]
+            }
+        ];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPlan();
+            loadProgress();
+        });
+
+        // Render the learning plan
+        function renderPlan() {
+            const container = document.getElementById('mainContent');
+            let html = '';
+            let chapterId = 0;
+
+            learningPlan.forEach((stage, index) => {
+                const stageProgress = calculateStageProgress(stage);
+                html += `
+                    <div class="stage expanded" data-stage-id="${stage.id}">
+                        <div class="stage-header" onclick="toggleStage(${stage.id})">
+                            <div class="stage-number">${stage.id}</div>
+                            <div class="stage-info">
+                                <div class="stage-title">
+                                    ${stage.title}
+                                </div>
+                                <div class="stage-subtitle">${stage.subtitle} · 预计 ${stage.totalTime}</div>
+                            </div>
+                            <div class="stage-progress">${stageProgress}%</div>
+                            <div class="stage-toggle">
+                                <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+                            </div>
+                        </div>
+                        <div class="chapter-list">
+                            ${stage.chapters.map(chapter => {
+                                chapterId++;
+                                return renderChapter(chapter, chapterId);
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            updateTotalProgress();
+            document.getElementById('totalCount').textContent = chapterId;
+        }
+
+        // Render a single chapter
+        function renderChapter(chapter, index) {
+            const codeLines = chapter.code.split('\n');
+            const linesHtml = codeLines.map((line, i) => `
+                <div class="code-line">
+                    <span class="line-number">${i + 1}</span>
+                    <span class="line-content">${escapeHtml(line) || ' '}</span>
+                </div>
+            `).join('');
+
+            const commentsHtml = chapter.comments.map(c => `
+                <div class="comment-line">
+                    <span class="comment-line-number">${c.line}</span>
+                    <span class="comment-text">${c.text}</span>
+                </div>
+            `).join('');
+
+            const proTipHtml = chapter.proTip ? `
+                <div class="pro-tip">
+                    <div class="pro-tip-header">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                        专业写法补充
+                    </div>
+                    <div class="pro-tip-content">${chapter.proTip}</div>
+                </div>
+            ` : '';
+
+            return `
+                <div class="chapter" data-chapter-id="${chapter.id}">
+                    <div class="chapter-header">
+                        <div class="chapter-checkbox" onclick="toggleChapter('${chapter.id}')">
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                        </div>
+                        <div class="chapter-content">
+                            <div class="chapter-title">
+                                ${index}. ${chapter.title}
+                            </div>
+                            <div class="chapter-tags">
+                                <span class="tag tag-frequency ${chapter.frequencyLevel}">考频：${chapter.frequency}</span>
+                                <span class="tag tag-time">预计 ${chapter.time}</span>
+                            </div>
+                            <div class="code-section">
+                                <div class="code-header">
+                                    <span class="code-label">代码示例</span>
+                                    <span class="code-toggle" onclick="toggleCode(this)">
+                                        <span class="toggle-text">展开逐行解释</span>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+                                    </span>
+                                </div>
+                                <div class="code-block">
+                                    ${linesHtml}
+                                </div>
+                                <div class="code-comments">
+                                    ${commentsHtml}
+                                </div>
+                                ${proTipHtml}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Toggle functions
+        function toggleStage(stageId) {
+            const stage = document.querySelector(`[data-stage-id="${stageId}"]`);
+            stage.classList.toggle('expanded');
+        }
+
+        function toggleChapter(chapterId) {
+            const chapter = document.querySelector(`[data-chapter-id="${chapterId}"]`);
+            chapter.classList.toggle('completed');
+            saveProgress();
+            updateTotalProgress();
+            
+            // Update stage progress
+            const stageId = chapter.closest('.stage').dataset.stageId;
+            const stage = learningPlan.find(s => s.id === parseInt(stageId));
+            const progressEl = document.querySelector(`[data-stage-id="${stageId}"] .stage-progress`);
+            progressEl.textContent = calculateStageProgress(stage) + '%';
+        }
+
+        function toggleCode(btn) {
+            const comments = btn.closest('.code-section').querySelector('.code-comments');
+            const textEl = btn.querySelector('.toggle-text');
+            
+            if (comments.classList.contains('show')) {
+                comments.classList.remove('show');
+                textEl.textContent = '展开逐行解释';
+            } else {
+                comments.classList.add('show');
+                textEl.textContent = '收起逐行解释';
+            }
+        }
+
+        // Progress tracking
+        function saveProgress() {
+            const completed = Array.from(document.querySelectorAll('.chapter.completed'))
+                .map(el => el.dataset.chapterId);
+            localStorage.setItem('nodejs-learning-progress', JSON.stringify(completed));
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem('nodejs-learning-progress');
+            if (saved) {
+                const completed = JSON.parse(saved);
+                completed.forEach(chapterId => {
+                    const chapter = document.querySelector(`[data-chapter-id="${chapterId}"]`);
+                    if (chapter) {
+                        chapter.classList.add('completed');
+                    }
+                });
+                updateTotalProgress();
+            }
+        }
+
+        function updateTotalProgress() {
+            const total = document.querySelectorAll('.chapter').length;
+            const completed = document.querySelectorAll('.chapter.completed').length;
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+            
+            document.getElementById('progressPercent').textContent = percent + '%';
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('completedCount').textContent = completed;
+        }
+
+        function calculateStageProgress(stage) {
+            const chapters = document.querySelectorAll(`[data-stage-id="${stage.id}"] .chapter`);
+            const completed = document.querySelectorAll(`[data-stage-id="${stage.id}"] .chapter.completed`);
+            return chapters.length > 0 ? Math.round((completed.length / chapters.length) * 100) : 0;
+        }
+
+        // Utility
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

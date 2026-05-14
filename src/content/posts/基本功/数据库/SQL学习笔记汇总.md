@@ -1,7 +1,7 @@
 ---
 title: SQL 数据库入门指南：从零理解数据库与查询
 published: 2026-05-07
-updated: 2026-05-07
+updated: 2026-05-11
 description: 'Read more about Markdown features in Fuwari'
 image: ''
 tags: [SQL, 数据库, 教程]

@@ -1,7 +1,7 @@
 ---
 title: Nodejs Crash Course
 published: 2026-05-03
-updated: 2026-05-03
+updated: 2026-05-11
 description: ''
 image: ''
 tags: [Node.js, 事件循环]
