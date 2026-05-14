@@ -1,7 +1,7 @@
 ---
 title: Express Crash Course
 published: 2026-05-04
-updated: 2026-05-05
+updated: 2026-05-11
 description: ''
 image: ''
 tags: [Express, Node.js, 后端, JavaScript, 框架]

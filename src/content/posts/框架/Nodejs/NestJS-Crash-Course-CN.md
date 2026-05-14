@@ -1,7 +1,7 @@
 ﻿---
 title: Nestjs Crash Course
 published: 2026-05-09
-updated: 2026-05-12
+updated: 2026-05-14
 description: 'Read more about Markdown features in Fuwari'
 image: ''
 tags: [Nestjs,装饰器]
@@ -161,7 +161,24 @@ bootstrap();
 
 `bootstrap` 是自己起的一个函数名，里面是启动函数。
 
-启动步骤：
+> 这里用了async和await，因为这两步都是异步操作，
+>
+> **第一句：**
+>
+> 创建 Nest 应用需要做很多事情，所以它不是一个简单的同步操作。
+>
+> 读取模块
+> 扫描 Controller
+> 扫描 Service
+> 建立依赖注入关系
+> 注册路由
+> 初始化底层 HTTP 服务
+>
+> **第二句：**
+>
+> 监听端口也是异步的，因为它要先知道端口是否可用，服务是否启动成功。
+
+**启动步骤：**
 
 ```
 运行 main.ts
@@ -187,22 +204,7 @@ app.listen(3000)
 执行对应 Controller 方法
 ```
 
-> 这里用了async和await，因为这两步都是异步操作，
->
-> **第一句：**
->
-> 创建 Nest 应用需要做很多事情，所以它不是一个简单的同步操作。
->
-> 读取模块
-> 扫描 Controller
-> 扫描 Service
-> 建立依赖注入关系
-> 注册路由
-> 初始化底层 HTTP 服务
->
-> **第二句：**
->
-> 监听端口也是异步的，因为它要先知道端口是否可用，服务是否启动成功。
+
 
 ### 根模块 app.module.ts
 
@@ -219,26 +221,36 @@ import { Module } from '@nestjs/common';
 export class AppModule {}
 ```
 
-小项目可以直接在 AppModule 里注册 Controller 和 Service；
+通常在 AppModule 里导入各个业务模块，例如 ItemsModule、UsersModule。
 
-大项目通常在 AppModule 里导入各个业务模块，例如 ItemsModule、UsersModule。
+`@Module()` 负责给 Nest 提供组织应用结构的**元信息**，告诉NestJs框架怎么组织你的代码。
 
-`@Module()` 负责给 Nest 提供组织应用结构的元信息。
+**元信息**（Metadata）指的是"描述数据的数据"。就像一本书的目录告诉我们"这本书有哪些章节、每个章节在第几页"——元信息是关于书的结构信息。
+
+
+
+上面代码部分的 `controllers`、`providers`、`imports`、`exports` 都是**元信息**——它们不是业务代码，而是告诉 Nest "这个模块有哪些组成部分、它们之间什么关系"的结构描述。
 
 ---
 
-## 4. Nest 装饰器基础
+## 4. 装饰器基础
 
 ### 什么是装饰器？
 
 装饰器（Decorator）是 TypeScript 的一项语法特性，形式是 `@表达式`。
-
 在 NestJS 里，装饰器的作用是：**给类、方法、参数贴一个 Nest 能读懂的标记**。
+NestJS 利用这个语法特性，提供了一系列有具体功能的装饰器。所以我们在 NestJS 代码里看到的 `@Controller`、`@Get`、`@Body()` 这些，实际上是两件事：
 
-> 普通 TS 类本身没有后端含义。
-> 加上装饰器以后，Nest 才知道这个类是什么角色、这个方法对应哪个接口、这个参数从请求哪里取。
+> @表达式  ← 这是 TypeScript 语法（装饰器语法）
+> @Controller('items')  ← 这是 NestJS 提供的装饰器
 
-所以装饰器不是普通注释，它会影响 Nest 如何组织项目、注册路由、注入依赖。
+| 来源 | 作用 | 例子 |
+|------|------|------|
+| **TypeScript** | 定义装饰器语法本身 | `@`、`target`、`propertyKey` 这些概念 |
+| **NestJS** | 利用装饰器语法，提供具体功能 | `@Controller`、`@Get`、`@Body()` |
+| **class-validator** | 利用装饰器语法，提供验证功能 | `@IsString()`、`@Min(0)` |
+
+> 普通 TS 类本身没有后端含义。加上装饰器以后，框架才能识别这个类是什么角色、这个方法对应哪个接口、这个参数从请求哪里取。
 
 ------
 
@@ -321,9 +333,11 @@ Nest 创建 ItemsService 实例
 Controller 里可以用 this.itemsService
 ```
 
-注册 ≠ 创建实例
-注册只是告诉 Nest 有这个服务
-创建实例是 Nest 根据注册信息和依赖关系，真正 new 出一个对象
+> 注册 ≠ 创建实例
+> 注册只是告诉 Nest 有这个服务
+> 创建实例是 Nest 根据注册信息和依赖关系，真正 new 出一个对象
+>
+> 关于实例的具体疑问可以去service章节查看
 
 ------
 
@@ -379,15 +393,7 @@ findOne(@Param('id') id: string) {
 | `@Req()` | 完整请求对象 | `req` |
 | `@Res()` | 完整响应对象 | `res` |
 
-```
-GET /items/100
-```
 
-得到：
-
-```
-id = "100"
-```
 
 #### 参数装饰器示例
 
@@ -420,7 +426,7 @@ GET /items?keyword=apple
 得到：
 
 ```
-keyword = "apple"
+search keyword: apple
 ```
 
 **`@Body()` 示例**
@@ -449,10 +455,14 @@ POST /items
 
 得到：
 
+```json
+{
+  "name": "apple",
+  "quantity": 10
+}
 ```
-createItemDto.name = "apple"
-createItemDto.quantity = 10
-```
+
+也就是 `return createItemDto` 把这个 DTO 对象原样返回了。
 
 **`@Req()` 和 `@Res()` 示例**
 
@@ -467,7 +477,7 @@ createItemDto.quantity = 10
 
 > **和普通写法最大的区别：** 普通写法是 `return` 数据，NestJS 自动包装成响应。使用 `@Res()` 后，你需要**自己调用 `res.json()` 或 `res.send()` 来返回数据**，否则请求会一直挂起。
 
-```
+```ts
 import { Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 
@@ -505,7 +515,6 @@ ip: ::1
 HTTP 响应：
 
 ```
-200 OK
 { "message": "custom response" }
 ```
 
@@ -517,7 +526,7 @@ HTTP 响应：
 
 看这段代码：
 
-```
+```ts
 @Controller('items')
 export class ItemsController {
   @Get(':id')
@@ -590,7 +599,7 @@ item 100
 
 例如：
 
-```
+```ts
 @Get()
 findAll() {
   return 'get all items';
@@ -685,6 +694,15 @@ nest g controller items
 - 在 `src/items/` 下新建 `items.controller.spec.ts` 测试文件
 - 自动在 `AppModule` 中 import 并注册
 
+> **注意：如果 `items` 目录已存在**
+>
+> 执行 `nest g controller items` 时，Nest CLI 会检测到 `src/items/` 目录已存在，此时：
+>
+> - 它不会重新创建 `items/` 文件夹
+> - 它只会在已有的 `items/` 目录下新建 `items.controller.ts` 和 `items.controller.spec.ts
+
+---
+
 生成的 `items.controller.ts` 大概内容是：
 
 ```
@@ -711,7 +729,7 @@ Nest 的路径通常由两部分组成：
 
 例如：
 
-```
+```ts
 @Controller('items')
 export class ItemsController {
   @Get()
@@ -826,261 +844,34 @@ DTO 的作用可以先理解成：
 
 ------
 
-### 5.5 Controller 中注入 Service：constructor 是什么意思？
+### 5.5 Controller 中注入 Service
 
 Controller 可以接收请求，但不建议把复杂业务都写在 Controller 里。
 
-**不推荐这样：**
-
-```typescript
-@Post()
-create(@Body() body: any) {
-  // 校验数据
-  // 处理数据
-  // 操作数据库
-  // 发送通知
-  // 返回结果
-}
-```
-
-因为这样 Controller 会越来越乱。
 
 **更推荐的写法是：**
 
 ```typescript
 @Controller('items')
 export class ItemsController {
-  // 通过 constructor 注入 Service
-  constructor(private readonly itemsService: ItemsService) {}
+  // 通过 constructor 注入 Service(第七章会有部分专门讲service)
+  constructor(private readonly svc: ItemsService) {}
 
   @Get()
   findAll() {
     // 调用注入进来的 Service
-    return this.itemsService.findAll();
+    return this.svc.findAll();
   }
 }
 ```
-
-#### constructor 是什么意思？
-
-```typescript
-constructor(private readonly itemsService: ItemsService) {}
-```
-
-可以拆成三层意思：
-
-| 部分 | 含义 |
-|------|------|
-| `ItemsService` | 我要的是 ItemsService 这个服务 |
-| `itemsService` | 注入后，在当前类里用这个名字访问它 |
-| `private readonly` | 这个属性只在当前类内部使用，不建议重新赋值 |
-
-#### Nest 如何执行注入？
-
-```
-当 Nest 创建 ItemsController 的时候：
-    ↓
-发现 constructor 里需要 ItemsService
-    ↓
-去当前 Module 的 providers 里找 ItemsService
-    ↓
-如果找到了，创建 ItemsService 实例
-    ↓
-注入到 ItemsController 里
-```
-
-所以 `constructor` 只是**声明**需要什么：
-
-```typescript
-constructor(private readonly itemsService: ItemsService) {}
-//              ↑
-//              声明：我需要这个服务
-```
-
-真正**调用**的时候是这样：
-
-```typescript
-@Get()
-findAll() {
-  return this.itemsService.findAll();  // 这里是真正调用
-}
-```
-
-#### constructor 的完整写法
-
-```typescript
-// 简写（推荐）
-constructor(private readonly itemsService: ItemsService) {}
-
-// 展开写法（等价于上面）
-private readonly itemsService: ItemsService;
-constructor(itemsService: ItemsService) {
-  this.itemsService = itemsService;
-}
-```
-
 ---
 
-### 5.6 Controller 和 Service 的配合流程
+### 5.6 Controller 和 Express 写法对比
 
-假设有这样一个 Service：
+Express：手动注册路由(app.get('/items/:id'))
+Nest：用装饰器声明路由(@Controller + @Get 声明路由)
 
-```typescript
-@Injectable()
-export class ItemsService {
-  private items = [
-    { id: '1', name: '苹果', quantity: 10 },
-    { id: '2', name: '香蕉', quantity: 20 },
-  ];
 
-  findAll() {
-    return this.items;
-  }
-
-  findOne(id: string) {
-    return this.items.find(item => item.id === id);
-  }
-
-  create(item: any) {
-    this.items.push({ id: Date.now().toString(), ...item });
-    return item;
-  }
-}
-```
-
-Controller 这样使用它：
-
-```typescript
-@Controller('items')
-export class ItemsController {
-  constructor(private readonly itemsService: ItemsService) {}
-
-  @Get()
-  findAll() {
-    return this.itemsService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.itemsService.findOne(id);
-  }
-
-  @Post()
-  create(@Body() body: any) {
-    return this.itemsService.create(body);
-  }
-}
-```
-
-**完整流程：**
-
-```
-请求 GET /items
-   ↓
-进入 ItemsController
-   ↓
-执行 findAll()
-   ↓
-调用 this.itemsService.findAll()
-   ↓
-ItemsService 处理业务逻辑
-   ↓
-返回数据给 Controller
-   ↓
-Controller 返回给前端
-```
-
-简单说就是：
-
-```
-Controller：你要干什么？
-Service：具体怎么干。
-```
-
-------
-
-### 5.7 Controller 的完整 CRUD 示例
-
-```js
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-} from '@nestjs/common';
-import { ItemsService } from './items.service';
-import { CreateItemDto } from './dto/create-item.dto';
-
-@Controller('items')
-export class ItemsController {
-  constructor(private readonly itemsService: ItemsService) {}
-
-  // 查询所有 items
-  @Get()
-  findAll() {
-    return this.itemsService.findAll();
-  }
-
-  // 查询某一个 item
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.itemsService.findOne(id);
-  }
-
-  // 新增 item
-  @Post()
-  create(@Body() createItemDto: CreateItemDto) {
-    return this.itemsService.create(createItemDto);
-  }
-
-  // 修改 item
-  @Put(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateItemDto: CreateItemDto,
-  ) {
-    return this.itemsService.update(id, updateItemDto);
-  }
-
-  // 删除 item
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.itemsService.remove(id);
-  }
-}
-```
-
-这段代码可以这样读：
-
-```js
-@Controller('items')
-这个类负责 /items 这一组接口
-
-constructor(private readonly itemsService: ItemsService)
-把 ItemsService 注入进来，方便 Controller 调用业务方法
-
-@Get()
-GET /items，查询所有数据
-
-@Get(':id')
-GET /items/:id，查询某一条数据
-
-@Post()
-POST /items，新增数据
-
-@Put(':id')
-PUT /items/:id，修改某一条数据
-
-@Delete(':id')
-DELETE /items/:id，删除某一条数据
-```
-
-------
-
-### 5.8 Controller 和 Express 写法对比
 
 Express 中可能这样写：
 
@@ -1131,22 +922,9 @@ Nest 是：
 @Param('id')          负责取路径参数
 ```
 
-
-
-可以理解成：
-
-```
-Express：手动注册路由(app.get('/items/:id'))
-Nest：用装饰器声明路由(@Controller + @Get 声明路由)
-```
-
-
-
-
-
 ------
 
-### 5.9 小结
+### 5.7 小结
 
 Controller 可以记成一句话：
 
@@ -1216,6 +994,18 @@ create(@Body() body: any) {
 | **DTO** | 定义请求/响应的数据结构 | Controller 的 @Body() 参数 |
 | **Interface** | 定义 TypeScript 类型（纯类型检查） | 定义数据结构、函数参数、返回值类型 |
 | **Schema** | 定义数据库文档结构（Mongoose） | MongoDB 模型定义 |
+
+> **补充**：TypeScript 中 `interface` 默认描述的是**对象类型**。如果需要描述其他类型（如字符串字面量、函数、联合类型等），通常用 `type` 来定义。
+>
+> ```typescript
+> // interface → 对象类型
+> interface Item { name: string; }
+>
+> // type → 其他类型
+> type Status = 'pending' | 'done';           // 字符串字面量
+> type Callback = (data: string) => void;      // 函数类型
+> type ID = string | number;                   // 联合类型
+> ```
 
 ```
 前端请求 → Controller → DTO 校验 → Service → Schema → 数据库
@@ -1428,49 +1218,56 @@ DTO 的核心作用：
 
 ## 7. Service 服务与依赖注入
 
-### 什么是 Service？
+### 7.1 Service 是什么？
 
-Service（服务）是 NestJS 中专门**处理业务逻辑**的组件。
+Service 是 NestJS 中专门**处理业务逻辑**的组件。
+
+在一个常见的接口流程中：
 
 ```
 Controller：接收请求、获取参数
     ↓
-Service：处理业务逻辑（查数据库、计算、发送通知等）
+Service：处理业务逻辑，比如查数据库、计算、发送通知
     ↓
-返回结果给 Controller
+Controller：把结果返回给前端
 ```
 
-### 为什么需要 Service？
+简单理解：
 
-**不推荐在 Controller 里写业务逻辑：**
+```
+Controller 管“入口”
+Service 管“业务”
+
+Controller：
+- 接收请求
+- 获取请求参数
+- 调用 Service
+
+Service：
+- 处理真正的业务逻辑
+- 操作数据
+- 组织返回结果
+```
+
+
+
+Controller 可以接收请求，但不建议把复杂业务都写在 Controller 里。
+
+**不推荐这样：**
 
 ```typescript
-@Controller('items')
-export class ItemsController {
-  @Post()
-  create(@Body() body: any) {
-    // 校验数据合法性
-    if (!body.name) throw new Error('name is required');
-
-    // 处理数据
-    const processedName = body.name.trim();
-
-    // 业务计算
-    const discountedPrice = body.price * 0.9;
-
-    // 操作数据库
-    this.db.items.push({ ... });
-
-    // 发送通知
-    this.emailService.send('new item created');
-
-    // 返回结果
-    return result;
-  }
+@Post()
+create(@Body() body: any) {
+  // 校验数据
+  // 处理数据
+  // 操作数据库
+  // 发送通知
+  // 返回结果
 }
 ```
 
 这样写的问题：
+
 - Controller 代码臃肿
 - 难以测试（Controller 依赖太多）
 - 业务逻辑分散，难以维护
@@ -1480,12 +1277,11 @@ export class ItemsController {
 ```typescript
 @Controller('items')
 export class ItemsController {
+  constructor(private readonly svc: ItemsService) {}
+
   @Post()
   create(@Body() dto: CreateItemDto) {
-    // Controller 只做这两件事：
-    // 1. 接收请求
-    // 2. 调用 Service
-    return this.itemsService.create(dto);
+    return this.svc.create(dto);
   }
 }
 ```
@@ -1494,41 +1290,976 @@ export class ItemsController {
 @Injectable()
 export class ItemsService {
   create(dto: CreateItemDto) {
-    // 所有业务逻辑都在这里
-    const processedName = dto.name.trim();
-    const result = this.processItem(processedName);
-    this.emailService.send('new item created');
-    return result;
+    const name = dto.name.trim();
+    return {
+      id: Date.now(),
+      name,
+    };
   }
 }
 ```
 
-### 创建 Service
+`@Injectable()` 装饰器告诉 Nest：这个类可以被依赖注入系统管理。
+
+### 7.2 Provider 是什么？
+
+在 NestJS 里，Provider 可以理解为：
+
+> 交给 Nest 管理、以后可以被注入到别的地方使用的东西。
+
+最常见的 Provider 就是 Service。
+
+例如：
+
+```ts
+@Injectable()
+export class ItemsService {}
+```
+
+然后在模块里注册：
+
+```ts
+@Module({
+  providers: [ItemsService],
+})
+export class ItemsModule {}
+```
+
+这里的 `ItemsService` 就是一个 Provider。
+
+它的意思是：
+
+```ts
+把 ItemsService 交给 Nest 管理
+    ↓
+Nest 可以创建 ItemsService 实例
+    ↓
+Nest 可以保存这个实例
+    ↓
+别的 Controller 或 Service 需要它时
+    ↓
+Nest 可以把它注入过去
+```
+
+所以：
+
+```ts
+providers: [ItemsService]
+```
+
+不是说这里只能写 Service，而是说：
+
+> 这里写的是这个模块自己提供给 Nest 管理的依赖。
+
+Service 是最常见的 Provider，但 Provider 不只包括 Service。
+
+常见 Provider 包括：
+
+```
+Service 类
+Repository 类
+配置对象
+数据库连接
+第三方 SDK 实例
+工厂函数返回的对象
+```
+
+比如普通 Service：
+
+```
+providers: [ItemsService]
+```
+
+也可以写成完整形式：
+
+```
+providers: [
+  {
+    provide: ItemsService,
+    useClass: ItemsService,
+  },
+]
+```
+
+这表示：
+
+```
+当有人需要 ItemsService 时，
+Nest 就提供 ItemsService 这个类的实例。
+```
+
+再比如配置对象：
+
+```
+@Module({
+  providers: [
+    {
+      provide: 'APP_CONFIG',
+      useValue: {
+        appName: 'NestJS Demo',
+        version: '1.0.0',
+      },
+    },
+  ],
+})
+export class AppModule {}
+```
+
+这里提供的就不是 Service 类，而是一个普通对象。
+
+使用时需要这样注入：
+
+```
+constructor(@Inject('APP_CONFIG') private config: any) {}
+```
+
+所以 Provider 的核心不是“Service”，而是“可被 Nest 注入的依赖”。
+
+一句话总结：
+
+```
+@Injectable()：说明这个类可以被 Nest 注入系统识别
+providers：说明这个类/对象正式交给 Nest 管理
+constructor：说明我这里需要某个 Provider，请 Nest 注入给我
+```
+
+### 7.3 如何创建和注册 Service
+
+在项目根目录下，运行以下命令创建 Service：
 
 ```bash
 nest g service items
 ```
 
 这条命令会：
+
 - 在 `src/items/` 下新建 `items.service.ts` 文件
 - 在 `src/items/` 下新建 `items.service.spec.ts` 测试文件
 - 自动在 `items.module.ts` 中注册为 provider
 
-### Service 的基本结构
+生成的 `items.service.ts` 大概内容是：
 
 ```typescript
-// items.service.ts
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class ItemsService {
-  // 业务逻辑写在这里
+export class ItemsService {}
+```
+
+这就是一个最基本的 Service。
+
+> 如果想只生成 `.ts` 文件而不生成测试文件，可以加 `--no-spec` 参数：`nest g service items --no-spec`
+
+### 7.4 Controller 如何使用 Service？
+
+#### 先澄清：this.service 不是凭空出现的
+
+在 NestJS 里，不能因为某个 Service 被 Nest 扫描到了，就直接在 Controller 里写：
+
+```typescript
+this.svc.findAll()
+```
+
+`this.svc` 能不能用，取决于当前 Controller 实例上是否真的有这个属性，它必须先被声明，然后被赋值。
+
+
+
+**拿到 Service 的方式大体有两类：**
+
+```
+1. 自己 new 一个 Service
+2. 让 Nest 通过依赖注入帮你传进来
+```
+
+
+
+其中，Nest 推荐第二种。
+
+
+
+#### 不推荐：手动 new Service
+
+理论上可以这样写：
+
+```typescript
+@Controller('items')
+export class ItemsController {
+  private readonly svc = new ItemsService();
+
+  @Get()
+  findAll() {
+    return this.svc.findAll();
+  }
 }
 ```
 
-`@Injectable()` 装饰器告诉 Nest：这个类可以被依赖注入系统管理。
+这样写以后，`this.svc` 确实可以使用。
 
-### Service + Interface 完整示例
+但是它绕开了 Nest 的依赖注入系统，所以不推荐。
+
+问题是：
+
+```
+1. 这个 Service 不归 Nest 管理
+2. 如果 Service 里面还依赖其他 Service，会越来越麻烦
+3. 不方便测试
+4. 破坏了 Nest 统一管理实例的机制
+```
+
+比如 `ItemsService` 里面还需要 `EmailService`：
+
+```typescript
+@Injectable()
+export class ItemsService {
+  constructor(private readonly emailService: EmailService) {}
+}
+```
+
+如果你自己 `new ItemsService()`，就还得自己创建并传入 `EmailService`：
+
+```typescript
+const emailService = new EmailService();
+const svc = new ItemsService(emailService);
+```
+
+依赖一多，代码就会越来越乱。
+
+所以在 Nest 项目中，通常不会自己 `new Service`。
+
+#### 推荐：constructor 构造函数注入
+
+最常见的写法是：
+
+```typescript
+@Controller('items')
+export class ItemsController {
+  constructor(private readonly svc: ItemsService) {}
+
+  @Get()
+  findAll() {
+    return this.svc.findAll();
+  }
+}
+```
+
+核心是这一句：
+
+```typescript
+constructor(private readonly svc: ItemsService) {}
+```
+
+它的意思是：
+
+```
+我这个 Controller 需要一个 ItemsService。
+请 Nest 帮我从容器里找到 ItemsService，并注入进来。
+```
+
+这句代码同时做了三件事：
+
+```
+1. 声明一个 svc 属性
+2. 接收 Nest 注入进来的 ItemsService 实例
+3. 把它保存到 this.svc 上
+```
+
+它大致等价于：
+
+```typescript
+private readonly svc: ItemsService;
+
+constructor(svc: ItemsService) {
+  this.svc = svc;
+}
+```
+
+所以后面才能写：
+
+```typescript
+this.svc.findAll()
+```
+
+`this` 指的是当前的 ItemsController 实例，`this.svc` 指的是这个实例上的 svc 属性。
+
+流程是：
+
+```
+Nest 创建 ItemsService、ItemsController 实例
+        ↓
+发现 constructor 需要 ItemsService
+        ↓
+把 ItemsService 实例传进去
+        ↓
+保存成 this.svc
+        ↓
+Controller 方法里就可以调用 this.svc.findAll()
+```
+
+#### 特殊场景：constructor + @Inject() 显式注入
+
+普通情况下，我们这样写就够了：
+
+```typescript
+constructor(private readonly svc: ItemsService) {}
+```
+
+因为 Nest 可以根据 `ItemsService` 这个类型，判断你想注入哪个 Service。
+
+但是也可以写得更明确：
+
+```typescript
+import { Inject } from '@nestjs/common';
+
+@Controller('items')
+export class ItemsController {
+  constructor(
+    @Inject(ItemsService)
+    private readonly svc: ItemsService,
+  ) {}
+}
+```
+
+这表示：
+
+```
+不要只靠类型判断。
+我明确告诉 Nest：这里要注入 ItemsService。
+```
+
+不过对于普通 Service 来说，这样写有点啰嗦。
+
+真正需要 `@Inject()` 的场景，通常是下面这些：
+
+```
+1. 使用字符串 token
+2. 使用 symbol token
+3. 注入 interface 对应的实现
+4. 一个抽象概念有多个具体实现
+5. 自定义 provider，比如 useClass、useValue、useFactory
+```
+
+典型例子：使用 interface 对应的实现
+
+```typescript
+export const ITEM_REPOSITORY = 'ITEM_REPOSITORY';
+
+@Module({
+  providers: [
+    {
+      provide: ITEM_REPOSITORY,
+      useClass: MysqlItemRepository,
+    },
+  ],
+})
+export class ItemsModule {}
+```
+
+```typescript
+constructor(
+  @Inject(ITEM_REPOSITORY)
+  private readonly repo: ItemRepository,
+) {}
+```
+
+解释：
+
+```
+ItemRepository 是 TypeScript 的 interface，运行到 JavaScript 时会消失。
+
+Nest 运行时看不到 interface，
+所以不能靠 interface 自动注入。
+
+这时候就需要用 token 明确告诉 Nest：
+我要注入 ITEM_REPOSITORY 对应的那个 provider。
+```
+
+另一个场景：想替换具体实现
+
+```typescript
+{
+  provide: 'ITEM_REPOSITORY',
+  useClass: MockItemRepository,  // 开发环境用假的
+}
+```
+
+```typescript
+{
+  provide: 'ITEM_REPOSITORY',
+  useClass: MysqlItemRepository,  // 生产环境用真的
+}
+```
+
+Controller 或 Service 里不用改：
+
+```typescript
+constructor(
+  @Inject('ITEM_REPOSITORY')
+  private readonly repo: ItemRepository,
+) {}
+```
+
+这样可以做到：
+
+```
+调用方不关心具体实现。
+Module 决定实际注入哪个实现。
+```
+
+#### 了解即可：属性注入
+
+除了 constructor 注入，还可以使用属性注入：
+
+```typescript
+@Controller('items')
+export class ItemsController {
+  @Inject(ItemsService)
+  private readonly svc: ItemsService;
+
+  @Get()
+  findAll() {
+    return this.svc.findAll();
+  }
+}
+```
+
+或者在 TypeScript 严格模式下，可能会写成：
+
+```typescript
+@Controller('items')
+export class ItemsController {
+  @Inject(ItemsService)
+  private readonly svc!: ItemsService;
+
+  @Get()
+  findAll() {
+    return this.svc.findAll();
+  }
+}
+```
+
+这种写法的意思是：
+
+```
+不通过 constructor 接收 Service，
+而是直接把 Service 注入到类的某个属性上。
+```
+
+但是不推荐初学时作为主要写法。
+
+原因是：
+
+```
+1. 依赖不够明显
+2. 看 constructor 时不知道这个类依赖了什么
+3. 测试时不如 constructor 注入方便
+4. 属性是在对象创建后再赋值，constructor 里不能安全使用它
+```
+
+所以更推荐：
+
+```typescript
+constructor(private readonly svc: ItemsService) {}
+```
+
+### 7.5 constructor 注入和 @Inject() 注入的关系
+
+这两种写法本质上都是依赖注入：
+
+```typescript
+constructor(private readonly svc: ItemsService) {}
+```
+
+```typescript
+constructor(
+  @Inject(ItemsService)
+  private readonly svc: ItemsService,
+) {}
+```
+
+它们的共同点是：
+
+| 共同点             | 说明                             |
+| ---------------- | ------------------------------ |
+| 都属于依赖注入         | 都不是自己 `new Service`            |
+| 都由 Nest 创建实例    | Service 实例由 Nest 容器管理          |
+| 都注入到当前类中        | 最后都可以通过 `this.svc` 使用 |
+| 都需要 provider 注册 | Service 必须在 `providers` 中注册    |
+
+它们的不同点是：
+
+| 写法                                       | Nest 怎么知道注入谁           | 适合场景                                   |
+| ---------------------------------------- | ---------------------- | -------------------------------------- |
+| `constructor(private svc: ItemsService)` | 根据类型 `ItemsService` 判断 | 普通 Service，最常用                         |
+| `@Inject(TOKEN)`                         | 根据你指定的 token 判断        | 自定义 provider、interface、字符串 token、多实现切换 |
+
+一句话总结：
+
+```
+普通 Service：优先用 constructor 类型注入。
+遇到 token、interface、自定义 provider：用 @Inject() 显式注入。
+```
+
+### 7.6 依赖注入的基本原理
+
+这一节解释：**Nest 是怎么做到 constructor 自动注入的？**
+
+#### 启动流程
+
+```
+项目启动
+	↓
+NestFactory.create(AppModule)
+	↓
+从 AppModule 开始扫描模块
+	↓
+读取 @Module() 里的 imports / controllers / providers
+	↓
+把这些类登记到 Nest 容器中
+	↓
+Nest 根据依赖关系创建实例
+	↓
+创建 ItemsController 时，查看它的 constructor
+	↓
+发现它需要 ItemsService
+	↓
+去容器中找 ItemsService
+	↓
+如果 ItemsService 还没实例化，就先创建 ItemsService
+	↓
+再把 ItemsService 实例传给 ItemsController
+```
+
+
+
+#### 为什么叫"依赖注入"？
+
+```
+"依赖"：ItemsController 依赖 ItemsService 才能工作
+"注入"：不是你 new 出来的，是 Nest 帮你创建并塞进来的
+```
+
+```
+你声明：constructor(private readonly svc: ItemsService) {}
+
+Nest 实际上做了：
+const svc = new ItemsService();      // 创建实例
+const controller = new Controller(svc);  // 注入进去
+```
+
+好处：
+
+- **不用手动 `new Service()`**
+- **容易换实现**（测试时可以用假的 Service 替换）
+- **统一管理实例**
+
+#### Service 怎么被 Nest 找到？
+
+必须满足两个条件：
+
+1. **Service 有 `@Injectable()` 装饰器**
+2. **Service 在 Module 的 `providers` 中注册**
+
+```typescript
+@Module({
+  providers: [ItemsService],  // 注册 Service
+  controllers: [ItemsController],
+})
+export class ItemsModule {}
+```
+
+如果 Service 没有在 `providers` 里注册，Nest 会报错：
+
+```
+Nest can't resolve dependencies of ItemsController (?).
+Please make sure that the argument ItemsService is available.
+```
+
+### 7.7 Service 中注入其他 Service
+
+一个 Service 也可以注入另一个 Service：
+
+```typescript
+@Injectable()
+export class EmailService {
+  send(to: string, message: string) {
+    console.log(`Sending email to ${to}: ${message}`);
+  }
+}
+```
+
+```typescript
+@Module({
+  providers: [ItemsService, EmailService],  // 两个都注册
+  controllers: [ItemsController],
+})
+export class ItemsModule {}
+```
+
+```typescript
+@Injectable()
+export class ItemsService {
+  constructor(
+    private readonly emailService: EmailService,
+  ) {}
+
+  create(item: Item): Item {
+    const newItem = this.saveToDb(item);
+    this.emailService.send('admin@example.com', 'New item created');
+    return newItem;
+  }
+
+  private saveToDb(item: Item): Item {
+    return item;
+  }
+}
+```
+
+### 7.8 单例模式：启动时创建，请求时复用
+
+NestJS 默认使用**单例模式**，这意味着：
+
+- **启动时**：Nest 创建所有 Controller 和 Service 的实例（一次性）
+- **请求时**：所有请求复用这些已创建的实例
+
+
+
+单例的意思是：
+
+一个类在应用运行期间通常只创建一个实例，后续请求都会复用这个实例。
+
+```
+const itemsService = new ItemsService()
+
+// 第一次请求用它
+itemsService.getList()
+
+// 第二次请求也用它
+itemsService.getList()
+
+// 第三次请求还是用它
+itemsService.getList()
+```
+
+
+
+```
+例如 ItemsService 默认只会创建一个实例：
+
+项目启动
+    ↓
+Nest 扫描模块
+    ↓
+创建 ItemsService 实例
+    ↓
+创建 ItemsController 实例，并把 ItemsService 注入进去
+    ↓
+请求来了
+    ↓
+复用已经创建好的 ItemsController 和 ItemsService
+```
+
+好处：
+
+- **省内存**：不用每次请求都 new 一个新实例
+- **速度快**：实例已经创建好了，直接用
+
+简单记忆：`启动时创建 → 请求时复用`
+
+
+
+#### 详细介绍单例
+
+单例就是：
+
+```
+const service = new ItemsService()
+```
+
+只 new 一次。
+
+然后所有 Controller 都用这一个：
+
+```ts
+@Controller()
+export class AController {
+  constructor(private readonly itemsService: ItemsService) {}
+}
+@Controller()
+export class BController {
+  constructor(private readonly itemsService: ItemsService) {}
+}
+```
+
+表面上 AController 和 BController 都写了：
+
+```
+private readonly itemsService: ItemsService
+```
+
+但它们拿到的其实是**同一个 ItemsService 实例**。
+
+可以想象成：
+
+```
+ItemsService 实例
+     ↑
+AController 用它
+     ↑
+BController 也用它
+     ↑
+CController 也用它
+```
+
+#### “类”和“实例”先分清
+
+你可以这样理解：
+
+```
+class ItemsService {}
+```
+
+这个是**类**，像一张“图纸”。
+
+```
+const a = new ItemsService()
+```
+
+这个 `a` 是**实例**，像根据图纸造出来的“真实对象”。
+
+再比如：
+
+```
+const a = new ItemsService()
+const b = new ItemsService()
+```
+
+这里就是两个实例。
+
+```
+ItemsService 类
+   ↓ new
+a 实例
+
+ItemsService 类
+   ↓ new
+b 实例
+```
+
+虽然 `a` 和 `b` 都来自同一个类，但它们是两个不同对象。
+
+#### 为什么 Nest 默认用单例？
+
+因为大多数 Service 不需要每次请求都重新创建。
+
+比如：
+
+```
+@Injectable()
+export class UserService {
+  findAll() {
+    return this.userRepository.find()
+  }
+}
+```
+
+这个 `UserService` 本身只是提供方法，没必要每次请求都 new 一个。
+
+所以 Nest 默认：
+
+```
+启动时创建 Service
+请求来了直接复用
+```
+
+好处就是你笔记里写的：
+
+```
+省内存
+速度快
+逻辑简单
+```
+
+#### 那是不是还有“多例”？
+
+有。
+
+只是 Nest 里面通常不直接叫“多例模式”，而是叫不同的 **作用域 scope**。
+
+常见有三种：
+
+```
+默认作用域：单例
+请求作用域：每个请求创建一个实例
+瞬态作用域：每次注入都创建一个新实例
+```
+
+------
+
+#### 单例最容易踩的坑
+
+因为单例是大家共享一个对象，所以不要随便在 Service 里面保存“某一次请求的数据”。
+
+比如这样就有风险：
+
+```
+@Injectable()
+export class UserService {
+  currentUserId: number
+
+  setCurrentUser(id: number) {
+    this.currentUserId = id
+  }
+
+  getCurrentUser() {
+    return this.currentUserId
+  }
+}
+```
+
+如果它是单例，那么可能出现：
+
+```
+用户 A 请求来了，把 currentUserId 改成 1
+用户 B 请求来了，把 currentUserId 改成 2
+用户 A 再读 currentUserId，可能读到 2
+```
+
+所以单例 Service 里适合放：
+
+```
+方法
+工具逻辑
+数据库操作
+公共业务逻辑
+```
+
+不适合放：
+
+```
+当前请求用户
+当前请求 token
+当前请求临时状态
+```
+
+这些更适合从 `req`、参数、上下文中传递，或者用 request scope。
+
+### 7.9 Service 的作用域
+
+| 作用域          | 说明              | 示例                        |
+| ------------- | --------------- | ------------------------- |
+| **单例**（默认）   | 所有请求共用一个实例     | 大多数 Service                |
+| **请求级别**      | 每个请求一个新实例     | 需要隔离状态的场景               |
+| **临时**        | 每次注入创建新实例     | 需要独立状态的场景               |
+
+```typescript
+@Injectable({ scope: Scope.REQUEST })
+export class ItemsService {
+  constructor() {
+    console.log('每个请求都会创建新实例');
+  }
+}
+```
+
+#### 默认：单例 Singleton
+
+```
+@Injectable()
+export class ItemsService {}
+```
+
+等价于：
+
+```
+@Injectable({ scope: Scope.DEFAULT })
+export class ItemsService {}
+```
+
+特点：
+
+```
+整个应用共享一个实例
+```
+
+比如：
+
+```
+请求 1 → 用 ItemsService #1
+请求 2 → 用 ItemsService #1
+请求 3 → 用 ItemsService #1
+```
+
+都是同一个。
+
+------
+
+#### 请求作用域：Request Scope
+
+写法大概是：
+
+```
+import { Injectable, Scope } from '@nestjs/common'
+
+@Injectable({ scope: Scope.REQUEST })
+export class ItemsService {}
+```
+
+意思是：
+
+```
+每一个请求，创建一个新的 ItemsService 实例
+```
+
+比如：
+
+```
+请求 1 → ItemsService #1
+请求 2 → ItemsService #2
+请求 3 → ItemsService #3
+```
+
+这就不是单例了。
+
+适合什么场景？
+
+比如这个 Service 里要保存“当前请求用户”的信息：
+
+```
+@Injectable({ scope: Scope.REQUEST })
+export class CurrentUserService {
+  userId: number
+}
+```
+
+因为每个用户请求不一样，所以不能大家共用一个实例。
+
+------
+
+#### 瞬态作用域：Transient
+
+写法：
+
+```
+@Injectable({ scope: Scope.TRANSIENT })
+export class ItemsService {}
+```
+
+意思是：
+
+```
+每次被注入时，都创建一个新实例
+```
+
+比如：
+
+```
+AController 需要 ItemsService → 创建 ItemsService #1
+BController 需要 ItemsService → 创建 ItemsService #2
+CService 需要 ItemsService → 创建 ItemsService #3
+```
+
+它比“请求作用域”还要更分散。
+
+### 7.10 Service + Interface 完整示例
 
 ```typescript
 // interfaces/item.interface.ts
@@ -1547,23 +2278,19 @@ import { Item } from './interfaces/item.interface';
 
 @Injectable()
 export class ItemsService {
-  // 使用 private 模拟数据库
   private items: Item[] = [
     { id: '1', name: '苹果', quantity: 10 },
     { id: '2', name: '香蕉', quantity: 20 },
   ];
 
-  // 查询所有
   findAll(): Item[] {
     return this.items;
   }
 
-  // 查询单个
   findOne(id: string): Item | undefined {
     return this.items.find(item => item.id === id);
   }
 
-  // 新增
   create(item: Omit<Item, 'id'>): Item {
     const newItem = {
       id: Date.now().toString(),
@@ -1573,7 +2300,6 @@ export class ItemsService {
     return newItem;
   }
 
-  // 更新
   update(id: string, updates: Partial<Item>): Item | undefined {
     const index = this.items.findIndex(item => item.id === id);
     if (index === -1) return undefined;
@@ -1581,179 +2307,80 @@ export class ItemsService {
     this.items[index] = { ...this.items[index], ...updates };
     return this.items[index];
   }
+}
+```
 
-  // 删除
-  remove(id: string): boolean {
-    const index = this.items.findIndex(item => item.id === id);
-    if (index === -1) return false;
+> **补充说明**：
+>
+> 为什么 `findOne` 返回 `Item | undefined`，而 `findAll` 返回 `Item[]`？
+>
+> ```
+> findOne：查一个，所以返回单个 Item；如果找不到，返回 undefined。
+> findAll：查全部，所以返回 Item 数组。
+> ```
+>
+> `Omit` 是 TypeScript 内置的工具类型，用于从某个类型中排除指定属性。
+>
+> `Omit<Item, 'id'>` 表示除了 `id` 字段外的其他字段，因为新增时 id 通常由数据库自动生成。`Partial<Item>` 表示所有字段都是可选的，用于更新操作。
 
-    this.items.splice(index, 1);
-    return true;
+### 7.11 小结
+
+Service 本身负责业务逻辑。
+
+但 Controller 想使用 Service，不能直接凭空写 `this.svc`。
+
+`this.svc` 能用的前提是：
+
+```
+当前 Controller 实例上真的有这个属性。
+```
+
+在 Nest 中，推荐通过依赖注入来获得这个属性：
+
+```typescript
+constructor(private readonly svc: ItemsService) {}
+```
+
+这句话可以理解为：
+
+```
+我声明自己需要 ItemsService。
+Nest 从 providers 里找到 ItemsService。
+Nest 创建或复用它的实例。
+Nest 把它传进 Controller。
+Controller 把它保存成 this.svc。
+```
+
+最核心的一句话是：
+
+```
+providers 告诉 Nest：我这里有什么。
+constructor 告诉 Nest：我需要什么。
+@Inject() 告诉 Nest：当类型不够明确时，按哪个 token 注入。
+```
+
+Controller 和 Service 的配合示例：
+
+```typescript
+@Controller('tasks')
+export class TasksController {
+  constructor(private readonly svc: TasksService) {}
+
+  @Get()
+  findAll() {
+    return this.svc.findAll();
+  }
+
+  @Post()
+  create(@Body() { title }: { title: string }) {
+    return this.svc.create(title);
   }
 }
 ```
 
-> **注意**：`Omit<Item, 'id'>` 表示除了 `id` 字段外的其他字段，因为新增时 id 通常由数据库自动生成。`Partial<Item>` 表示所有字段都是可选的，用于更新操作。
-
-### 依赖注入原理
-
-> 这一节讲的是"为什么 constructor 能自动拿到 Service"，即依赖注入的内部原理。如果你还没看过 [5.5 节 Controller 中注入 Service](#55-controller-中注入-serviceconstructor-是什么意思)，建议先看那一节。
-
-上一节我们讲了怎么用 `constructor` 注入 Service：
-
-```typescript
-@Controller('items')
-export class ItemsController {
-  constructor(private readonly itemsService: ItemsService) {}
-}
 ```
-
-这一节来解释：**Nest 是怎么做到的？**
-
-#### Nest 启动时的扫描流程
-
-```
-项目启动
-    ↓
-NestFactory.create(AppModule)
-    ↓
-读取 AppModule 配置
-    ↓
-扫描所有 @Module()
-    ↓
-发现 providers: [ItemsService]
-    ↓
-创建 ItemsService 实例（单例）
-    ↓
-扫描所有 Controller 的 constructor
-    ↓
-发现有依赖声明
-    ↓
-把对应的 Service 实例注入进去
-```
-
-#### 为什么叫"依赖注入"？
-
-```
-"依赖"：ItemsController 依赖 ItemsService 才能工作
-"注入"：不是你 new 出来的，是 Nest 帮你创建并塞进来的
-```
-
-```typescript
-// 你声明：constructor(private readonly itemsService: ItemsService) {}
-
-// Nest 实际上做了：
-// const itemsService = new ItemsService();      // 创建实例
-// const controller = new Controller(itemsService);  // 注入进去
-```
-
-好处：
-- **不用手动 `new Service()`**
-- **容易换实现**（测试时可以用假的 Service 替换）
-- **统一管理实例**
-
-#### Service 怎么被 Nest 找到？
-
-必须满足两个条件：
-
-1. **Service 有 `@Injectable()` 装饰器**
-2. **Service 在 Module 的 `providers` 中注册**
-
-```typescript
-// items.module.ts
-@Module({
-  providers: [ItemsService],  // 注册 Service
-  controllers: [ItemsController],
-})
-export class ItemsModule {}
-```
-
-如果 Service 没有在 `providers` 里注册，Nest 会报错：
-
-```
-Nest can't resolve dependencies of ItemsController (?).
-Please make sure that the argument ItemsService is available.
-```
-
-意思是：Nest 找不到 ItemsService，因为它没有在 providers 里注册。
-
-#### Service 中注入其他 Service
-
-一个 Service 也可以注入另一个 Service：
-
-```typescript
-// email.service.ts
-@Injectable()
-export class EmailService {
-  send(to: string, message: string) {
-    console.log(`Sending email to ${to}: ${message}`);
-  }
-}
-```
-
-```typescript
-// items.module.ts
-@Module({
-  providers: [ItemsService, EmailService],  // 两个都注册
-  controllers: [ItemsController],
-})
-export class ItemsModule {}
-```
-
-```typescript
-// items.service.ts
-@Injectable()
-export class ItemsService {
-  // 注入 EmailService
-  constructor(
-    private readonly itemsService: ItemsService,
-    private readonly emailService: EmailService,
-  ) {}
-
-  create(item: Item): Item {
-    const newItem = this.saveToDb(item);
-    this.emailService.send('admin@example.com', 'New item created');
-    return newItem;
-  }
-}
-```
-
-#### Service 的作用域
-
-| 作用域 | 说明 | 示例 |
-|--------|------|------|
-| **单例**（默认） | 所有请求共用一个实例 | 大多数 Service |
-| **请求级别** | 每个请求一个新实例 | 需要隔离状态的场景 |
-| **临时** | 每次注入创建新实例 | 需要独立状态的场景 |
-
-```typescript
-@Injectable({ scope: Scope.REQUEST })
-export class ItemsService {
-  constructor() {
-    console.log('每个请求都会创建新实例');
-  }
-}
-```
-
-### 小结
-
-依赖注入的核心流程：
-
-```
-1. Service 用 @Injectable() 装饰
-2. Service 在 Module 的 providers 中注册
-3. Controller 在 constructor 中声明依赖
-4. Nest 自动创建实例并注入
-5. 你只管用，不用 new
-```
-
-用一句话记住：
-
-```
-Controller 负责接收请求
-Service 负责处理业务逻辑
-Module 负责组织它们
-依赖注入负责"送上门"
+Controller：接收请求，整理参数
+Service：处理具体业务逻辑
 ```
 
 ---
@@ -1764,9 +2391,7 @@ Module 负责组织它们
 
 Module（模块）是 NestJS 用来**组织代码**的容器。
 
-一个 Module 就是一个普通的类，加上 `@Module()` 装饰器。
-
-### Module 的作用
+**Module 的作用**
 
 ```
 Module = Controller + Service + 其他依赖
@@ -1776,7 +2401,7 @@ Module = Controller + Service + 其他依赖
 整个应用由多个 Module 组成
 ```
 
-### Module 的基本结构
+**Module 的基本结构**
 
 ```typescript
 // items.module.ts
@@ -1802,13 +2427,33 @@ export class ItemsModule {}
 
 ### 创建 Module
 
+在项目根目录下，运行以下命令创建 Module：
+
 ```bash
 nest g module items
 ```
 
-这条命令会创建 `items.module.ts`。
+这条命令会：
+
+- 在 `src/items/` 下新建 `items.module.ts` 文件
+- 自动在 `AppModule` 中 import 并注册
+
+生成的 `items.module.ts` 大概内容是：
+
+```typescript
+import { Module } from '@nestjs/common';
+
+@Module({})
+export class ItemsModule {}
+```
+
+这就是一个最基本的 Module。
+
+> 如果想创建 Module 的同时一起创建 Controller 和 Service，可以运行：`nest g resource items`
 
 ### 根 Module（AppModule）
+
+> 修改意见：这里的appmodule以及内里的结构，含义要写在##什么是Module这个标题里，在里面介绍清除
 
 Nest 应用有一个根 Module，叫 `AppModule`：
 
@@ -1823,35 +2468,283 @@ import { ItemsModule } from './items/items.module';
 export class AppModule {}
 ```
 
-### Module 的组织结构
+### 模块化设计
 
-一个典型的项目结构：
+之前我们把所有东西都放在 `app.module.ts` 里，现在我们要接触模块化设计。
+
+所谓“模块”，不是随便一个文件夹就叫模块，而是指一组关系比较紧密、能完成某类业务功能的代码集合。
+
+一般来说，一个模块通常对应一个相对完整的业务领域，比如：
+
+- 用户管理：`UsersModule`
+- 商品管理：`ItemsModule`
+- 订单管理：`OrdersModule`
+- 权限认证：`AuthModule`
+- 配置管理：`ConfigModule`
+- 数据库连接：`DatabaseModule`
+
+也就是说，模块的大小是按“业务职责”来决定的。
+
+
+
+例如：
+
+```txt
+src/
+├── app.module.ts
+├── users/
+│	├── users.controller.ts   # 用户接口
+│	├── users.service.ts      # 用户业务逻辑
+│	├── users.module.ts       # 用户模块
+│	├── dto/                  # 用户相关参数类型
+│	└── entities/             # 用户相关数据实体
+├── orders/
+│   ├── orders.controller.ts
+│   ├── orders.service.ts
+│   └── orders.module.ts
+└── items/
+    ├── items.controller.ts
+    ├── items.service.ts
+    └── items.module.ts
+users/
+├── users.controller.ts   # 用户接口
+├── users.service.ts      # 用户业务逻辑
+├── users.module.ts       # 用户模块
+├── dto/                  # 用户相关参数类型
+└── entities/             # 用户相关数据实体
+```
+
+可以理解为：
+
+```txt
+一个模块 = 
+一块业务功能 + 这块业务需要的 Controller / Service / DTO / Entity
+```
+
+
+
+> 这种模块化思想并不是 NestJS 特有的。很多后端项目都会按业务拆分代码。
+>
+> 只不过 NestJS 把“模块”做成了一个明确的语法概念，也就是 `@Module()`。  
+>
+> 所以在 NestJS 里，模块之间的关系会通过 `imports`、`providers`、`controllers`、`exports` 明确表达出来。
+>
+> 而 Express 本身比较轻量，它没有 NestJS 这种 `@Module()` 语法。Express 也可以按业务拆文件夹，比如：
+>
+> ```txt
+> routes/users.js
+> services/users.service.js
+> routes/orders.js
+> services/orders.service.js
+> ```
+>
+> 但 Express 不会强制你这样组织，也没有 `imports`、`exports` 这种模块依赖管理机制。Express 更多是靠开发者自己约定目录结构、自己手动 `require` / `import` 文件。
+>
+> 所以可以简单理解为：
+>
+> ```
+> 模块化思想：不是 NestJS 独有的
+> 
+> NestJS：
+> 框架层面支持模块化，有 @Module()、imports、exports 等机制
+> 
+> Express：
+> 也可以模块化组织代码，但主要靠开发者自己约定，没有官方的 Module 系统
+> ```
+
+
+
+#### 分模块的好处
+
+1. **代码隔离**：每个模块只管自己的业务，修改时不会影响其他模块
+2. **易于维护**：按功能分组，代码好找
+3. **团队协作**：不同团队负责不同模块，减少冲突
+4. **复用**：某个模块（如配置模块）可以共享给其他模块用
+
+
+
+#### 模块引用关系
+
+**以前：
+AppModule 直接管理所有 Controller / Service**
+
+**现在：
+AppModule 管 Module
+各个Module 再管自己的 Controller / Service**
+
+模块之间的引用规则如下：
 
 ```
-src/
-├── app.module.ts          # 根 Module
-├── main.ts                # 入口文件
-├── items/
-│   ├── items.controller.ts
-│   ├── items.service.ts
-│   ├── items.module.ts    # items 专属 Module
-│   ├── dto/
-│   └── interfaces/
-├── users/
-│   ├── users.controller.ts
-│   ├── users.service.ts
-│   ├── users.module.ts    # users 专属 Module
-│   └── dto/
-└── orders/
-    ├── orders.controller.ts
-    ├── orders.service.ts
-    ├── orders.module.ts    # orders 专属 Module
-    └── dto/
+┌─────────────────────────────────────────────────────────────┐
+│                        AppModule（根模块）                    │
+│                                                             │
+│   imports: [ItemsModule, UsersModule, OrdersModule, ...]    │
+│                         ↓                                   │
+│   只有在这里导入的模块，才能被整个应用使用                      │
+└─────────────────────────────────────────────────────────────┘
+                              │
+          ┌───────────────────┼───────────────────┐
+          ↓                   ↓                   ↓
+   ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+   │ ItemsModule │     │UsersModule  │     │OrdersModule │
+   │             │     │             │     │             │
+   │ Controller  │     │ Controller  │     │ Controller  │
+   │    ↓        │     │    ↓        │     │    ↓        │
+   │  Service    │     │  Service    │     │  Service    │
+   │             │     │             │     │             │
+   │ 只用自己    │     │ 只用自己    │     │ 只用自己    │
+   │ 模块的     │     │ 模块的     │     │ 模块的     │
+   │ 东西       │     │ 东西       │     │ 东西       │
+   └─────────────┘     └─────────────┘     └─────────────┘
+```
+
+**核心规则：**
+
+1. **模块内部**：Controller 和 Service 可以自由互相调用
+2. **跨模块调用**：需要在对方的 Module 中导出（exports），然后在你的 Module 中导入（imports）
+3. **Root 统一注册**：所有模块最终都要在 `AppModule` 中注册
+
+#### :star2:模块之间怎么引用 Service？
+
+假设：
+
+```
+订单模块 OrdersModule
+需要使用
+用户模块 UsersModule 里的 UsersService
+```
+
+那么关系应该是：
+
+```ts
+UsersModule 导出 UsersService
+OrdersModule 导入 UsersModule
+OrdersService 注入 UsersService
+```
+
+代码是这样：
+
+```ts
+// users.module.ts
+@Module({
+  controllers: [UsersController],
+  providers: [UsersService],
+  exports: [UsersService],	//意味着UserModule内部的 UsersService 可以给别的模块用
+})
+export class UsersModule {}
+
+//然后订单模块导入它
+// orders.module.ts
+@Module({
+  controllers: [OrdersController],
+  providers: [OrdersService],
+  imports: [UsersModule],
+})
+export class OrdersModule {}
+
+//在OrderService中使用UserService
+//Orders.service.ts
+@Injectable()
+export class OrdersService {
+  constructor(private readonly usersService: UsersService) {}
+
+  createOrder() {
+    // 可以使用 usersService
+  }
+}
+```
+
+完整关系是：
+
+```ts
+AppModule
+  imports: [UsersModule, OrdersModule]
+
+UsersModule
+  controllers: [UsersController]
+  providers: [UsersService]
+  exports: [UsersService]
+
+OrdersModule
+  controllers: [OrdersController]
+  providers: [OrdersService]
+  imports: [UsersModule]
+
+OrdersService
+  constructor(private usersService: UsersService) {}
+```
+
+
+
+#### 为什么不是导入 Service？
+
+因为 `Service` 本身不是一个“模块”
+
+导出时通常导出 Service，因为Service 是你真正想用的东西；
+导入时导入 Module，因为Module 是装着 Service 的盒子。
+
+#### 为什么使用时不是 Module.Service？
+
+Nest 的依赖注入不是按“模块名.服务名”查找的，而是按 Provider Token 查找的。
+
+通常情况下，这个 token 就是类本身。
+
+```
+constructor(private readonly serviceA: ServiceA) {}
+```
+
+真正表达的是：
+
+```
+我需要一个 ServiceA 类型的依赖。
+Nest 你帮我找一下当前模块作用域里有没有 ServiceA。
+```
+
+Nest 会这样找：
+
+```
+1. ModuleB 自己的 providers 里有没有 ServiceA？
+2. ModuleB imports 的模块里，有没有哪个模块 exports 了 ServiceA？
+3. 找到了 ModuleA exports: [ServiceA]
+4. 把 ServiceA 注入给 ServiceB
+```
+
+所以你不用写 `ModuleA.ServiceA`。
+
+#### :star2:imports / providers / controllers / exports 怎么记？
+
+你可以这样记：
+
+```
+controllers：
+这个模块自己有哪些 Controller
+
+providers：
+这个模块自己有哪些 Service / Provider
+
+imports：
+我想用别的模块导出的东西，所以我要导入那个模块
+
+exports：
+我想把自己模块里的某些 Service 暴露给别人用
+```
+
+更白话一点：
+
+```
+controllers = 我负责哪些接口入口
+providers = 我自己有什么
+imports = 我要拿别人什么
+exports = 我愿意给别人什么
 ```
 
 ### 全局模块
 
-有时候某些服务需要在所有地方都能用（比如配置服务），可以做成全局模块：
+某些服务需要在所有地方都能用（比如配置服务、日志服务、数据库连接服务），
+
+如果每个模块都要写`imports: [ConfigModule]`太麻烦了，
+
+所以做成全局模块：
 
 ```typescript
 // config.module.ts
@@ -1866,14 +2759,16 @@ export class ConfigModule {}
 ```
 
 ```typescript
-// app.module.ts
+// app.module.ts 只需要在根模块导入一次：
 @Module({
-  imports: [ConfigModule],  // 只需导入一次
+  imports: [ConfigModule],  
 })
 export class AppModule {}
 ```
 
 加上 `@Global()` 后，`ConfigService` 就不用在每个模块的 `imports` 里导入了，可以直接注入到任何 Service 或 Controller 中。
+
+> Nest 官方文档也强调，`@Global()` 会让模块变成全局作用域，但全局模块一般只应该注册一次，通常由根模块或者核心模块导入；并且不推荐把所有东西都做成全局，因为这样会让模块依赖关系不清晰。
 
 ### 共享模块
 
@@ -1904,27 +2799,12 @@ export class ItemsModule {}
 export class UsersModule {}
 ```
 
-### 模块之间共享服务
+**特点：**
 
-Module 的 `imports` 和 `exports` 可以让服务在模块之间共享：
+依赖关系清楚
+但是每个用到的模块都要 imports
 
-```typescript
-// items.module.ts
-@Module({
-  providers: [ItemsService],
-  exports: [ItemsService],  // 暴露给其他模块
-})
-export class ItemsModule {}
 
-// orders.module.ts
-@Module({
-  imports: [ItemsModule],  // 导入 items 模块
-})
-export class OrdersModule {
-  constructor(private itemsService: ItemsService) {}
-  // 现在可以访问 ItemsService 了
-}
-```
 
 ### 动态模块
 
@@ -1958,27 +2838,7 @@ export class AppModule {}
 
 这个特性常用于数据库连接、HTTP 客户端等需要配置的场景。
 
-### 小结
 
-```
-AppModule（根模块）
-    ├── ItemsModule（商品模块）
-    │   ├── ItemsController
-    │   └── ItemsService
-    ├── UsersModule（用户模块）
-    │   ├── UsersController
-    │   └── UsersService
-    └── OrdersModule（订单模块）
-        ├── OrdersController
-        └── OrdersService
-```
-
-Module 的核心作用：
-
-1. **组织代码**：把相关的 Controller 和 Service 放在一起
-2. **隔离**：每个模块有自己独立的作用域
-3. **共享**：通过 imports/exports 在模块间共享服务
-4. **全局**：用 `@Global()` 让某些服务全局可用
 
 ---
 
@@ -2171,6 +3031,68 @@ export class ItemsService {
 | **DTO** | 数据传输对象，定义数据结构 |
 | **Interface** | TypeScript 接口，定义类型 |
 | **Schema** | Mongoose 数据库模型定义 |
+
+### 实际项目中的模块引用示例
+
+假设场景：订单模块需要查询用户信息，怎么让订单模块用到用户模块的服务？
+
+```typescript
+// 1. UsersModule（用户模块）- 需要导出 Service 才能被其他模块使用
+// users/users.module.ts
+@Module({
+  controllers: [UsersController],
+  providers: [UsersService],
+  exports: [UsersService],  // ← 关键：导出 UsersService
+})
+export class UsersModule {}
+```
+
+```typescript
+// 2. OrdersModule（订单模块）- 导入 UsersModule
+// orders/orders.module.ts
+import { UsersModule } from '../users/users.module';
+
+@Module({
+  imports: [UsersModule],  // ← 关键：导入 UsersModule
+  controllers: [OrdersController],
+  providers: [OrdersService],
+})
+export class OrdersModule {}
+```
+
+```typescript
+// 3. OrdersService 中使用 UsersService
+// orders/orders.service.ts
+import { Injectable } from '@nestjs/common';
+import { UsersService } from '../users/users.service';
+
+@Injectable()
+export class OrdersService {
+  // 通过 constructor 注入（NestJS 会自动找到 UsersService）
+  constructor(private readonly usersService: UsersService) {}
+
+  async createOrder(userId: string, itemId: string) {
+    // 订单模块可以直接调用用户模块的服务
+    const user = await this.usersService.findById(userId);
+    // ... 创建订单的逻辑
+  }
+}
+```
+
+```typescript
+// 4. AppModule（根模块）- 统一注册
+// app.module.ts
+@Module({
+  imports: [UsersModule, OrdersModule, ItemsModule],  // 所有模块在这里汇总
+})
+export class AppModule {}
+```
+
+**总结：想让 A 模块用 B 模块的东西？**
+
+1. B 模块：`exports: [要共享的Service]`
+2. A 模块：`imports: [B模块]`
+3. A 模块的 Service/Controller：直接在 constructor 中注入
 
 ### 依赖注入流程
 
