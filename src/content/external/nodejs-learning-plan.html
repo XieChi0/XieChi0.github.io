@@ -279,6 +279,16 @@
             transition: max-height 0.4s ease;
         }
 
+        .chapter {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border-left: 4px solid transparent;
+            transition: border-color 0.2s ease;
+        }
+
         /* 确保章节列表可见 */
         .stage .chapter-list .chapter {
             margin-left: 0.5rem;
@@ -288,16 +298,6 @@
         .stage.expanded .chapter-list {
             max-height: 10000px;
             padding-top: 0.75rem;
-        }
-
-        .chapter {
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            margin-bottom: 0.75rem;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            border-left: 4px solid transparent;
-            transition: border-color 0.2s ease;
         }
 
         .chapter.completed {
@@ -606,12 +606,12 @@
     </header>
 
     <nav class="project-tabs" id="projectTabs">
-        <button class="project-tab active" data-project="wc-backend" onclick="switchProject('wc-backend')">
+        <button type="button" class="project-tab active" data-project="wc-backend" onclick="switchProject('wc-backend')">
             <span class="tab-icon">&#128187;</span>
             wc-Backend
             <span class="tab-count">(Express)</span>
         </button>
-        <button class="project-tab" data-project="tb-dock" onclick="switchProject('tb-dock')">
+        <button type="button" class="project-tab" data-project="tb-dock" onclick="switchProject('tb-dock')">
             <span class="tab-icon">&#9881;</span>
             tb-dock-server
             <span class="tab-count">(NestJS)</span>
@@ -2703,7 +2703,7 @@ async findOne(@Param('id') id: string) {
         }
 
         // Switch project
-        function switchProject(project) {
+        function _switchProject(project) {
             currentProject = project;
 
             // Update tabs
@@ -2715,7 +2715,7 @@ async findOne(@Param('id') id: string) {
             });
 
             // Update progress title
-            document.getElementById('progressTitle').textContent = projectInfo[project].name + ' 学习进度';
+            document.getElementById('progressTitle').textContent = `${projectInfo[project].name} 学习进度`;
             document.getElementById('totalTime').textContent = projectInfo[project].totalTime;
 
             // Re-render
@@ -2736,7 +2736,7 @@ async findOne(@Param('id') id: string) {
             let html = '';
             let chapterId = 0;
 
-            plan.forEach((stage, index) => {
+            plan.forEach((stage, _index) => {
                 const stageProgress = calculateStageProgress(stage);
                 html += `
                     <div class="stage expanded" data-stage-id="${stage.id}">
@@ -2832,12 +2832,12 @@ async findOne(@Param('id') id: string) {
         }
 
         // Toggle functions
-        function toggleStage(stageId) {
+        function _toggleStage(stageId) {
             const stage = document.querySelector(`[data-stage-id="${stageId}"]`);
             stage.classList.toggle('expanded');
         }
 
-        function toggleChapter(chapterId) {
+        function _toggleChapter(chapterId) {
             const chapter = document.querySelector(`[data-chapter-id="${chapterId}"]`);
             chapter.classList.toggle('completed');
             saveProgress();
@@ -2846,12 +2846,12 @@ async findOne(@Param('id') id: string) {
             // Update stage progress
             const stageId = chapter.closest('.stage').dataset.stageId;
             const plan = getCurrentPlan();
-            const stage = plan.find(s => s.id === parseInt(stageId));
+            const stage = plan.find(s => s.id === Number.parseInt(stageId, 10));
             const progressEl = document.querySelector(`[data-stage-id="${stageId}"] .stage-progress`);
-            progressEl.textContent = calculateStageProgress(stage) + '%';
+            progressEl.textContent = `${calculateStageProgress(stage)}%`;
         }
 
-        function toggleCode(btn) {
+        function _toggleCode(btn) {
             const comments = btn.closest('.code-section').querySelector('.code-comments');
             const textEl = btn.querySelector('.toggle-text');
             
@@ -2890,8 +2890,8 @@ async findOne(@Param('id') id: string) {
             const completed = document.querySelectorAll('.chapter.completed').length;
             const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
             
-            document.getElementById('progressPercent').textContent = percent + '%';
-            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressPercent').textContent = `${percent}%`;
+            document.getElementById('progressFill').style.width = `${percent}%`;
             document.getElementById('completedCount').textContent = completed;
         }
 

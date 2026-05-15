@@ -1,6 +1,6 @@
-import fs from "fs";
-import path from "path";
 import { getCollection } from "astro:content";
+import fs from "node:fs";
+import path from "node:path";
 
 export interface ExternalEntry {
 	slug: string;
@@ -19,7 +19,9 @@ export interface ExternalEntry {
 
 const EXTERNAL_DIR = "./src/content/external";
 
-export async function getExternalEntriesWithExternal(): Promise<ExternalEntry[]> {
+export async function getExternalEntriesWithExternal(): Promise<
+	ExternalEntry[]
+> {
 	if (!fs.existsSync(EXTERNAL_DIR)) return [];
 
 	const files = fs.readdirSync(EXTERNAL_DIR);
@@ -29,12 +31,16 @@ export async function getExternalEntriesWithExternal(): Promise<ExternalEntry[]>
 	const metaEntries = await getCollection("externalMeta");
 	// data collection 的 id 可能是 "nodejs-learning-plan" 或 "nodejs-learning-plan.yaml"
 	const metaMap = new Map(
-		metaEntries.map((m) => [m.id.replace(/\.(yaml|yml|json|toml)$/, ""), m.data])
+		metaEntries.map((m) => [
+			m.id.replace(/\.(yaml|yml|json|toml)$/, ""),
+			m.data,
+		]),
 	);
 
 	for (const file of files) {
 		// 跳过 yaml 目录本身和子目录
-		if (file === "yaml" || !fs.statSync(path.join(EXTERNAL_DIR, file)).isFile()) continue;
+		if (file === "yaml" || !fs.statSync(path.join(EXTERNAL_DIR, file)).isFile())
+			continue;
 
 		const baseName = path.basename(file, path.extname(file));
 

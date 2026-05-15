@@ -2,6 +2,7 @@ import { type CollectionEntry, getCollection } from "astro:content";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import { getCategoryUrl } from "@utils/url-utils.ts";
+import type { MarkdownHeading } from "astro";
 import { getExternalEntriesWithExternal } from "./externYamlRead-utils";
 
 // 文件职责： 提供获取博客文章列表、分类列表、标签列表的工具函数，是内容层的数据中枢。
@@ -28,7 +29,37 @@ export async function getSortedPosts(includeExternal?: boolean) {
 		const externalEntries = await getExternalEntriesWithExternal();
 
 		// 统一数据格式，external 统一归为 "external" 类别
-		const merged: any[] = [
+		type MergedItem =
+			| CollectionEntry<"posts">
+			| {
+					id: string;
+					slug: string;
+					source: "external";
+					data: {
+						title: string;
+						published: Date;
+						updated?: Date;
+						description: string;
+						tags: string[];
+						category: string;
+						lang: string;
+						image: string;
+						externalSlug: string;
+						externalExtension: string;
+						externalFilePath: string;
+						nextSlug?: string;
+						nextTitle?: string;
+						prevSlug?: string;
+						prevTitle?: string;
+					};
+					body: string;
+					render: () => Promise<{
+						Content: () => unknown;
+						headings: unknown[];
+						remarkPluginFrontmatter: object;
+					}>;
+			  };
+		const merged: MergedItem[] = [
 			...sorted.map((p) => ({ ...p, source: "posts" as const })),
 			...externalEntries.map((e) => ({
 				id: e.slug,
@@ -41,6 +72,8 @@ export async function getSortedPosts(includeExternal?: boolean) {
 					description: e.meta.description ?? "",
 					tags: e.meta.tags ?? [],
 					category: "external",
+					lang: "",
+					image: "",
 					externalSlug: e.slug,
 					externalExtension: e.extension,
 					externalFilePath: e.filePath,
@@ -48,8 +81,8 @@ export async function getSortedPosts(includeExternal?: boolean) {
 				body: "",
 				render: async () => ({
 					Content: () => null,
-					headings: [],
-					remarkPluginFrontmatter: {},
+					headings: [] as MarkdownHeading[],
+					remarkPluginFrontmatter: { minutes: 0, words: 0 },
 				}),
 			})),
 		];
