@@ -67,10 +67,54 @@
             font-size: 0.95rem;
         }
 
+        /* Project Tabs */
+        .project-tabs {
+            max-width: 1000px;
+            margin: 0 auto 1.5rem;
+            padding: 0 1rem;
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .project-tab {
+            padding: 0.6rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            background: var(--card-bg);
+            color: var(--gray-600);
+            box-shadow: var(--shadow);
+        }
+
+        .project-tab:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .project-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .project-tab .tab-icon {
+            margin-right: 0.5rem;
+        }
+
+        .project-tab .tab-count {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            margin-left: 0.5rem;
+        }
+
         /* Progress Bar */
         .progress-section {
             max-width: 1000px;
-            margin: 1.5rem auto;
+            margin: 0 auto 1rem;
             padding: 0 1rem;
         }
 
@@ -557,14 +601,27 @@
     <header class="header">
         <div class="header-content">
             <h1>Node.js 后端工程师学习计划</h1>
-            <p>基于 wc-Backend + tb-dock-server 实战项目 | 面试导向学习路径</p>
+            <p>面试导向学习路径 | 理论 + 实战</p>
         </div>
     </header>
+
+    <nav class="project-tabs" id="projectTabs">
+        <button class="project-tab active" data-project="wc-backend" onclick="switchProject('wc-backend')">
+            <span class="tab-icon">&#128187;</span>
+            wc-Backend
+            <span class="tab-count">(Express)</span>
+        </button>
+        <button class="project-tab" data-project="tb-dock" onclick="switchProject('tb-dock')">
+            <span class="tab-icon">&#9881;</span>
+            tb-dock-server
+            <span class="tab-count">(NestJS)</span>
+        </button>
+    </nav>
 
     <section class="progress-section">
         <div class="progress-card">
             <div class="progress-header">
-                <h2>学习进度</h2>
+                <h2 id="progressTitle">wc-Backend 学习进度</h2>
                 <span class="progress-percentage" id="progressPercent">0%</span>
             </div>
             <div class="progress-bar">
@@ -577,7 +634,7 @@
                 </div>
                 <div class="stat-item stat-remaining">
                     <span class="stat-icon"></span>
-                    <span>预计学习时长：约 <strong>15</strong> 小时</span>
+                    <span>预计学习时长：约 <strong id="totalTime">15</strong> 小时</span>
                 </div>
             </div>
         </div>
@@ -592,8 +649,17 @@
     </footer>
 
     <script>
-        // Learning plan data structure
-        const learningPlan = [
+        // Current selected project
+        let currentProject = 'wc-backend';
+
+        // Project info
+        const projectInfo = {
+            'wc-backend': { name: 'wc-Backend', totalTime: 16 },
+            'tb-dock': { name: 'tb-dock-server', totalTime: 12 }
+        };
+
+        // Learning plan data for wc-backend (Express)
+        const wcBackendPlan = [
             {
                 id: 1,
                 title: "入门基础",
@@ -1823,6 +1889,840 @@ describe('UserService', () => {
             }
         ];
 
+        // Learning plan data for tb-dock-server (NestJS)
+        const tbDockPlan = [
+            {
+                id: 1,
+                title: "NestJS 基础入门",
+                subtitle: "项目初始化 · 装饰器",
+                totalTime: "60min",
+                chapters: [
+                    {
+                        id: "1-1",
+                        title: "NestJS 项目初始化",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "30min",
+                        code: `// 安装 NestJS CLI
+npm install -g @nestjs/cli
+
+// 创建新项目
+nest new project-name
+cd project-name
+
+// 启动开发服务器
+npm run start:dev
+
+// 项目目录结构
+src/
+├── main.ts              # 入口文件
+├── app.module.ts        # 根模块
+└── items/               # items 模块
+    ├── items.controller.ts
+    ├── items.service.ts
+    └── items.module.ts`,
+                        comments: [
+                            { line: "1-2", text: "全局安装 NestJS CLI 工具" },
+                            { line: "4-6", text: "nest new 创建新项目" },
+                            { line: "8-9", text: "start:dev 启动开发服务器，支持热重载" },
+                            { line: "11-18", text: "项目目录结构" }
+                        ]
+                    },
+                    {
+                        id: "1-2",
+                        title: "NestJS 入口与模块",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "30min",
+                        code: `// main.ts - 入口文件
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  await app.listen(3000);
+}
+bootstrap();
+
+// app.module.ts - 根模块
+@Module({
+  imports: [],
+  controllers: [],
+  providers: [],
+})
+export class AppModule {}`,
+                        comments: [
+                            { line: "1-2", text: "NestFactory 是 Nest 应用的创建器" },
+                            { line: "4-5", text: "NestFactory.create(AppModule) 创建并组装应用" },
+                            { line: "6", text: "app.listen 启动 HTTP 服务器" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 2,
+                title: "Controller 控制器",
+                subtitle: "路由定义 · 参数获取",
+                totalTime: "80min",
+                chapters: [
+                    {
+                        id: "2-1",
+                        title: "Controller 基础",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "30min",
+                        code: `// items.controller.ts
+@Controller('items')
+export class ItemsController {
+  @Get()
+  findAll() { return '查询所有 items'; }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return \`查询 id 为 \${id} 的 item\`;
+  }
+
+  @Post()
+  create(@Body() createItemDto: any) {
+    return createItemDto;
+  }
+}
+
+// 路由对应关系
+// GET /items        → findAll()
+// GET /items/:id   → findOne(id)
+// POST /items       → create()`,
+                        comments: [
+                            { line: "1", text: "@Controller('items') 声明负责 /items 路由" },
+                            { line: "2-4", text: "@Get() 声明处理 GET 请求" },
+                            { line: "5-8", text: "@Get(':id') :id 是路径参数" },
+                            { line: "9-12", text: "@Post() 处理 POST，@Body() 获取请求体" }
+                        ]
+                    },
+                    {
+                        id: "2-2",
+                        title: "参数装饰器详解",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "25min",
+                        code: `// 常用参数装饰器
+@Get(':id')
+findOne(
+  @Param('id') id: string,          // 路径参数
+  @Query('keyword') keyword: string, // 查询参数
+  @Body() body: any,                // 请求体
+  @Headers('auth') auth: string,    // 请求头
+) {}
+
+// 参数对应关系
+// GET /items/123?keyword=apple
+// @Param('id')      → '123'
+// @Query('keyword') → 'apple'`,
+                        comments: [
+                            { line: "3", text: "@Param() 获取路径参数" },
+                            { line: "4", text: "@Query() 获取查询参数" },
+                            { line: "5", text: "@Body() 获取请求体" },
+                            { line: "6", text: "@Headers() 获取请求头" }
+                        ]
+                    },
+                    {
+                        id: "2-3",
+                        title: "注入 Service",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "25min",
+                        code: `// 在 Controller 中注入 Service
+@Controller('items')
+export class ItemsController {
+  constructor(
+    private readonly itemsService: ItemsService
+  ) {}
+
+  @Get()
+  findAll() {
+    return this.itemsService.findAll();
+  }
+}
+
+// NestJS 会自动创建 ItemsService 实例
+// 并注入到 ItemsController`,
+                        comments: [
+                            { line: "4", text: "constructor 声明需要注入的 Service" },
+                            { line: "9-11", text: "调用注入的 Service 处理业务逻辑" },
+                            { line: "15", text: "NestJS IoC 容器自动解析依赖并注入" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 3,
+                title: "Service 服务层",
+                subtitle: "业务逻辑 · 依赖注入",
+                totalTime: "90min",
+                chapters: [
+                    {
+                        id: "3-1",
+                        title: "Service 基础",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "30min",
+                        code: `// items.service.ts
+@Injectable()
+export class ItemsService {
+  private items = [
+    { id: '1', name: '苹果', quantity: 10 },
+  ];
+
+  findAll() { return this.items; }
+
+  findOne(id: string) {
+    return this.items.find(item => item.id === id);
+  }
+
+  create(item: any) {
+    const newItem = { id: Date.now().toString(), ...item };
+    this.items.push(newItem);
+    return newItem;
+  }
+}`,
+                        comments: [
+                            { line: "1", text: "@Injectable() 标记可被依赖注入" },
+                            { line: "2-7", text: "Service 专门处理业务逻辑" },
+                            { line: "9-17", text: "CRUD 业务方法" }
+                        ]
+                    },
+                    {
+                        id: "3-2",
+                        title: "Provider 与依赖注入",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "35min",
+                        code: `// Service 可以注入其他 Service
+@Injectable()
+export class EmailService {
+  send(to: string, msg: string) {
+    console.log(\`发送邮件: \${msg}\`);
+  }
+}
+
+// 模块中注册
+@Module({
+  providers: [ItemsService, EmailService],
+})
+export class ItemsModule {}
+
+// 依赖注入
+@Injectable()
+export class ItemsService {
+  constructor(
+    private readonly emailService: EmailService,
+  ) {}
+
+  createItem(item: any) {
+    this.emailService.send('admin@example.com', '新项目创建');
+    return this.save(item);
+  }
+}`,
+                        comments: [
+                            { line: "1-5", text: "EmailService 是独立的 Service" },
+                            { line: "9-11", text: "在模块的 providers 中注册" },
+                            { line: "15", text: "constructor 声明依赖" },
+                            { line: "18-21", text: "可以直接调用注入的 Service" }
+                        ]
+                    },
+                    {
+                        id: "3-3",
+                        title: "单例模式",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "25min",
+                        code: `// NestJS 默认单例模式
+// 启动时创建，请求时复用
+
+@Injectable()
+export class ItemsService {
+  private items = [];  // 被所有请求共享
+
+  findAll() { return this.items; }
+}
+
+// 启动时：创建 ItemsService 实例
+// 请求1：复用同一实例
+// 请求2：复用同一实例`,
+                        comments: [
+                            { line: "1-2", text: "NestJS 默认单例：启动创建，请求复用" },
+                            { line: "4", text: "items 被所有请求共享" },
+                            { line: "9-11", text: "所有请求使用同一个实例" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 4,
+                title: "DTO 与数据校验",
+                subtitle: "数据传输对象 · 验证器",
+                totalTime: "80min",
+                chapters: [
+                    {
+                        id: "4-1",
+                        title: "DTO 基础",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "25min",
+                        code: `// dto/create-item.dto.ts
+export class CreateItemDto {
+  readonly name: string;
+  readonly description?: string;
+  readonly quantity: number;
+}
+
+// 使用 DTO
+@Post()
+create(@Body() createItemDto: CreateItemDto) {
+  return this.itemsService.create(createItemDto);
+}
+
+// DTO 作用：
+// 1. 定义请求体结构
+// 2. 提供类型提示
+// 3. 配合验证器做校验`,
+                        comments: [
+                            { line: "2-5", text: "定义请求体字段结构" },
+                            { line: "3", text: "readonly 表示不可修改" },
+                            { line: "4", text: "? 表示可选字段" },
+                            { line: "11-13", text: "DTO 三个作用" }
+                        ]
+                    },
+                    {
+                        id: "4-2",
+                        title: "class-validator 验证",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "30min",
+                        code: `// 安装验证依赖
+npm install class-validator class-transformer
+
+// main.ts 启用验证
+app.useGlobalPipes(new ValidationPipe());
+
+// dto/create-item.dto.ts
+import { IsString, IsNumber, IsOptional, Min } from 'class-validator';
+
+export class CreateItemDto {
+  @IsString()
+  name: string;
+
+  @IsNumber()
+  @Min(0)
+  quantity: number;
+}`,
+                        comments: [
+                            { line: "1-2", text: "安装验证相关包" },
+                            { line: "5", text: "全局启用 ValidationPipe" },
+                            { line: "10-11", text: "@IsString 必须是字符串" },
+                            { line: "12-13", text: "@IsNumber 必须是数字，@Min(0) 最小值 0" }
+                        ],
+                        proTip: "常用验证装饰器：<br><br><code>@IsString()&nbsp;&nbsp;// 字符串<br>@IsNumber()&nbsp;&nbsp;// 数字<br>@IsOptional()&nbsp;// 可选<br>@Min(0)&nbsp;&nbsp;&nbsp;&nbsp;// 最小值"
+                    },
+                    {
+                        id: "4-3",
+                        title: "验证失败示例",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "25min",
+                        code: `// 验证示例
+// POST /items
+// { "name": "苹果", "quantity": 10 }  ✓ 通过
+// { "name": "", "quantity": -1 }      ✗ 失败
+// { "name": 123, "quantity": 10 }     ✗ 失败
+
+// 验证失败返回
+// HTTP 400
+{
+  "statusCode": 400,
+  "message": [
+    "name must be a string",
+    "quantity must not be less than 0"
+  ]
+}`,
+                        comments: [
+                            { line: "2-4", text: "验证通过/失败的示例" },
+                            { line: "8-14", text: "验证失败返回 400 错误" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 5,
+                title: "Module 模块系统",
+                subtitle: "模块组织 · 模块通信",
+                totalTime: "100min",
+                chapters: [
+                    {
+                        id: "5-1",
+                        title: "模块基础",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "30min",
+                        code: `// items.module.ts
+@Module({
+  controllers: [ItemsController],
+  providers: [ItemsService],
+})
+export class ItemsModule {}
+
+// app.module.ts
+@Module({
+  imports: [ItemsModule],
+})
+export class AppModule {}
+
+// @Module() 配置
+// controllers: 这个模块的控制器
+// providers: 这个模块的服务
+// imports: 导入其他模块
+// exports: 导出服务给其他模块`,
+                        comments: [
+                            { line: "1-5", text: "模块注册 Controller 和 Service" },
+                            { line: "9-12", text: "根模块导入 ItemsModule" },
+                            { line: "15-21", text: "@Module 四个属性的作用" }
+                        ]
+                    },
+                    {
+                        id: "5-2",
+                        title: "模块通信",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "35min",
+                        code: `// UsersModule 导出 UsersService
+@Module({
+  exports: [UsersService],  // 导出
+})
+export class UsersModule {}
+
+// OrdersModule 导入 UsersModule
+@Module({
+  imports: [UsersModule],
+})
+export class OrdersModule {}
+
+// OrdersService 使用 UsersService
+@Injectable()
+export class OrdersService {
+  constructor(
+    private readonly usersService: UsersService,
+  ) {}
+
+  createOrder(userId: string) {
+    const user = this.usersService.findById(userId);
+    // ...创建订单
+  }
+}`,
+                        comments: [
+                            { line: "3", text: "exports 导出服务给其他模块用" },
+                            { line: "9", text: "imports 导入其他模块" },
+                            { line: "16", text: "constructor 声明依赖" },
+                            { line: "20-24", text: "可以直接使用注入的 Service" }
+                        ],
+                        proTip: "模块通信规则：<br><br><code>exports: [Service] → 愿意给别人用<br>imports: [Module] → 想用别人的东西</code>"
+                    },
+                    {
+                        id: "5-3",
+                        title: "全局模块",
+                        frequency: "中",
+                        frequencyLevel: "low",
+                        time: "20min",
+                        code: `// 全局模块 - 一次导入，处处使用
+@Global()
+@Module({
+  providers: [ConfigService],
+  exports: [ConfigService],
+})
+export class ConfigModule {}
+
+// app.module.ts 只需导入一次
+@Module({
+  imports: [ConfigModule],
+})
+export class AppModule {}
+
+// 其他模块直接使用
+@Injectable()
+export class SomeService {
+  constructor(
+    private readonly configService: ConfigService,
+  ) {}
+}`,
+                        comments: [
+                            { line: "1", text: "@Global 让模块成为全局作用域" },
+                            { line: "5-7", text: "全局模块也要 exports" },
+                            { line: "13-16", text: "其他模块直接注入使用" }
+                        ]
+                    },
+                    {
+                        id: "5-4",
+                        title: "动态模块",
+                        frequency: "中",
+                        frequencyLevel: "low",
+                        time: "15min",
+                        code: `// 动态模块：根据配置返回不同实例
+@Module({})
+export class DatabaseModule {
+  static forRoot(connectionName: string): DynamicModule {
+    return {
+      module: DatabaseModule,
+      providers: [{
+        provide: 'CONNECTION',
+        useValue: connectionName,
+      }],
+      exports: ['CONNECTION'],
+    };
+  }
+}
+
+// 使用动态模块
+@Module({
+  imports: [DatabaseModule.forRoot('default')],
+})
+export class AppModule {}`,
+                        comments: [
+                            { line: "1-3", text: "静态方法返回动态模块配置" },
+                            { line: "16-18", text: "使用时调用 forRoot() 并传入参数" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 6,
+                title: "MongoDB + Mongoose",
+                subtitle: "数据库集成 · CRUD",
+                totalTime: "90min",
+                chapters: [
+                    {
+                        id: "6-1",
+                        title: "Mongoose 配置",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "30min",
+                        code: `// 安装依赖
+npm install @nestjs/mongoose mongoose
+
+// app.module.ts 配置数据库
+@Module({
+  imports: [
+    MongooseModule.forRoot('mongodb://localhost:27017/nestdb'),
+  ],
+})
+export class AppModule {}
+
+// items.module.ts 配置 Schema
+@Module({
+  imports: [
+    MongooseModule.forFeature([
+      { name: 'Item', schema: ItemSchema },
+    ]),
+  ],
+})
+export class ItemsModule {}`,
+                        comments: [
+                            { line: "1-2", text: "安装 Mongoose 包" },
+                            { line: "6-8", text: "根模块配置 MongoDB 连接" },
+                            { line: "14-18", text: "注册 Schema" }
+                        ]
+                    },
+                    {
+                        id: "6-2",
+                        title: "Schema 定义",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "30min",
+                        code: `// schemas/item.schema.ts
+import * as mongoose from 'mongoose';
+
+export const ItemSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  description: { type: String },
+  quantity: { type: Number, default: 0 },
+  createdAt: { type: Date, default: Date.now },
+});`,
+                        comments: [
+                            { line: "1", text: "导入 mongoose" },
+                            { line: "3-8", text: "定义 Schema 结构" },
+                            { line: "4", text: "type: String 定义字段类型" },
+                            { line: "5", text: "required: true 必填" }
+                        ]
+                    },
+                    {
+                        id: "6-3",
+                        title: "Service 中使用 Model",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "30min",
+                        code: `// items.service.ts
+@Injectable()
+export class ItemsService {
+  constructor(
+    @InjectModel('Item') private itemModel: Model<Item>,
+  ) {}
+
+  async findAll(): Promise<Item[]> {
+    return this.itemModel.find().exec();
+  }
+
+  async findOne(id: string): Promise<Item> {
+    return this.itemModel.findOne({ _id: id });
+  }
+
+  async create(item: Partial<Item>): Promise<Item> {
+    const newItem = new this.itemModel(item);
+    return newItem.save();
+  }
+}`,
+                        comments: [
+                            { line: "3", text: "@InjectModel 注入 Item Model" },
+                            { line: "7-9", text: "find() 查询列表" },
+                            { line: "11-13", text: "findOne() 按 ID 查询" },
+                            { line: "15-18", text: "new Model() 创建并保存" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 7,
+                title: "完整 CRUD 示例",
+                subtitle: "增删改查 · 实战项目",
+                totalTime: "100min",
+                chapters: [
+                    {
+                        id: "7-1",
+                        title: "Controller 完整代码",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "35min",
+                        code: `// items.controller.ts
+@Controller('items')
+export class ItemsController {
+  constructor(private readonly itemsService: ItemsService) {}
+
+  @Get()
+  async findAll() {
+    return this.itemsService.findAll();
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return this.itemsService.findOne(id);
+  }
+
+  @Post()
+  async create(@Body() createItemDto: CreateItemDto) {
+    return this.itemsService.create(createItemDto);
+  }
+
+  @Put(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateItemDto: UpdateItemDto,
+  ) {
+    return this.itemsService.update(id, updateItemDto);
+  }
+
+  @Delete(':id')
+  async delete(@Param('id') id: string) {
+    return this.itemsService.delete(id);
+  }
+}`,
+                        comments: [
+                            { line: "1", text: "Controller 负责接收请求" },
+                            { line: "6-8", text: "GET /items 查询列表" },
+                            { line: "10-13", text: "GET /items/:id 查询单个" },
+                            { line: "15-18", text: "POST /items 创建" },
+                            { line: "20-24", text: "PUT /items/:id 更新" },
+                            { line: "26-29", text: "DELETE /items/:id 删除" }
+                        ]
+                    },
+                    {
+                        id: "7-2",
+                        title: "Service 完整代码",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "35min",
+                        code: `// items.service.ts
+@Injectable()
+export class ItemsService {
+  constructor(
+    @InjectModel('Item') private itemModel: Model<Item>,
+  ) {}
+
+  async findAll(): Promise<Item[]> {
+    return this.itemModel.find().exec();
+  }
+
+  async findOne(id: string): Promise<Item> {
+    const item = await this.itemModel.findById(id);
+    if (!item) throw new NotFoundException('Item not found');
+    return item;
+  }
+
+  async create(item: Partial<Item>): Promise<Item> {
+    const newItem = new this.itemModel(item);
+    return newItem.save();
+  }
+
+  async update(id: string, data: Partial<Item>): Promise<Item> {
+    return this.itemModel.findByIdAndUpdate(id, data, { new: true });
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.itemModel.findByIdAndDelete(id);
+  }
+}`,
+                        comments: [
+                            { line: "7-9", text: "findAll 查询所有" },
+                            { line: "11-15", text: "findOne 查找单个，找不到抛异常" },
+                            { line: "17-20", text: "create 创建新文档" },
+                            { line: "22-24", text: "update 用 findByIdAndUpdate" },
+                            { line: "26-28", text: "delete 用 findByIdAndDelete" }
+                        ],
+                        proTip: "CRUD 常用方法：<br><br><code>find()&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 查询列表<br>findById()&nbsp;&nbsp;// 按 ID 查询<br>create()&nbsp;&nbsp;&nbsp;// 创建<br>findByIdAndUpdate()&nbsp;// 更新<br>findByIdAndDelete()&nbsp;// 删除</code>"
+                    },
+                    {
+                        id: "7-3",
+                        title: "模块注册",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "30min",
+                        code: `// items.module.ts
+@Module({
+  imports: [
+    MongooseModule.forFeature([
+      { name: Item.name, schema: ItemSchema },
+    ]),
+  ],
+  controllers: [ItemsController],
+  providers: [ItemsService],
+})
+export class ItemsModule {}
+
+// app.module.ts
+@Module({
+  imports: [
+    MongooseModule.forRoot('mongodb://localhost:27017/nestdb'),
+    ItemsModule,
+  ],
+})
+export class AppModule {}`,
+                        comments: [
+                            { line: "3-6", text: "items.module 注册 Schema" },
+                            { line: "7-8", text: "注册 Controller 和 Service" },
+                            { line: "16-18", text: "根模块配置 MongoDB 并导入 ItemsModule" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 8,
+                title: "面试总结",
+                subtitle: "核心概念 · 对比",
+                totalTime: "50min",
+                chapters: [
+                    {
+                        id: "8-1",
+                        title: "核心概念速记",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "30min",
+                        code: `// NestJS 核心概念
+
+@Controller('items')     // 路由入口
+    ↓
+@Service               // 业务逻辑
+    ↓
+@InjectModel('Item')  // 数据库操作
+    ↓
+MongoDB / MySQL       // 数据存储
+
+// @Module() 配置
+@Module({
+  controllers: [],      // 我有哪些控制器
+  providers: [],        // 我有哪些服务
+  imports: [],       // 我要用哪些模块
+  exports: [],       // 我给谁用
+})`,
+                        comments: [
+                            { line: "2-5", text: "请求处理流程" },
+                            { line: "8-14", text: "@Module 四个属性" }
+                        ]
+                    },
+                    {
+                        id: "8-2",
+                        title: "Express vs NestJS 对比",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "20min",
+                        code: `// Express
+app.get('/items/:id', async (req, res) => {
+  const item = await db.find(req.params.id);
+  res.json(item);
+});
+
+// NestJS
+@Get(':id')
+async findOne(@Param('id') id: string) {
+  return this.itemsService.findOne(id);
+}
+
+// 对比总结
+┌─────────┬────────────┬────────────┐
+│         │ Express   │ NestJS   │
+├─────────┼────────────┼────────────┤
+│ 路由    │ app.get() │ @Get()   │
+│ 业务    │ 写在路由里 │ 放 Service │
+│ 依赖    │ 手动 require │ 依赖注入 │
+│ 组织    │ 自己决定   │ 强制模块化 │
+└─────────┴────────────┴────────────┘`,
+                        comments: [
+                            { line: "1-4", text: "Express 写法：路由里直接处理" },
+                            { line: "6-10", text: "NestJS 写法：用装饰器，调用 Service" },
+                            { line: "13-22", text: "Express 和 NestJS 对比" }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        // All plans
+        const allPlans = {
+            'wc-backend': wcBackendPlan,
+            'tb-dock': tbDockPlan
+        };
+
+        // Get current plan
+        function getCurrentPlan() {
+            return allPlans[currentProject];
+        }
+
+        // Switch project
+        function switchProject(project) {
+            currentProject = project;
+
+            // Update tabs
+            document.querySelectorAll('.project-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.project === project) {
+                    tab.classList.add('active');
+                }
+            });
+
+            // Update progress title
+            document.getElementById('progressTitle').textContent = projectInfo[project].name + ' 学习进度';
+            document.getElementById('totalTime').textContent = projectInfo[project].totalTime;
+
+            // Re-render
+            renderPlan();
+            loadProgress();
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             renderPlan();
@@ -1832,10 +2732,11 @@ describe('UserService', () => {
         // Render the learning plan
         function renderPlan() {
             const container = document.getElementById('mainContent');
+            const plan = getCurrentPlan();
             let html = '';
             let chapterId = 0;
 
-            learningPlan.forEach((stage, index) => {
+            plan.forEach((stage, index) => {
                 const stageProgress = calculateStageProgress(stage);
                 html += `
                     <div class="stage expanded" data-stage-id="${stage.id}">
@@ -1941,10 +2842,11 @@ describe('UserService', () => {
             chapter.classList.toggle('completed');
             saveProgress();
             updateTotalProgress();
-            
+
             // Update stage progress
             const stageId = chapter.closest('.stage').dataset.stageId;
-            const stage = learningPlan.find(s => s.id === parseInt(stageId));
+            const plan = getCurrentPlan();
+            const stage = plan.find(s => s.id === parseInt(stageId));
             const progressEl = document.querySelector(`[data-stage-id="${stageId}"] .stage-progress`);
             progressEl.textContent = calculateStageProgress(stage) + '%';
         }
@@ -1966,11 +2868,11 @@ describe('UserService', () => {
         function saveProgress() {
             const completed = Array.from(document.querySelectorAll('.chapter.completed'))
                 .map(el => el.dataset.chapterId);
-            localStorage.setItem('nodejs-learning-progress', JSON.stringify(completed));
+            localStorage.setItem(`nodejs-learning-progress-${currentProject}`, JSON.stringify(completed));
         }
 
         function loadProgress() {
-            const saved = localStorage.getItem('nodejs-learning-progress');
+            const saved = localStorage.getItem(`nodejs-learning-progress-${currentProject}`);
             if (saved) {
                 const completed = JSON.parse(saved);
                 completed.forEach(chapterId => {

@@ -2,6 +2,7 @@ import { type CollectionEntry, getCollection } from "astro:content";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import { getCategoryUrl } from "@utils/url-utils.ts";
+import { getExternalEntriesWithExternal } from "./externYamlRead-utils";
 
 // 文件职责： 提供获取博客文章列表、分类列表、标签列表的工具函数，是内容层的数据中枢。
 
@@ -19,9 +20,61 @@ async function getRawSortedPosts() {
 	return sorted;
 }
 
-export async function getSortedPosts() {
+export async function getSortedPosts(includeExternal?: boolean) {
 	const sorted = await getRawSortedPosts();
 
+	// 如果需要合并 external 内容
+	if (includeExternal) {
+		const externalEntries = await getExternalEntriesWithExternal();
+
+		// 统一数据格式，external 统一归为 "external" 类别
+		const merged: any[] = [
+			...sorted.map((p) => ({ ...p, source: "posts" as const })),
+			...externalEntries.map((e) => ({
+				id: e.slug,
+				slug: `external/${e.slug}`,
+				source: "external" as const,
+				data: {
+					title: e.meta.title,
+					published: e.meta.published,
+					updated: e.meta.updated,
+					description: e.meta.description ?? "",
+					tags: e.meta.tags ?? [],
+					category: "external",
+					externalSlug: e.slug,
+					externalExtension: e.extension,
+					externalFilePath: e.filePath,
+				},
+				body: "",
+				render: async () => ({
+					Content: () => null,
+					headings: [],
+					remarkPluginFrontmatter: {},
+				}),
+			})),
+		];
+
+		// 按日期倒序排列
+		merged.sort((a, b) => {
+			const dateA = new Date(a.data.published).getTime();
+			const dateB = new Date(b.data.published).getTime();
+			return dateB - dateA;
+		});
+
+		// 注入 prev/next
+		for (let i = 1; i < merged.length; i++) {
+			merged[i].data.nextSlug = merged[i - 1].slug;
+			merged[i].data.nextTitle = merged[i - 1].data.title;
+		}
+		for (let i = 0; i < merged.length - 1; i++) {
+			merged[i].data.prevSlug = merged[i + 1].slug;
+			merged[i].data.prevTitle = merged[i + 1].data.title;
+		}
+
+		return merged;
+	}
+
+	// 原逻辑：仅 posts
 	for (let i = 1; i < sorted.length; i++) {
 		sorted[i].data.nextSlug = sorted[i - 1].slug;
 		sorted[i].data.nextTitle = sorted[i - 1].data.title;

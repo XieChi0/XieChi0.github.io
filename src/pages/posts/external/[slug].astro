@@ -1,0 +1,32 @@
+---
+import fs from "fs";
+import { getExternalEntriesWithExternal } from "../../../utils/externYamlRead-utils";
+
+export async function getStaticPaths() {
+	const entries = await getExternalEntriesWithExternal();
+	return entries.map((entry) => ({
+		params: { slug: entry.slug },
+		props: { entry },
+	}));
+}
+
+const { entry } = Astro.props;
+const { extension, filePath, meta } = entry;
+
+let content = "";
+if (extension === ".html") {
+	content = fs.readFileSync(filePath, "utf-8");
+} else {
+	content = `<pre>${fs.readFileSync(filePath, "utf-8")}</pre>`;
+}
+---
+
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>{meta.title}</title>
+</head>
+<body>
+	<div set:html={content}></div>
+</body>
+</html>

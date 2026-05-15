@@ -20,7 +20,23 @@ const postsCollection = defineCollection({
 		nextSlug: z.string().default(""),
 	}),
 });
+
+// 外部文件元数据集合
+const externalMetaCollection = defineCollection({
+	type: "data",
+	schema: z.object({
+		title: z.string(),
+		published: z.date(),
+		updated: z.date().optional(),
+		draft: z.boolean().optional().default(false),
+		description: z.string().optional().default(""),
+		tags: z.array(z.string()).optional().default([]),
+		lang: z.string().optional().default(""),
+	}),
+});
+
 export const collections = {
 	posts: postsCollection,
 	spec: defineCollection({}),
+	externalMeta: externalMetaCollection,
 };
