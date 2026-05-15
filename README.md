@@ -7,6 +7,87 @@
 
 ---
 
+# Git Worktree（工作树）
+
+Git Worktree 允许你在同一个仓库的不同目录中同时切换多个分支，非常适合并行开发多个功能。
+
+## 创建 Worktree
+
+```bash
+# 格式：git worktree add <目录路径> <分支名>
+git worktree add ../worktree-dev astro-worktree-dev
+```
+
+> 这会在上级目录创建 `worktree-dev` 文件夹，并自动切换到 `astro-worktree-dev` 分支。
+
+## 查看所有 Worktree
+
+```bash
+git worktree list
+```
+
+输出示例：
+
+```
+F:/zz_blog/astro-boke      26eca8f [main]
+F:/zz_blog/worktree-dev    dbce631  detached at astro-worktree-dev
+```
+
+## 切换到某个 Worktree
+
+直接用 `cd` 进入对应目录即可：
+
+```bash
+cd ../worktree-dev
+```
+
+## 删除 Worktree
+
+```bash
+# 先切回主仓库
+cd ../astro-boke
+git worktree remove ../worktree-dev
+```
+
+> ⚠️ 删除前请确保 worktree 目录中的修改已提交或放弃。
+
+## 合并 Worktree 到主分支（Rebase 方式）
+
+假设 worktree 分支是 `astro-worktree-dev`，主分支是 `main`：
+
+```bash
+# 1. 进入 worktree 目录并切换到 worktree 分支
+cd ../worktree-dev
+git checkout astro-worktree-dev
+
+# 2. 将 worktree 分支变基到最新的 main 上
+git rebase main
+
+# 3. 切回主仓库的 main 分支
+cd ../astro-boke
+git checkout main
+
+# 4. 合并（fast-forward，不会产生 merge commit）
+git merge astro-worktree-dev
+
+# 5. 推送到远程
+git push astro-boke main
+
+# 6. 清理 worktree（可选）
+git worktree remove ../worktree-dev
+git branch -d astro-worktree-dev
+```
+
+## 其他常用命令
+
+| 命令 | 作用 |
+|------|------|
+| `git worktree prune` | 清理已失效的 worktree 引用 |
+| `git worktree lock <路径>` | 锁定 worktree，防止被意外删除 |
+| `git worktree unlock <路径>` | 解锁 worktree |
+
+---
+
 # git推送
 
 ## 一、推送到指定远程仓库（推荐）
