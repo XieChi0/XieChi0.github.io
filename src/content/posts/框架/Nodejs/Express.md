@@ -199,7 +199,7 @@ npm install express
 
 ### 创建 .gitignore
 
-```gitignore
+```bash
 node_modules/
 .env
 ```
@@ -1154,7 +1154,7 @@ document.getElementById('addPostForm').addEventListener('submit', addPost);
 
 创建 `.env` 文件：
 
-```env
+```bash
 PORT=5000
 ```
 

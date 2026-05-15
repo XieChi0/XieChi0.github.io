@@ -155,7 +155,7 @@ npx prisma init
 
 schema.prisma=数据库配置+客户端配置+表结构设计
 
-```orm
+```prisma
 //配置数据库
 datasource db {
   provider = "sqlite"  // 或 "mysql", "postgresql"

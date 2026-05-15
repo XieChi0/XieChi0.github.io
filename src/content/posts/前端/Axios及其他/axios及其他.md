@@ -365,7 +365,7 @@ C:\Program Files\Google\Chrome\Application\chrome.exe  --disable-web-security --
 
 > 注意，AJAX 只能向同源网址（协议、域名、端口都相同）发出 HTTP 请求，如果发出跨域请求，就会报错.
 
-```AJAX
+```javascript
 var xhr = new XMLHttpRequest();
 xhr.onreadyStateChange=function(){
 	if(xhr.readyState===4){
@@ -527,7 +527,7 @@ axios.create([config])
 
 更重要的是我们可以在实例上设置拦截器，在发出请求或者接收时进行统一的处理。
 
-```axios
+```javascript
 const instance = axios.create();
 
 instance.interceptors.response.use(
@@ -699,7 +699,7 @@ git commit -a -m "删库跑路"
 
 引入很多种，这里介绍其中一种
 
-```C++
+```bash
 npm install echarts vue-echarts
 ```
 
