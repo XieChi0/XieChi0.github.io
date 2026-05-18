@@ -1,4 +1,5 @@
 import { defineCollection, z } from "astro:content";
+import { glob } from "astro/loaders";
 
 // 定义每篇文章的frontMatter字段
 const postsCollection = defineCollection({
@@ -23,7 +24,10 @@ const postsCollection = defineCollection({
 
 // 外部文件元数据集合
 const externalMetaCollection = defineCollection({
-	type: "data",
+	loader: glob({
+		base: "./src/content/external/externalMeta",
+		pattern: "**/*.{yaml,yml,json,toml}",
+	}),
 	schema: z.object({
 		title: z.string(),
 		published: z.date(),

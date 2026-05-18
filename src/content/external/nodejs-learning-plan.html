@@ -528,8 +528,7 @@
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.82rem;
             font-weight: 700;
-            min-width: 0;
-            width: 34px;
+            min-width: 34px;
             text-align: center;
             background: oklch(24% 0.04 255);
             padding: 0.18rem 0.35rem;
@@ -2887,12 +2886,17 @@ async findOne(@Param('id') id: string) {
                 </div>
             `).join('');
 
-            const commentsHtml = chapter.comments.map(c => `
+            const commentsHtml = chapter.comments.map(c => {
+                const isLongLineNum = c.line.length > 2;
+                const lineNumWidth = isLongLineNum ? '55px' : '34px';
+                const textMarginLeft = isLongLineNum ? '20px' : '0';
+                return `
                 <div class="comment-line">
-                    <span class="comment-line-number">${c.line}</span>
-                    <span class="comment-text">${c.text}</span>
+                    <span class="comment-line-number" style="width: ${lineNumWidth}">${c.line}</span>
+                    <span class="comment-text" style="margin-left: ${textMarginLeft}">${c.text}</span>
                 </div>
-            `).join('');
+            `;
+            }).join('');
 
             const proTipHtml = chapter.proTip ? `
                 <div class="pro-tip">
