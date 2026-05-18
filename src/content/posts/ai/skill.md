@@ -1,5 +1,5 @@
 ---
-title: Codex Skill 入门：从理解到安装
+title: Skill 入门：从理解到安装
 published: 2026-05-15
 updated: 2026-05-16
 description: '记录 Codex Skill 的概念、文件结构、触发方式、安装命令和常见问题。'
@@ -8,9 +8,6 @@ tags: [AI, Codex, Skill]
 category: 'AI'
 draft: false
 ---
-
-# Codex Skill 入门：从理解到安装
-
 ## 1. Skill 到底是什么？
 
 把一套你经常让 AI 重复执行的工作流程，封装成一个“可复用技能包”。是一份专门写给 AI 的操作手册、
