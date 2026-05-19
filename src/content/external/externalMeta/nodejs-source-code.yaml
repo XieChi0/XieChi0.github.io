@@ -1,0 +1,5 @@
+title: "Node.js 实际两个项目（实战篇）"
+published: 2026-05-14
+description: "通过 wc-Backend 和 tb-Dock 两个项目深入学习 Node.js 源码，涵盖 Express + Sequelize 三层架构、NestJS 模块化开发、异步编程等核心知识点"
+tags: [NestJS]
+draft: false

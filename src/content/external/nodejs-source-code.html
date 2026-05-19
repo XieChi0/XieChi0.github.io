@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js 源码详解</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: oklch(62% 0.18 355);
+            --primary-soft: oklch(95% 0.025 355);
+            --primary-dark: oklch(48% 0.16 355);
+            --success: oklch(70% 0.16 355);
+            --success-soft: oklch(95% 0.035 355);
+            --warning: oklch(75% 0.14 85);
+            --warning-soft: oklch(95% 0.04 85);
+            --danger: oklch(65% 0.2 25);
+            --danger-soft: oklch(94% 0.04 25);
+            --gray-100: oklch(97% 0.004 250);
+            --gray-200: oklch(92% 0.006 250);
+            --gray-300: oklch(86% 0.01 250);
+            --gray-600: oklch(48% 0.018 250);
+            --gray-800: oklch(26% 0.022 250);
+            --gray-900: oklch(18% 0.018 250);
+            --bg-color: oklch(98% 0.006 250);
+            --card-bg: oklch(100% 0 0);
+            --code-bg: oklch(18% 0.02 355);
+            --border-radius: 10px;
+            --shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+            --shadow-lg: 0 18px 45px rgba(15, 23, 42, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background:
+                radial-gradient(circle at top left, oklch(94% 0.04 355), transparent 34rem),
+                linear-gradient(180deg, oklch(99% 0.003 250) 0%, var(--bg-color) 34rem);
+            color: var(--gray-800);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.82);
+            color: var(--gray-900);
+            padding: 1.25rem 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--gray-200);
+            backdrop-filter: blur(18px);
+        }
+
+        .header-content {
+            max-width: 1120px;
+            margin: 0 auto;
+        }
+
+        .header h1 {
+            font-size: clamp(1.45rem, 2.4vw, 2.35rem);
+            font-weight: 700;
+        }
+
+        .header p {
+            color: var(--gray-600);
+            font-size: 0.95rem;
+            margin-top: 0.25rem;
+        }
+
+        .project-tabs {
+            max-width: 1120px;
+            margin: 1.5rem auto 1rem;
+            padding: 0 1.25rem;
+            display: flex;
+            gap: 0.625rem;
+            flex-wrap: wrap;
+        }
+
+        .project-tab {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.7rem 1rem;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--gray-200);
+            background: rgba(255, 255, 255, 0.76);
+            color: var(--gray-800);
+            min-height: 42px;
+        }
+
+        .project-tab:hover {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+        }
+
+        .project-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .progress-section {
+            max-width: 1120px;
+            margin: 0 auto 1rem;
+            padding: 0 1.25rem;
+        }
+
+        .progress-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .progress-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .progress-percentage {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: var(--gray-200);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--success) 100%);
+            border-radius: 999px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .progress-stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-icon {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .stat-completed .stat-icon {
+            background: var(--success);
+        }
+
+        .stat-remaining .stat-icon {
+            background: var(--gray-300);
+        }
+
+        .main-content {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 1rem 1.25rem 2rem;
+        }
+
+        .stage {
+            margin-bottom: 1rem;
+        }
+
+        .stage-header {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            transition: all 0.2s ease;
+        }
+
+        .stage-header:hover {
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        .stage-number {
+            width: 38px;
+            height: 38px;
+            background: var(--primary);
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .stage-number.completed {
+            background: var(--success);
+        }
+
+        .stage-info {
+            flex: 1;
+        }
+
+        .stage-title {
+            font-weight: 700;
+            font-size: 1.02rem;
+            color: var(--gray-900);
+        }
+
+        .stage-subtitle {
+            font-size: 0.8rem;
+            color: var(--gray-600);
+            margin-top: 0.25rem;
+        }
+
+        .stage-progress {
+            font-size: 0.9rem;
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+
+        .stage-toggle {
+            width: 24px;
+            height: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .stage-toggle svg {
+            width: 100%;
+            height: 100%;
+            fill: var(--gray-600);
+        }
+
+        .stage.expanded .stage-toggle {
+            transform: rotate(180deg);
+        }
+
+        .chapter-list {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .chapter {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stage .chapter-list .chapter {
+            margin-left: 0.75rem;
+            margin-right: 0.75rem;
+        }
+
+        .stage.expanded .chapter-list {
+            max-height: 10000px;
+            padding-top: 0.75rem;
+        }
+
+        .chapter.completed {
+            border-color: var(--success);
+            background: linear-gradient(90deg, var(--success-soft), var(--card-bg) 22%);
+        }
+
+        .chapter-header {
+            padding: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            cursor: pointer;
+        }
+
+        .chapter-checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--gray-300);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+            margin-top: 2px;
+        }
+
+        .chapter-checkbox:hover {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+        }
+
+        .chapter.completed .chapter-checkbox {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .chapter-checkbox svg {
+            width: 14px;
+            height: 14px;
+            fill: white;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .chapter.completed .chapter-checkbox svg {
+            opacity: 1;
+        }
+
+        .chapter-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chapter-title {
+            font-weight: 700;
+            font-size: 0.98rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            color: var(--gray-900);
+        }
+
+        .chapter-tags {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            padding: 0.22rem 0.55rem;
+            border-radius: 999px;
+            font-weight: 700;
+            border: 1px solid transparent;
+        }
+
+        .tag-frequency {
+            background: var(--warning-soft);
+            color: oklch(44% 0.11 68);
+        }
+
+        .tag-frequency.high {
+            background: var(--danger-soft);
+            color: oklch(43% 0.16 25);
+        }
+
+        .tag-frequency.medium {
+            background: var(--warning-soft);
+            color: oklch(44% 0.11 68);
+        }
+
+        .tag-frequency.low {
+            background: var(--primary-soft);
+            color: var(--primary-dark);
+        }
+
+        .tag-time {
+            background: var(--gray-100);
+            color: var(--gray-600);
+            border-color: var(--gray-200);
+        }
+
+        .code-section {
+            background: var(--code-bg);
+            border-radius: 10px;
+            margin-top: 1rem;
+            overflow: hidden;
+            border: 1px solid oklch(30% 0.025 355);
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: oklch(22% 0.025 355);
+            border-bottom: 1px solid oklch(30% 0.025 355);
+        }
+
+        .code-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: oklch(85% 0.02 355);
+        }
+
+        .code-toggle {
+            font-size: 0.85rem;
+            color: oklch(85% 0.1 355);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-weight: 500;
+        }
+
+        .code-toggle:hover {
+            text-decoration: underline;
+        }
+
+        .code-block {
+            position: relative;
+            background: oklch(15% 0.02 355);
+            padding: 1rem;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            color: oklch(88% 0.02 355);
+        }
+
+        .code-line {
+            display: flex;
+            transition: background 0.15s ease;
+            padding: 2px 0;
+        }
+
+        .code-line:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .line-number {
+            color: oklch(60% 0.02 355);
+            user-select: none;
+            min-width: 3rem;
+            text-align: right;
+            padding-right: 1.5rem;
+            font-weight: 500;
+        }
+
+        .line-content {
+            flex: 1;
+            white-space: pre;
+            color: oklch(88% 0.02 355);
+        }
+
+        .code-comments {
+            display: none;
+            background: oklch(18% 0.02 355);
+            padding: 0;
+            padding-left: 5px;
+            border-top: 1px solid oklch(30% 0.025 355);
+        }
+
+        .code-comments.show {
+            display: block;
+        }
+
+        .comment-line {
+            display: grid;
+            grid-template-columns: 3rem minmax(0, 1fr);
+            align-items: baseline;
+            margin: 0;
+            padding: 0.55rem 0.45rem;
+            font-size: 0.9rem;
+            line-height: 1.55;
+            border-bottom: 1px solid oklch(25% 0.02 355);
+        }
+
+        .comment-line:last-child {
+            border-bottom: 0;
+        }
+
+        .comment-line-number {
+            color: oklch(85% 0.1 355);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            font-weight: 700;
+            min-width: 34px;
+            text-align: center;
+            background: oklch(25% 0.04 355);
+            padding: 0.18rem 0.35rem;
+            border-radius: 6px;
+        }
+
+        .comment-text {
+            color: oklch(88% 0.04 165);
+            line-height: 1.55;
+        }
+
+        .pro-tip {
+            background: oklch(18% 0.03 355);
+            border: 1px solid oklch(45% 0.08 355);
+            border-radius: 10px;
+            padding: 1rem 1.1rem;
+            margin-top: 0.85rem;
+        }
+
+        .pro-tip-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.65rem;
+            font-weight: 700;
+            color: oklch(80% 0.1 355);
+            font-size: 0.9rem;
+        }
+
+        .pro-tip-header svg {
+            width: 18px;
+            height: 18px;
+            fill: oklch(80% 0.1 355);
+        }
+
+        .pro-tip-content {
+            font-size: 0.9rem;
+            color: oklch(90% 0.03 355);
+            line-height: 1.7;
+        }
+
+        .pro-tip-content code {
+            display: block;
+            background: oklch(15% 0.025 355);
+            color: oklch(88% 0.04 355);
+            padding: 0.75rem 0.85rem;
+            border: 1px solid oklch(30% 0.05 355);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            line-height: 1.7;
+            margin-top: 0.65rem;
+        }
+
+        /* 庆祝弹窗样式 */
+        .celebration-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 9999;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .celebration-popup {
+            background: rgba(255, 240, 245, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 1.25rem 1.75rem;
+            box-shadow: 
+                0 20px 60px rgba(255, 182, 193, 0.3),
+                0 8px 24px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            text-align: center;
+            transform: scale(0);
+            opacity: 0;
+            animation: popupPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            position: relative;
+            min-width: 200px;
+        }
+
+        .celebration-popup::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 200, 220, 0.3), rgba(255, 255, 255, 0.2));
+            border-radius: 20px;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        @keyframes popupPop {
+            0% {
+                transform: scale(0) rotate(-8deg);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.05) rotate(1deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .celebration-emoji {
+            font-size: 2.5rem;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        .celebration-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff6b9d, #ff8fab, #ffb3c6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.25rem;
+        }
+
+        .celebration-message {
+            font-size: 0.9rem;
+            color: #777;
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .celebration-progress {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            color: #999;
+        }
+
+        .celebration-progress-bar {
+            width: 80px;
+            height: 6px;
+            background: #eee;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .celebration-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b9d, #ff8fab, #ffb3c6);
+            border-radius: 999px;
+            transition: width 0.3s ease;
+        }
+
+        /* 烟花粒子 */
+        .confetti {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            animation: confettiFall 0.8s ease-out forwards;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(0) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(400px) rotate(720deg) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* 打勾动画 */
+        .chapter-checkbox.checked-anim {
+            animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes checkPop {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.3);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: var(--gray-600);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 820px) {
+            .progress-stats {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .chapter-tags {
+                gap: 0.3rem;
+            }
+
+            .tag {
+                font-size: 0.65rem;
+                padding: 0.15rem 0.4rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>Node.js 源码详解</h1>
+            <p>基于真实项目的代码分析</p>
+        </div>
+    </header>
+
+    <div class="project-tabs">
+        <div class="project-tab active" data-project="wc-backend" onclick="_switchProject('wc-backend')">
+            Express + Sequelize
+        </div>
+        <div class="project-tab" data-project="tb-dock" onclick="_switchProject('tb-dock')">
+            NestJS + Prisma
+        </div>
+    </div>
+
+    <div class="progress-section">
+        <div class="progress-card">
+            <div class="progress-header">
+                <h2 id="progressTitle">wc-Backend 源码进度</h2>
+                <div class="progress-percentage"><span id="progressPercent">0</span>%</div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-stats">
+                <div class="stat-item stat-completed"><span class="stat-icon"></span>已完成 <span
+                        id="completedCount">0</span> / <span id="totalCount">0</span> 个知识点</div>
+            </div>
+        </div>
+    </div>
+
+    <main class="main-content" id="mainContent"></main>
+
+    <footer class="footer">源码详解 · 基于真实项目分析</footer>
+
+    <script>
+        let currentProject = 'wc-backend';
+
+        const projectInfo = {
+            'wc-backend': { name: 'wc-Backend', totalTime: '约 8 小时' },
+            'tb-dock': { name: 'tb-dock-server', totalTime: '约 6 小时' }
+        };
+
+        // wc-Backend 源码详解
+        const wcBackendPlan = [
+            {
+                id: 1,
+                title: "项目目录结构",
+                subtitle: "Express + Sequelize 架构",
+                totalTime: "30min",
+                chapters: [
+                    {
+                        id: "1-1",
+                        title: "wc-Backend 目录结构",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "20min",
+                        code: `wc_modelingtool_crossplatform/
+├── src/
+│   ├── app.js                      # Express 入口
+│   ├── business/                   # 业务层
+│   │   ├── model/                # Sequelize 模型
+│   │   ├── repository/           # 数据访问层
+│   │   └── service/              # 业务逻辑
+│   ├── framework/                 # 基础设施
+│   │   ├── datasource/          # 数据库连接
+│   │   ├── route/               # 路由封装
+│   │   └── utils/               # 工具函数
+│   └── routes/                    # 路由定义
+└── projects/                      # 用户数据`,
+                        comments: [
+                            { line: "2-3", text: "src/ 是核心目录，所有业务代码在此" },
+                            { line: "5-7", text: "business 层采用 Model-Repository-Service 三层" },
+                            { line: "8-10", text: "framework 封装通用工具，供业务层复用" }
+                        ],
+                        proTip: "三层架构记忆口诀：<br><code>Model 定义数据结构<br>Repository 操作数据库<br>Service 写业务逻辑</code>"
+                    }
+                ]
+            },
+            {
+                id: 2,
+                title: "异步编程基础",
+                subtitle: "Promise · async/await · 并发控制",
+                totalTime: "60min",
+                chapters: [
+                    {
+                        id: "2-1",
+                        title: "Promise 三种状态",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "10min",
+                        code: `// Promise 三种状态转换
+const promise = new Promise((resolve, reject) => {
+    // pending（待定）→ 初始状态
+    if (success) {
+        resolve(value);  // fulfilled（已兑现）
+    } else {
+        reject(error);   // rejected（已拒绝）
+    }
+});
+
+// 链式调用
+promise
+    .then(result => console.log(result))
+    .catch(err => console.error(err))
+    .finally(() => console.log('完成'));`,
+                        comments: [
+                            { line: "3-4", text: "Promise 构造函数接受一个执行器函数，异步操作在这里执行" },
+                            { line: "5-8", text: "resolve() 将 Promise 变为成功态，reject() 变为失败态，状态一旦改变就不可逆" },
+                            { line: "11-15", text: "then/catch/finally 链式调用，每个方法都返回新的 Promise" }
+                        ],
+                        proTip: "状态记忆：<code>pending → fulfilled ✓<br>pending → rejected ✗</code>"
+                    },
+                    {
+                        id: "2-2",
+                        title: "async/await 完整示例",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "25min",
+                        code: `// 登录函数 - 演示 async/await 完整用法
+async function login(param) {
+    // 根据配置决定登录方式
+    if (enableUAMServer) {
+        // 方式一：调用外部 UAM 服务器
+        const token = await axios.post(url, {
+            username: param.name,
+            password: param.password
+        }).then(res => res.data.token);
+        return token;
+    } else {
+        // 方式二：本地数据库验证
+        const user = await userRepository.getUser(param.name);
+        if (!user || user.password !== param.password) {
+            throw new Error('用户名或密码错误');
+        }
+        return jwt.sign({ name: user.name }, secretKey);
+    }
+}`,
+                        comments: [
+                            { line: "1", text: "async 关键字使函数返回 Promise，await 必须用在 async 函数内" },
+                            { line: "4-7", text: "外部服务返回 Promise，用 await 等待结果，.then() 提取嵌套数据" },
+                            { line: "9-14", text: "本地验证：先查用户，再校验密码，都通过才生成 Token" },
+                            { line: "12-13", text: "=== 严格相等比较，避免类型转换；throw 抛出错误被 catch 捕获" }
+                        ],
+                        proTip: "async/await 优势：<br><code>1. 同步写法写异步代码<br>2. try/catch 统一错误处理<br>3. 代码可读性更好</code>"
+                    },
+                    {
+                        id: "2-3",
+                        title: "计算锁拦截器",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "25min",
+                        code: `// 防止同一项目并发计算
+async withCalculateLock(projectId, calculateFn) {
+    // 1. 尝试获取锁（乐观锁）
+    const success = await projectRepository.startCalculate(projectId);
+    if (!success) {
+        throw new Error('工程正在计算');  // 已被占用
+    }
+    try {
+        // 2. 执行计算任务
+        return await calculateFn();
+    } catch (e) {
+        // 3. 出错时释放锁
+        await projectRepository.stopCalculate(projectId);
+        throw e;  // 重新抛出，不被吞掉
+    } finally {
+        // 4. finally 总是执行，确保锁释放
+        await projectRepository.stopCalculate(projectId);
+    }
+}`,
+                        comments: [
+                            { line: "5-7", text: "startCalculate() 尝试原子性设置 isCalculating=true，返回是否成功" },
+                            { line: "9-11", text: "calculateFn 是传入的异步函数（回调），用 await 调用它" },
+                            { line: "13-15", text: "catch 中先释放锁再 throw，确保锁不会泄漏" },
+                            { line: "17-19", text: "finally 保证无论成功失败都释放锁，防止死锁" }
+                        ],
+                        proTip: "锁的三个要点：<br><code>1. 获取锁要原子性（数据库唯一约束）<br>2. try-finally 确保释放<br>3. 失败时也要释放</code>"
+                    }
+                ]
+            },
+            {
+                id: 3,
+                title: "Express 框架核心",
+                subtitle: "app.js · 中间件 · 路由",
+                totalTime: "90min",
+                chapters: [
+                    {
+                        id: "3-1",
+                        title: "app.js 启动流程",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "30min",
+                        code: `// src/app.js - Express 应用入口
+
+// 1. 环境变量加载（最早执行）
+require('dotenv').config();
+
+// 2. 工具模块初始化
+const argumentUtils = require('./framework/utils/argument_utils');
+const fileUtils = require('./framework/utils/file_utils');
+fileUtils.setRootPath(argumentUtils.getRootPath());
+require('./framework/logger');
+
+// 3. Express 应用创建
+const app = express();
+
+// 4. 中间件配置
+app.use(bodyParser.json({ limit: '500mb' }));
+app.use(userService.authenticate);
+
+// 5. 路由加载
+routeLoader.loadRemoteRoute(app);
+
+// 6. 数据库初始化 + 服务启动
+routeLoader.loadDatabase(app).then(() => {
+    app.listen(port, async () => {
+        await projectService.interrupt();  // 中断旧任务
+        stopHooks.registerStop();          // 注册退出钩子
+    });
+});`,
+                        comments: [
+                            { line: "5", text: "dotenv.config() 读取 .env 文件，将变量注入 process.env，之后可访问" },
+                            { line: "8-10", text: "先初始化工具：获取项目路径、创建目录、初始化日志" },
+                            { line: "13", text: "express() 是工厂函数，返回 app 实例，所有功能挂载其上" },
+                            { line: "16-17", text: "中间件顺序很重要：bodyParser 先解析请求体，auth 后验证身份" },
+                            { line: "20", text: "loadRemoteRoute() 自动扫描 routes/ 目录，注册所有路由" },
+                            { line: "26-28", text: "启动时中断之前运行的任务，确保状态一致" }
+                        ],
+                        proTip: "启动顺序口诀：<br><code>环境配置最先行<br>工具初始化跟上<br>Express 创建实例<br>中间件来配置<br>路由注册加载<br>数据库最后连</code>"
+                    },
+                    {
+                        id: "3-2",
+                        title: "中间件机制详解",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "30min",
+                        code: `// Express 中间件示例
+
+// 1. 应用级中间件
+app.use(bodyParser.json({ limit: '500mb' }));
+// 解析 JSON 请求体，最大 500MB，存入 req.body
+
+// 2. 认证中间件
+app.use(userService.authenticate);
+// 验证 JWT Token，有效则挂载用户信息到 req.user
+
+// 3. 路由级中间件
+function authenticate(req, res, next) {
+    const token = req.headers.authorization?.split(' ')[1];
+    // Bearer Token 格式：'Bearer eyJhbGc...'
+    if (!token) {
+        return res.status(401).json({ message: '未登录' });
+    }
+    try {
+        req.user = jwt.verify(token, secretKey);
+        next();  // 关键：调用 next() 才会继续
+    } catch {
+        res.status(403).json({ message: 'Token 无效' });
+    }
+}`,
+                        comments: [
+                            { line: "5-6", text: "bodyParser.json() 是解析中间件，把 JSON 请求体转为 req.body 对象" },
+                            { line: "8-9", text: "authenticate 中间件验证身份，无 token 或无效都拒绝访问" },
+                            { line: "13-15", text: "req.headers.authorization 包含 Authorization 头，split(' ') 按空格分割取第二部分" },
+                            { line: "17-18", text: "401 未授权（未登录），403 禁止（已登录但无权），语义不同" },
+                            { line: "21", text: "jwt.verify() 验证失败会抛异常，用 try/catch 捕获" },
+                            { line: "22", text: "next() 是管道模式关键，调用后才会进入下一个中间件或路由处理器" }
+                        ],
+                        proTip: "中间件执行顺序：<br><code>请求 → 中间件1(next) → 中间件2(next) → 路由处理器 → 响应</code>"
+                    },
+                    {
+                        id: "3-3",
+                        title: "custumrouter.js 统一封装",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "30min",
+                        code: `// 统一路由封装 - 统一响应格式
+const express = require('express');
+const router = express.Router();
+
+module.exports = {
+    post(path, serviceFunc) {
+        router.post(path, (req, res) => {
+            // 1. 调用业务函数，传入参数和用户信息
+            serviceFunc(req.body, req.user).then(result => {
+                // 2. 统一成功响应：code + data
+                res.send({ code: 200, data: result });
+            }).catch(error => {
+                // 3. 统一错误响应：code + msg
+                res.send({ code: 500, msg: error.message });
+            });
+        });
+        // 4. 同时注册本地路由，支持内部调用
+        localRouter.register(path, serviceFunc);
+    }
+};`,
+                        comments: [
+                            { line: "1-2", text: "使用 express.Router() 创建路由实例，实现路由分组" },
+                            { line: "7-8", text: "req.body 包含请求体数据，req.user 是中间件挂载的用户信息" },
+                            { line: "10-11", text: "所有成功响应统一格式：{ code: 200, data: ... }，前端好处理" },
+                            { line: "13-15", text: "所有错误统一格式：{ code: 500, msg: error.message }" },
+                            { line: "17-18", text: "本地路由注册：同一函数可被 HTTP 调用，也可被内部直接调用" }
+                        ],
+                        proTip: "封装的好处：<br><code>1. 响应格式统一<br>2. 错误处理统一<br>3. 避免 try-catch 重复</code>"
+                    }
+                ]
+            },
+            {
+                id: 4,
+                title: "数据库与 ORM",
+                subtitle: "Sequelize 模型 · Repository",
+                totalTime: "60min",
+                chapters: [
+                    {
+                        id: "4-1",
+                        title: "Sequelize 模型定义",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "20min",
+                        code: `// src/business/model/project.js
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../../framework/datasource/...');
+
+const Project = sequelize.define('Project', {
+    id: { type: DataTypes.STRING, primaryKey: true },
+    name: { type: DataTypes.STRING, allowNull: false },
+    modelTypes: { type: DataTypes.STRING },
+    createTime: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+    isCalculated: { type: DataTypes.BOOLEAN, defaultValue: false },
+    userName: { type: DataTypes.STRING, field: 'user_name' }
+}, {
+    tableName: 't_project',  // 映射到真实表名
+    timestamps: false         // 不自动添加 createdAt/updatedAt
+});
+
+module.exports = Project;`,
+                        comments: [
+                            { line: "5", text: "sequelize.define() 定义模型，第一个参数是模型名，第二个是字段定义" },
+                            { line: "6-7", text: "primaryKey: true 声明主键，默认自增；allowNull: false 字段必填" },
+                            { line: "10", text: "DataTypes.BOOLEAN 映射为 TINYINT(1)，defaultValue 设置默认值" },
+                            { line: "11", text: "field: 'user_name' 映射到蛇形命名的数据库列" },
+                            { line: "15", text: "timestamps: false 禁用自动时间戳，手动管理 createTime 等字段" }
+                        ],
+                        proTip: "常用 DataTypes：<code>STRING→VARCHAR<br>INTEGER→INT<br>BOOLEAN→TINYINT<br>DATE→DATETIME<br>JSON→JSON</code>"
+                    },
+                    {
+                        id: "4-2",
+                        title: "Repository CRUD 操作",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "25min",
+                        code: `// src/business/repository/project.js
+const { Op } = require('sequelize');
+
+module.exports = {
+    // 创建/更新（upsert：存在则更新，不存在则创建）
+    async save(project, t) {
+        project.updateTime = Date.now();
+        return Project.upsert(project, { transaction: t });
+    },
+
+    // 查询列表
+    async queryAll(param) {
+        const where = {};
+        if (!param.isAdmin) {
+            where.userName = param.userName;
+        }
+        const results = await Project.findAll({
+            where,
+            order: [['updateTime', 'DESC']]  // 按更新时间倒序
+        });
+        return results.map(r => r.dataValues);  // 转纯对象
+    },
+
+    // 批量删除
+    async deleteByIds(ids) {
+        return Project.destroy({ where: { id: { [Op.in]: ids } } });
+    }
+};`,
+                        comments: [
+                            { line: "10-12", text: "upsert() 是 insert + update 的组合，效率高，project.updateTime 手动更新时间" },
+                            { line: "15-17", text: "非管理员只能看自己的数据，加 where 条件过滤" },
+                            { line: "18-21", text: "findAll() 返回数组，每个元素是 Model 实例；.dataValues 取纯数据" },
+                            { line: "24-25", text: "Op.in 是 Sequelize 运算符，表示 IN 查询；destroy() 返回删除行数" }
+                        ],
+                        proTip: "常用查询方法：<br><code>findAll() - 查询列表<br>findOne() - 查询单个<br>findByPk() - 按主键查<br>create() - 创建<br>upsert() - 插入或更新</code>"
+                    },
+                    {
+                        id: "4-3",
+                        title: "数据库连接管理器",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "15min",
+                        code: `// src/framework/datasource/datasourcemanager.js
+const { Sequelize } = require('sequelize');
+
+// 根据环境变量决定数据库类型
+const type = process.env.DATASOURCE_TYPE ?? 'mysql';
+
+if (type === 'mysql') {
+    sequelize = new Sequelize({
+        host: process.env.DB_HOST,
+        database: process.env.DB_DATABASE,
+        dialect: 'mysql',
+        pool: { max: 10, min: 0, idle: 10000 }
+    });
+} else {
+    // SQLite：每个项目独立文件
+    sequelize = new Sequelize({
+        dialect: 'sqlite',
+        storage: \`projects/db/\${projectId}.db\`
+    });
+}
+
+module.exports = { sequelize, getSequelize };`,
+                        comments: [
+                            { line: "5", text: "?? 是空值合并运算符，DATASOURCE_TYPE 为 undefined 时用 'mysql'" },
+                            { line: "7-13", text: "MySQL 需要 host、database 等配置，支持连接池复用连接" },
+                            { line: "10", text: "pool.max=10 表示最多 10 个并发连接，避免数据库过载" },
+                            { line: "15-17", text: "SQLite 轻量级，每个项目独立的 .db 文件，适合本地/单机" }
+                        ],
+                        proTip: "连接池作用：<br><code>1. 复用连接，不用每次请求都建立<br>2. 控制并发，防止数据库崩溃<br>3. 空闲回收，节省资源</code>"
+                    }
+                ]
+            },
+            {
+                id: 5,
+                title: "认证与安全",
+                subtitle: "JWT · 白名单机制",
+                totalTime: "45min",
+                chapters: [
+                    {
+                        id: "5-1",
+                        title: "JWT Token 生成与验证",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "25min",
+                        code: `// JWT 认证示例
+
+// 生成 Token
+function generateToken(user) {
+    const payload = { name: user.name };
+    return jwt.sign(payload, secretKey, {
+        expiresIn: '7d'  // 7 天过期
+    });
+}
+
+// 验证 Token
+function verifyToken(token) {
+    return jwt.verify(token, secretKey);
+}
+
+// 完整验证流程
+async function authenticate(req, res, next) {
+    const auth = req.headers.authorization;
+    if (!auth?.startsWith('Bearer ')) {
+        return res.status(401).send({ code: 401, msg: '缺少 Token' });
+    }
+    const token = auth.split(' ')[1];
+    try {
+        req.user = jwt.verify(token, secretKey);
+        next();
+    } catch {
+        res.status(403).send({ code: 403, msg: 'Token 无效' });
+    }
+}`,
+                        comments: [
+                            { line: "5", text: "jwt.sign(payload, secret, options) 签名生成 Token，包含 payload（可解密）和签名（防篡改）" },
+                            { line: "6", text: "expiresIn 设置过期时间，过期后 verify() 会抛异常" },
+                            { line: "12-13", text: "Bearer Token 格式：'Bearer eyJhbG...'，用 split 提取实际 token" },
+                            { line: "14", text: "?. 是可选链操作符，auth 为 undefined 时不会报错直接返回 undefined" },
+                            { line: "18-19", text: "verify() 验证签名和过期时间，无效则抛异常，进入 catch 返回 403" }
+                        ],
+                        proTip: "JWT 三部分：<br><code>eyJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWRtaW4ifQ.abc123<br>  Header    .   Payload   . Signature</code>"
+                    },
+                    {
+                        id: "5-2",
+                        title: "白名单机制",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "20min",
+                        code: `// 认证白名单 - 无需登录即可访问的接口
+const whiteList = [
+    '/user/login',           // 登录接口
+    '/captcha',              // 验证码
+    '/business/project/exportProject'  // 公开导出
+];
+
+function shouldSkipAuth(path) {
+    return whiteList.some(prefix => path.startsWith(prefix));
+}
+
+function authenticate(req, res, next) {
+    // 白名单接口跳过认证
+    if (shouldSkipAuth(req.path)) {
+        return next();
+    }
+    // 其他接口需要登录
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+        return res.status(401).json({ msg: '请先登录' });
+    }
+    // ... 验证逻辑
+}`,
+                        comments: [
+                            { line: "3-6", text: "白名单数组存储无需认证的路径前缀，如登录、验证码等" },
+                            { line: "8-10", text: "startsWith() 匹配前缀，支持 /user 和 /user/login 两种粒度" },
+                            { line: "14-16", text: "白名单内的接口直接 next()，跳过 Token 验证" },
+                            { line: "18-20", text: "不在白名单则必须提供 Token，否则返回 401" }
+                        ],
+                        proTip: "白名单 vs 黑名单：<br><code>白名单：默认禁止，只放行名单内<br>黑名单：默认允许，只禁止名单内<br>安全要求高用白名单</code>"
+                    }
+                ]
+            }
+        ];
+
+        // tb-dock-server 源码详解
+        const tbDockPlan = [
+            {
+                id: 1,
+                title: "NestJS 基础",
+                subtitle: "模块 · 控制器 · 服务",
+                totalTime: "60min",
+                chapters: [
+                    {
+                        id: "1-1",
+                        title: "NestJS 模块定义",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "20min",
+                        code: `// src/dock.module.ts
+@Module({
+  imports: [],                    // 依赖的其他模块
+  controllers: [DockController], // 控制器
+  providers: [DockService],       // 服务提供者
+  exports: [DockService]          // 导出给其他模块用
+})
+export class DockModule {}
+
+// src/app.module.ts - 根模块
+@Module({
+  imports: [DockModule, AuthModule],
+  controllers: [],
+  providers: []
+})
+export class AppModule {}`,
+                        comments: [
+                            { line: "2", text: "@Module() 是装饰器，接收配置对象定义模块" },
+                            { line: "3", text: "imports 声明依赖，像搭积木一样组合功能" },
+                            { line: "4-5", text: "controllers 处理请求，providers 提供服务" },
+                            { line: "6", text: "exports 决定哪些可被其他模块注入" },
+                            { line: "14", text: "根模块通过 imports 组合所有子模块" }
+                        ],
+                        proTip: "@Module 四个属性：<br><code>imports - 用谁的功能<br>controllers - 处理请求<br>providers - 业务逻辑<br>exports - 对外暴露</code>"
+                    },
+                    {
+                        id: "1-2",
+                        title: "Controller + 装饰器",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "20min",
+                        code: `// src/dock.module/dock.controller.ts
+@Controller('dock')
+export class DockController {
+    constructor(private readonly dockService: DockService) {}
+
+    @Get('page')
+    async getPage(@Query() dto: GetDockPageDto) {
+        return this.dockService.getPage(dto);
+    }
+
+    @Get(':id')
+    async getOne(@Param('id') id: string) {
+        return this.dockService.findById(id);
+    }
+
+    @Post()
+    async create(@Body() dto: CreateDockDto) {
+        return this.dockService.create(dto);
+    }
+}`,
+                        comments: [
+                            { line: "1", text: "@Controller('dock') 定义路由前缀，类下所有方法都以此开头" },
+                            { line: "3", text: "构造函数注入 Service，private readonly 简写属性声明" },
+                            { line: "6", text: "@Get('page') 定义 GET /dock/page 路由" },
+                            { line: "7", text: "@Query() 自动解析查询参数，注入到 dto 对象" },
+                            { line: "10", text: "@Param('id') 获取路径参数 :id" },
+                            { line: "14", text: "@Body() 获取请求体数据，注入到 dto" }
+                        ],
+                        proTip: "常用装饰器：<br><code>@Get/@Post/@Put/@Delete - HTTP 方法<br>@Param/@Query/@Body - 参数来源<br>@Headers - 请求头</code>"
+                    },
+                    {
+                        id: "1-3",
+                        title: "Service + 依赖注入",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "20min",
+                        code: `// src/dock.module/dock.service.ts
+@Injectable()
+export class DockService {
+    constructor(private prisma: PrismaService) {}
+
+    async findById(id: string) {
+        const dock = await this.prisma.product.findUnique({
+            where: { uuid: id }
+        });
+        if (!dock) throw new NotFoundException('产品不存在');
+        return dock;
+    }
+
+    async create(dto: CreateDockDto) {
+        return this.prisma.product.create({ data: dto });
+    }
+}`,
+                        comments: [
+                            { line: "1", text: "@Injectable() 标记为可注入的服务，NestJS 依赖注入系统管理实例" },
+                            { line: "3", text: "通过构造函数注入 PrismaService，框架自动实例化" },
+                            { line: "6-11", text: "findUnique 按唯一字段查询，NotFoundException 自动返回 404" },
+                            { line: "13-14", text: "create 插入数据，data 是要插入的字段对象" }
+                        ],
+                        proTip: "依赖注入好处：<br><code>1. 解耦：Service 不 new 实例<br>2. 易测：可注入 Mock 对象<br>3. 单例：复用实例，性能好</code>"
+                    }
+                ]
+            },
+            {
+                id: 2,
+                title: "Prisma ORM",
+                subtitle: "Schema · 查询 · 关联",
+                totalTime: "50min",
+                chapters: [
+                    {
+                        id: "2-1",
+                        title: "Prisma Schema 定义",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "25min",
+                        code: `// prisma/schema.prisma
+model Product {
+    id        BigInt @id @default(autoincrement())
+    uuid      String  @unique  // 业务主键（8位）
+    brand     String            // 品牌
+    model     String            // 型号
+    weight    Int     @default(0)  // 排序权重
+    del       Boolean @default(false)  // 软删除
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // 关联关系：一对多
+    ports            Port[]
+    videoCapabilities VideoCapability[]
+}
+
+model Port {
+    id          BigInt  @id @default(autoincrement())
+    productUuid String  // 外键
+    product     Product @relation(fields: [productUuid], references: [uuid])
+    type        String  // 端口类型
+    qty         Int     // 数量
+}`,
+                        comments: [
+                            { line: "4", text: "@unique 声明唯一约束，uuid 作为业务主键用于外部引用" },
+                            { line: "7", text: "@default(false) 软删除标记，删除时设为 true，查询时过滤" },
+                            { line: "8-9", text: "@default(now()) 自动当前时间，@updatedAt 自动更新" },
+                            { line: "12-13", text: "一对一/一对多关系：用数组表示一方，Prisma 自动生成关联查询" },
+                            { line: "17-18", text: "@relation 定义外键关系，fields 源字段，references 目标字段" }
+                        ],
+                        proTip: "常用字段注解：<br><code>@id - 主键<br>@unique - 唯一<br>@default(val) - 默认值<br>@relation - 关联关系<br>@updatedAt - 自动更新时间</code>"
+                    },
+                    {
+                        id: "2-2",
+                        title: "Prisma 常用查询",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "25min",
+                        code: `// Service 中的 Prisma 查询示例
+
+// 1. 按 ID 查询（包含关联）
+const product = await this.prisma.product.findUnique({
+    where: { uuid: id },
+    include: { ports: true, videoCapabilities: true }
+});
+
+// 2. 条件查询 + 分页
+const products = await this.prisma.product.findMany({
+    where: { del: false, brand: { contains: 'Dell' } },
+    orderBy: { weight: 'desc' },
+    skip: (page - 1) * pageSize,
+    take: pageSize
+});
+
+// 3. 聚合查询
+const count = await this.prisma.product.count({
+    where: { del: false }
+});`,
+                        comments: [
+                            { line: "6-8", text: "findUnique 按唯一字段查，include 自动查询关联表数据（JOIN）" },
+                            { line: "12", text: "where 条件：del=false 过滤软删除，contains 模糊匹配" },
+                            { line: "13", text: "orderBy 排序，weight desc 降序（大的排前面）" },
+                            { line: "14-15", text: "skip/take 实现分页：(page-1)*size 跳过前几页" },
+                            { line: "20-22", text: "count() 返回符合条件的总数，用于计算总页数" }
+                        ],
+                        proTip: "查询方法：<br><code>findUnique - 按唯一字段<br>findMany - 列表查询<br>create - 创建<br>update - 更新<br>delete - 删除<br>count - 计数</code>"
+                    }
+                ]
+            },
+            {
+                id: 3,
+                title: "认证与授权",
+                subtitle: "JWT 守卫 · 策略",
+                totalTime: "50min",
+                chapters: [
+                    {
+                        id: "3-1",
+                        title: "JWT 策略 + 守卫",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "25min",
+                        code: `// JWT 策略
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+    constructor(private authService: AuthService) {
+        super({
+            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+            ignoreExpiration: false,
+            secretOrKey: process.env.TOKEN_SECRET
+        });
+    }
+
+    async validate(payload: any) {
+        // 检查 Token 是否被撤销
+        const revoked = await this.redis.get(\`token:\${payload.uuid}\`);
+        if (revoked) throw new UnauthorizedException();
+
+        return { uuid: payload.uuid, username: payload.username };
+    }
+}
+
+// JWT 守卫
+@Injectable()
+export class JwtAuthGuard extends AuthGuard('jwt') {}`,
+                        comments: [
+                            { line: "5-8", text: "PassportStrategy(Strategy) 继承 Passport 的 JWT 策略" },
+                            { line: "6", text: "ExtractJwt.fromAuthHeaderAsBearerToken() 从 Header 提取 Token" },
+                            { line: "10", text: "validate() 在每次请求时自动调用，验证通过返回用户信息" },
+                            { line: "12-13", text: "Redis 检查 Token 是否被撤销（登出时写入）" },
+                            { line: "18-19", text: "AuthGuard('jwt') 是 Passport 提供的 JWT 守卫" }
+                        ],
+                        proTip: "认证流程：<br><code>1. 登录 → 颁发 JWT<br>2. 请求 → 守卫拦截<br>3. 验证签名和过期<br>4. 检查 Redis 是否撤销<br>5. 返回用户信息</code>"
+                    },
+                    {
+                        id: "3-2",
+                        title: "公开接口装饰器",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "15min",
+                        code: `// 自定义公开接口装饰器
+export const Public = () => SetMetadata('isPublic', true);
+
+// 全局守卫中判断
+@Injectable()
+export class JwtAuthGuard implements CanActivate {
+    constructor(private reflector: Reflector) {}
+
+    canActivate(context: ExecutionContext): boolean {
+        const isPublic = this.reflector.getAllAndOverride<boolean>(
+            'isPublic', [context.getHandler(), context.getClass()]
+        );
+        if (isPublic) return true;  // 跳过认证
+
+        // ... 正常 JWT 验证逻辑
+    }
+}
+
+// 使用
+@Get('public-info')
+@Public()  // 加上装饰器，无需登录
+async getPublicInfo() {}`,
+                        comments: [
+                            { line: "3", text: "SetMetadata() 将元数据附加到路由处理器，键为 'isPublic'" },
+                            { line: "9", text: "Reflector 从处理器和类上读取元数据" },
+                            { line: "10-11", text: "getAllAndOverride 合并 Handler 和 Class 上的元数据" },
+                            { line: "12", text: "如果标记了 @Public()，直接返回 true 跳过认证" },
+                            { line: "21", text: "@Public() 装饰器简洁地标记公开接口" }
+                        ],
+                        proTip: "装饰器组合：<br><code>@Public() + 守卫判断 = 公开接口<br>@UseGuards(JwtGuard) = 需要登录<br>@Roles('admin') = 需要角色</code>"
+                    }
+                ]
+            },
+            {
+                id: 4,
+                title: "全局机制",
+                subtitle: "管道 · 拦截器 · 过滤器",
+                totalTime: "60min",
+                chapters: [
+                    {
+                        id: "4-1",
+                        title: "全局管道 + 参数校验",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "20min",
+                        code: `// src/pipe/validate.pipe.ts
+@Injectable()
+export class ValidatePipe implements PipeTransform {
+    constructor(private validator: Validator) {}
+
+    transform(value: any, { metatype, metadata }: ArgumentMetadata) {
+        // DTO 类转字符串名，去除 "String", "Number" 等
+        if (!metatype || !this.toValidate(metatype)) {
+            return value;
+        }
+        // 校验并转换
+        return this.validator.validate(value, { metatype });
+    }
+
+    private toValidate(metatype: Function): boolean {
+        const types: Function[] = [String, Boolean, Number, Array, Object];
+        return !types.includes(metatype);
+    }
+}
+
+// 使用：全局注册
+app.useGlobalPipes(new ValidatePipe());`,
+                        comments: [
+                            { line: "5", text: "PipeTransform 接口必须实现 transform() 方法" },
+                            { line: "7", text: "ArgumentMetadata 包含参数的类型和元数据" },
+                            { line: "9-10", text: "基础类型（String 等）不需要校验，只校验 DTO" },
+                            { line: "12", text: "validator.validate() 执行装饰器上的校验规则" },
+                            { line: "19", text: "useGlobalPipes() 全局注册，所有请求都会经过此管道" }
+                        ],
+                        proTip: "ValidationPipe 自动校验：<br><code>@IsString() - 必须是字符串<br>@IsOptional() - 可选<br>@IsEmail() - 邮箱格式<br>@MinLength(n) - 最小长度</code>"
+                    },
+                    {
+                        id: "4-2",
+                        title: "拦截器 + 统一响应",
+                        frequency: "高",
+                        frequencyLevel: "medium",
+                        time: "20min",
+                        code: `// src/interceptor/resWrapper.interceptor.ts
+@Injectable()
+export class ResWrapperInterceptor implements NestInterceptor {
+    intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+        return next.handle().pipe(
+            map(data => ({
+                data,           // 业务数据
+                msg: 'succ',     // 固定成功消息
+                code: 200       // HTTP 状态码
+            }))
+        );
+    }
+}
+
+// src/filter/httpException.filter.ts
+@Catch()
+export class HttpExceptionFilter implements ExceptionFilter {
+    catch(exception: HttpException, host: ArgumentsHost) {
+        const ctx = host.switchToHttp();
+        const res = ctx.getResponse();
+
+        res.status(exception.getStatus()).json({
+            data: null,
+            msg: exception.message,
+            code: exception.getStatus()
+        });
+    }
+}`,
+                        comments: [
+                            { line: "6", text: "intercept() 包裹路由处理，next.handle() 返回 Observable" },
+                            { line: "7-12", text: "map() 在响应前拦截，统一包装成 { data, msg, code } 格式" },
+                            { line: "17-19", text: "@Catch() 捕获所有异常，exception 是具体异常实例" },
+                            { line: "22-25", text: "getStatus() 获取 HTTP 状态码，统一响应格式返回" }
+                        ],
+                        proTip: "NestJS 请求生命周期：<br><code>请求 → Guard → Interceptor(pre) → Pipe → Controller → Service → Pipe → Interceptor(post) → Filter → 响应</code>"
+                    },
+                    {
+                        id: "4-3",
+                        title: "核心概念速记对比",
+                        frequency: "极高",
+                        frequencyLevel: "high",
+                        time: "20min",
+                        code: `// Express vs NestJS 对比
+
+// Express
+app.get('/items/:id', async (req, res) => {
+    const item = await db.find(req.params.id);
+    res.json(item);
+});
+
+// NestJS
+@Get(':id')
+async findOne(@Param('id') id: string) {
+    return this.itemsService.findOne(id);
+}
+
+// 核心对比
+┌──────────┬──────────────┬──────────────┐
+│          │   Express    │    NestJS    │
+├──────────┼──────────────┼──────────────┤
+│ 路由定义 │ app.get()    │ @Get()       │
+│ 参数获取 │ req.params   │ @Param()     │
+│ 业务逻辑 │ 写在路由里    │ 放 Service   │
+│ 依赖管理 │ 手动 require  │ 依赖注入     │
+│ 中间件   │ app.use()    │ Guard/Pipe   │
+│ 错误处理 │ try-catch    │ Filter       │
+│ 类型支持 │ 无           │ TypeScript   │
+└──────────┴──────────────┴──────────────┘`,
+                        comments: [
+                            { line: "3-6", text: "Express 路由里直接写业务逻辑，耦合度高，难测试" },
+                            { line: "8-11", text: "NestJS 用装饰器声明路由，业务逻辑在 Service，职责分离" },
+                            { line: "17-18", text: "@Get() 是装饰器，自动从方法名推导 HTTP 方法" },
+                            { line: "19", text: "@Param() 从请求 URL 中提取参数，自动类型转换" },
+                            { line: "27-29", text: "NestJS 通过 TypeScript + 装饰器提供更好的类型安全和代码提示" }
+                        ],
+                        proTip: "选型建议：<br><code>Express：小项目、快速原型<br>NestJS：中大型、企业级、需要团队协作</code>"
+                    }
+                ]
+            }
+        ];
+
+        const allPlans = {
+            'wc-backend': wcBackendPlan,
+            'tb-dock': tbDockPlan
+        };
+
+        function _switchProject(project) {
+            currentProject = project;
+            document.querySelectorAll('.project-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.project === project) tab.classList.add('active');
+            });
+            document.getElementById('progressTitle').textContent = `${projectInfo[project].name} 源码进度`;
+            renderPlan();
+            loadProgress();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPlan();
+            loadProgress();
+        });
+
+        function renderPlan() {
+            const container = document.getElementById('mainContent');
+            const plan = allPlans[currentProject];
+            let html = '';
+            let chapterId = 0;
+
+            plan.forEach((stage) => {
+                const stageProgress = calculateStageProgress(stage);
+                html += `
+                    <div class="stage expanded" data-stage-id="${stage.id}">
+                        <div class="stage-header" onclick="_toggleStage(${stage.id})">
+                            <div class="stage-number">${stage.id}</div>
+                            <div class="stage-info">
+                                <div class="stage-title">${stage.title}</div>
+                                <div class="stage-subtitle">${stage.subtitle} · ${stage.totalTime}</div>
+                            </div>
+                            <div class="stage-progress">${stageProgress}%</div>
+                            <div class="stage-toggle">
+                                <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+                            </div>
+                        </div>
+                        <div class="chapter-list">
+                            ${stage.chapters.map(chapter => {
+                    chapterId++;
+                    return renderChapter(chapter, chapterId);
+                }).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            updateTotalProgress();
+            document.getElementById('totalCount').textContent = chapterId;
+        }
+
+        function renderChapter(chapter, index) {
+            const codeLines = chapter.code.split('\n');
+            const linesHtml = codeLines.map((line, i) => `
+                <div class="code-line">
+                    <span class="line-number">${i + 1}</span>
+                    <span class="line-content">${escapeHtml(line) || ' '}</span>
+                </div>
+            `).join('');
+
+            const commentsHtml = chapter.comments.map(c => {
+                const isLongLineNum = c.line.length > 2;
+                const lineNumWidth = isLongLineNum ? '55px' : '34px';
+                const textMarginLeft = isLongLineNum ? '20px' : '0';
+                return `
+                <div class="comment-line">
+                    <span class="comment-line-number" style="width: ${lineNumWidth}">${c.line}</span>
+                    <span class="comment-text" style="margin-left: ${textMarginLeft}">${c.text}</span>
+                </div>
+            `;
+            }).join('');
+
+            const proTipHtml = chapter.proTip ? `
+                <div class="pro-tip">
+                    <div class="pro-tip-header">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                        记忆口诀
+                    </div>
+                    <div class="pro-tip-content">${chapter.proTip}</div>
+                </div>
+            ` : '';
+
+            return `
+                <div class="chapter" data-chapter-id="${chapter.id}">
+                    <div class="chapter-header">
+                        <div class="chapter-checkbox" onclick="event.stopPropagation(); toggleChapter('${chapter.id}', event)">
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                        </div>
+                        <div class="chapter-content">
+                            <div class="chapter-title">${index}. ${chapter.title}</div>
+                            <div class="chapter-tags">
+                                <span class="tag tag-frequency ${chapter.frequencyLevel}">考频：${chapter.frequency}</span>
+                                <span class="tag tag-time">${chapter.time}</span>
+                            </div>
+                            <div class="code-section">
+                                <div class="code-header">
+                                    <span class="code-label">代码示例</span>
+                                    <span class="code-toggle" onclick="event.stopPropagation(); _toggleCode(this)">
+                                        <span class="toggle-text">展开逐行解释</span>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+                                    </span>
+                                </div>
+                                <div class="code-block">${linesHtml}</div>
+                                <div class="code-comments">${commentsHtml}</div>
+                                ${proTipHtml}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function _toggleStage(stageId) {
+            const stage = document.querySelector(`[data-stage-id="${stageId}"]`);
+            stage.classList.toggle('expanded');
+        }
+
+        let toggleChapter = (chapterId, event) => {
+            if (event) event.stopPropagation();
+            const chapter = document.querySelector(`[data-chapter-id="${chapterId}"]`);
+            chapter.classList.toggle('completed');
+            saveProgress();
+            updateTotalProgress();
+            const stageId = chapter.closest('.stage').dataset.stageId;
+            const stage = allPlans[currentProject].find(s => s.id === Number.parseInt(stageId, 10));
+            const progressEl = document.querySelector(`[data-stage-id="${stageId}"] .stage-progress`);
+            progressEl.textContent = `${calculateStageProgress(stage)}%`;
+        }
+
+        function _toggleCode(btn, event) {
+            if (event) event.stopPropagation();
+            const comments = btn.closest('.code-section').querySelector('.code-comments');
+            const textEl = btn.querySelector('.toggle-text');
+            if (comments.classList.contains('show')) {
+                comments.classList.remove('show');
+                textEl.textContent = '展开逐行解释';
+            } else {
+                comments.classList.add('show');
+                textEl.textContent = '收起逐行解释';
+            }
+        }
+
+        function saveProgress() {
+            const completed = Array.from(document.querySelectorAll('.chapter.completed'))
+                .map(el => el.dataset.chapterId);
+            localStorage.setItem(`nodejs-source-progress-${currentProject}`, JSON.stringify(completed));
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem(`nodejs-source-progress-${currentProject}`);
+            if (saved) {
+                JSON.parse(saved).forEach(chapterId => {
+                    const chapter = document.querySelector(`[data-chapter-id="${chapterId}"]`);
+                    if (chapter) chapter.classList.add('completed');
+                });
+                updateTotalProgress();
+                updateAllStageProgress();
+            }
+        }
+
+        function updateAllStageProgress() {
+            allPlans[currentProject].forEach(stage => {
+                const progressEl = document.querySelector(`[data-stage-id="${stage.id}"] .stage-progress`);
+                if (progressEl) progressEl.textContent = `${calculateStageProgress(stage)}%`;
+            });
+        }
+
+        function updateTotalProgress() {
+            const total = document.querySelectorAll('.chapter').length;
+            const completed = document.querySelectorAll('.chapter.completed').length;
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+            document.getElementById('progressPercent').textContent = `${percent}`;
+            document.getElementById('progressFill').style.width = `${percent}%`;
+            document.getElementById('completedCount').textContent = completed;
+        }
+
+        function calculateStageProgress(stage) {
+            const chapters = document.querySelectorAll(`[data-stage-id="${stage.id}"] .chapter`);
+            const completed = document.querySelectorAll(`[data-stage-id="${stage.id}"] .chapter.completed`);
+            return chapters.length > 0 ? Math.round((completed.length / chapters.length) * 100) : 0;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 庆祝弹窗相关函数
+        const celebrationMessages = [
+            { emoji: '🌸', titles: ['真棒！', '很好！', '加油！', '继续！', '向前！'], messages: ['你又前进了一步', '每一步都算数', '这就是进步的样子', '稳稳地往前走', '又完成了一个'] },
+            { emoji: '✨', titles: ['闪亮！', '耀眼！', '出众！', '卓越！', '精彩！'], messages: ['你完全有这个能力', '相信自己，你可以的', '专注让你更强大', '你正在变强', '这就是积累的力量'] },
+            { emoji: '🌿', titles: ['成长！', '发芽！', '破土！', '新生！', '向上！'], messages: ['距离目标又近了一步', '大树也是从小苗开始', '你比自己以为的更厉害', '持续的力量很强大', '今天的你比昨天更好'] },
+            { emoji: '🌙', titles: ['静心！', '沉稳！', '坚定！', '从容！', '平和！'], messages: ['一步一个脚印', '你走在正确的路上', '不急不躁，稳扎稳打', '保持这个节奏', '你值得为自己的努力骄傲'] },
+            { emoji: '🐪', titles: ['骆驼！', '坚韧！', '稳步！', '耐力！', '穿越！'], messages: ['沙漠也能穿越', '一步一步走向绿洲', '坚持就是胜利', '你比想象中更厉害', '你比想象中更强大'] },
+            { emoji: '🌱', titles: ['萌芽！', '新生！', '破土！', '生长！', '绽放！'], messages: ['种子在发芽', '新的可能正在生长', '每一次努力都在扎根', '坚持下去就会开花', '你正在变强'] },
+            { emoji: '🌲', titles: ['挺拔！', '参天！', '茂盛！', '稳固！', '向上！'], messages: ['从小树苗到参天大树', '今天的积累是明天的资本', '你会越来越强大', '稳步生长的力量', '你就是那棵树'] },
+            { emoji: '🍫', titles: ['小确幸！', '甜点时间！', '小奖励！'], messages: ['甜甜的成就感','努力的人最可爱'] }
+        ];
+
+        function showCelebration() {
+            const total = document.querySelectorAll('.chapter').length;
+            const completed = document.querySelectorAll('.chapter.completed').length;
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            // 随机选择一套文案
+            const randomSet = celebrationMessages[Math.floor(Math.random() * celebrationMessages.length)];
+            const emoji = randomSet.emoji;
+            const title = randomSet.titles[Math.floor(Math.random() * randomSet.titles.length)];
+            const message = randomSet.messages[Math.floor(Math.random() * randomSet.messages.length)];
+
+            // 创建遮罩层
+            const overlay = document.createElement('div');
+            overlay.className = 'celebration-overlay';
+            overlay.innerHTML = `
+                <div class="celebration-popup">
+                    <div class="celebration-emoji">${emoji}</div>
+                    <div class="celebration-title">${title}</div>
+                    <div class="celebration-message">${message}</div>
+                    <div class="celebration-progress">
+                        <span>进度</span>
+                        <div class="celebration-progress-bar">
+                            <div class="celebration-progress-fill" style="width: ${percent}%"></div>
+                        </div>
+                        <span>${completed}/${total}</span>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            // 创建烟花粒子
+            createConfetti();
+
+            // 1.8秒后移除
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                overlay.style.transition = 'opacity 0.25s ease';
+                setTimeout(() => overlay.remove(), 250);
+            }, 800);
+        }
+
+        function createConfetti() {
+            const colors = ['#ff6b9d', '#ff8fab', '#ffb3c6', '#ffc0cb', '#ffb6c1', '#ff69b4', '#ff1493', '#e0b0ff'];
+            const confettiContainer = document.createElement('div');
+            confettiContainer.className = 'confetti';
+            document.body.appendChild(confettiContainer);
+
+            for (let i = 0; i < 30; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = `${Math.random() * 100}vw`;
+                piece.style.top = `${Math.random() * 20}vh`;
+                piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                piece.style.animationDelay = `${Math.random() * 0.3}s`;
+                piece.style.animationDuration = `${0.8 + Math.random() * 0.5}s`;
+
+                // 随机形状
+                if (Math.random() > 0.5) {
+                    piece.style.borderRadius = '50%';
+                }
+
+                // 随机大小
+                const size = 4 + Math.random() * 6;
+                piece.style.width = `${size}px`;
+                piece.style.height = `${size}px`;
+
+                confettiContainer.appendChild(piece);
+            }
+
+            // 1.8秒后移除粒子容器
+            setTimeout(() => confettiContainer.remove(), 1800);
+        }
+
+        // 修改 toggleChapter 函数，添加庆祝弹窗
+        const originalToggleChapter = toggleChapter;
+        toggleChapter = (chapterId, event) => {
+            if (event) event.stopPropagation();
+            const chapter = document.querySelector(`[data-chapter-id="${chapterId}"]`);
+            const wasCompleted = chapter.classList.contains('completed');
+
+            originalToggleChapter(chapterId, event);
+
+            // 只有从未完成变成完成时才显示弹窗
+            if (!wasCompleted && chapter.classList.contains('completed')) {
+                // 给 checkbox 添加动画
+                const checkbox = chapter.querySelector('.chapter-checkbox');
+                checkbox.classList.add('checked-anim');
+                setTimeout(() => checkbox.classList.remove('checked-anim'), 400);
+
+                // 显示庆祝弹窗
+                showCelebration();
+            }
+        };
+    </script>
+</body>
+
+</html>

@@ -1,4 +1,4 @@
-﻿---
+---
 title: Nestjs Crash Course
 published: 2026-05-09
 updated: 2026-05-14
@@ -21,11 +21,12 @@ draft: false
 4. [Nest 装饰器基础](#4-nest-装饰器基础)
 5. [Controller 控制器](#5-controller-控制器)
 6. [DTO 数据传输对象](#6-dto-数据传输对象)
-7. [Service 服务与依赖注入](#7-service-服务与依赖注入)
-8. [Module 模块系统](#8-module-模块系统)
-9. [MongoDB + Mongoose 集成](#9-mongodb--mongoose-集成)
-10. [完整 CRUD 示例](#10-完整-crud-示例)
-11. [课程总结](#11-课程总结)
+7. [class-validator 数据验证](#7-class-validator-数据验证)
+8. [Service 服务与依赖注入](#8-service-服务与依赖注入)
+9. [Module 模块系统](#9-module-模块系统)
+10. [MongoDB + Mongoose 集成](#10-mongodb--mongoose-集成)
+11. [完整 CRUD 示例](#11-完整-crud-示例)
+12. [课程总结](#12-课程总结)
 
 ---
 
@@ -1216,7 +1217,202 @@ DTO 的核心作用：
 
 ---
 
-## 7. Service 服务与依赖注入
+## 7. class-validator 数据验证
+
+### 什么是 class-validator？
+
+`class-validator` 是一个数据验证库，虽然它本身是独立的 npm 包，但和 NestJS 配合得非常好。
+
+以前我们写接口验证是这样的：
+
+```typescript
+if (!body.name || typeof body.name !== 'string') {
+  throw new Error('名字必须是字符串');
+}
+if (body.age < 0 || body.age > 150) {
+  throw new Error('年龄不合理');
+}
+```
+
+这种写法：
+- 验证逻辑和业务逻辑混在一起
+- 代码又臭又长
+- 维护困难
+
+`class-validator` 让你用声明式的方式写验证规则，像这样：
+
+```typescript
+class CreateUserDto {
+  @IsString()
+  @MinLength(2)
+  name: string;
+
+  @IsInt()
+  @Min(0)
+  @Max(150)
+  age: number;
+}
+```
+
+代码清晰多了吧？
+
+### NestJS 中如何使用？
+
+**1.安装依赖**
+
+```bash
+npm install class-validator class-transformer
+```
+
+**2.启用全局验证管道**
+
+在 `main.ts` 中启用 `ValidationPipe`：
+
+```typescript
+// main.ts
+import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  // 启用全局验证管道
+  app.useGlobalPipes(new ValidationPipe());
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+**3. 在 DTO 中定义验证规则**
+
+```typescript
+// dto/create-user.dto.ts
+import { IsString, IsEmail, IsInt, Min, Max, IsOptional } from 'class-validator';
+
+export class CreateUserDto {
+  @IsString()
+  @MinLength(2)
+  name: string;
+
+  @IsEmail()
+  email: string;
+
+  @IsInt()
+  @Min(0)
+  @Max(150)
+  age: number;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+}
+```
+
+**4. 在 Controller 中使用**
+
+```typescript
+@Post()
+create(@Body() createUserDto: CreateUserDto) {
+  // 这里的数据已经经过验证了
+  return this.userService.create(createUserDto);
+}
+```
+
+### 核心装饰器一览
+
+| 装饰器 | 作用 | 示例 |
+|--------|------|------|
+| `@IsString()` | 必须是字符串 | - |
+| `@IsNumber()` | 必须是数字 | - |
+| `@IsInt()` | 必须是整数 | - |
+| `@IsEmail()` | 必须是邮箱格式 | - |
+| `@MinLength(n)` | 最小长度 | `@MinLength(6)` |
+| `@MaxLength(n)` | 最大长度 | `@MaxLength(50)` |
+| `@Min(n)` | 最小值（数字） | `@Min(0)` |
+| `@Max(n)` | 最大值（数字） | `@Max(150)` |
+| `@IsOptional()` | 字段可选 | - |
+| `@IsEnum()` | 必须是枚举值 | `@IsEnum(Role)` |
+| `@IsArray()` | 必须是数组 | `@IsArray() tags: string[]` |
+| `@ValidateNested()` | 嵌套对象验证 | `@ValidateNested() user: UserDto` |
+| `@IsUUID()` | 必须是 UUID | `@IsUUID() id: string` |
+| `@IsUrl()` | 必须是 URL | `@IsUrl() website: string` |
+| `@Matches(regex)` | 匹配正则 | `@Matches(/^\d{4}-\d{2}-\d{2}$/)` |
+
+### 验证失败响应示例
+
+当请求数据不符合规则时，NestJS 会自动返回 400 错误：
+
+```json
+// 请求
+POST /users
+{ "name": "", "email": "invalid", "age": -1 }
+
+// 响应
+{
+  "statusCode": 400,
+  "message": [
+    "name must be longer than or equal to 2 characters",
+    "email must be an email",
+    "age must not be less than 0"
+  ],
+  "error": "Bad Request"
+}
+```
+
+### 进阶：whitelist 和 transform
+
+`ValidationPipe` 还有一些有用的选项：
+
+```typescript
+app.useGlobalPipes(
+  new ValidationPipe({
+    whitelist: true,         // 自动过滤掉 DTO 中没有定义的字段
+    forbidNonWhitelisted: true, // 如果请求中有未定义的字段，报错
+    transform: true,          // 自动将请求数据转换为 DTO 类型
+  }),
+);
+```
+
+**为什么要用这些选项？**
+
+- `whitelist: true`：防止前端传入多余字段，避免数据库写入不该写的字段
+- `forbidNonWhitelisted: true`：严格模式下，多余字段直接报错
+- `transform: true`：自动类型转换，比如 URL 参数都是字符串 `"10"` 会自动变成数字 `10`
+
+### 嵌套对象验证
+
+当 DTO 中包含嵌套对象时：
+
+```typescript
+// dto/address.dto.ts
+export class AddressDto {
+  @IsString()
+  city: string;
+
+  @IsString()
+  street: string;
+}
+
+// dto/create-user.dto.ts
+export class CreateUserDto {
+  @IsString()
+  name: string;
+
+  @ValidateNested()
+  @Type(() => AddressDto)
+  address: AddressDto;
+}
+```
+
+> 注意：嵌套验证需要配合 `class-transformer` 的 `@Type()` 装饰器使用。
+
+**记忆口诀**
+
+> **"装饰器写规则，ValidationPipe 来触发，数据不合规矩就报错"**
+
+---
+
+## 8. Service 服务与依赖注入
 
 ### 7.1 Service 是什么？
 
@@ -2385,7 +2581,7 @@ Service：处理具体业务逻辑
 
 ---
 
-## 8. Module 模块系统
+## 9. Module 模块系统
 
 ### 什么是 Module？
 
@@ -2740,17 +2936,13 @@ exports = 我愿意给别人什么
 
 ### 全局模块
 
-某些服务需要在所有地方都能用（比如配置服务、日志服务、数据库连接服务），
-
-如果每个模块都要写`imports: [ConfigModule]`太麻烦了，
-
-所以做成全局模块：
+当某些服务（如配置服务、日志服务、数据库连接服务）需要在**所有模块**中都能使用时，如果每个模块都要写 `imports: [ConfigModule]`，会非常麻烦。这时可以使用全局模块。
 
 ```typescript
 // config.module.ts
 import { Module, Global } from '@nestjs/common';
 
-@Global()
+@Global()  // 标记为全局模块
 @Module({
   providers: [ConfigService],
   exports: [ConfigService],
@@ -2759,16 +2951,26 @@ export class ConfigModule {}
 ```
 
 ```typescript
-// app.module.ts 只需要在根模块导入一次：
+// app.module.ts 只需要在根模块导入一次
 @Module({
-  imports: [ConfigModule],  
+  imports: [ConfigModule],
 })
 export class AppModule {}
 ```
 
-加上 `@Global()` 后，`ConfigService` 就不用在每个模块的 `imports` 里导入了，可以直接注入到任何 Service 或 Controller 中。
+加上 `@Global()` 后，`ConfigService` 就可以直接注入到任何模块的 Service 或 Controller 中，**不需要再写 imports**：
 
-> Nest 官方文档也强调，`@Global()` 会让模块变成全局作用域，但全局模块一般只应该注册一次，通常由根模块或者核心模块导入；并且不推荐把所有东西都做成全局，因为这样会让模块依赖关系不清晰。
+```typescript
+// items.service.ts - 直接使用，不需要 imports: [ConfigModule]
+@Injectable()
+export class ItemsService {
+  constructor(private configService: ConfigService) {}
+}
+```
+
+> **使用场景**：配置服务、日志服务、工具类服务等几乎所有模块都会用到的基础设施。
+>
+> **注意事项**：`@Global()` 会让模块变成全局作用域，但全局模块一般只应该注册一次（通常由根模块导入）。**不推荐把所有东西都做成全局**，因为这样会让模块依赖关系不清晰，难以追踪某个服务到底被谁依赖。
 
 ### 共享模块
 
@@ -2808,41 +3010,74 @@ export class UsersModule {}
 
 ### 动态模块
 
-Module 还可以根据配置动态生成，这就是"动态模块"：
+普通模块的配置是**写死**的。如果你想让同一个模块在不同环境下使用不同的配置怎么办？
+
+这就需要**动态模块**——模块可以根据传入的参数，动态生成不同的配置。
 
 ```typescript
-@Module({})
+@Module({})  // 空模块，自身没有 providers
 export class DatabaseModule {
+  // 1. 必须定义一个 static 静态方法（约定俗成命名为 forRoot）
+  // 2. 接收配置参数
+  // 3. 返回 DynamicModule 类型
   static forRoot(connectionName: string): DynamicModule {
     return {
-      module: DatabaseModule,
+      module: DatabaseModule,              // 必填：告诉 Nest 这个模块叫什么
       providers: [
         {
-          provide: 'CONNECTION_NAME',
-          useValue: connectionName,
+          provide: 'CONNECTION_NAME',    // Token：注入时的标识
+          useValue: connectionName,       // 值：使用传入的参数作为配置
         },
       ],
-      exports: ['CONNECTION_NAME'],
+      exports: ['CONNECTION_NAME'],        // 导出：让其他模块能使用这个配置
     };
   }
 }
 ```
 
+**使用方式：**
+
 ```typescript
 // app.module.ts
 @Module({
-  imports: [DatabaseModule.forRoot('default')],
+  // 导入时调用 forRoot()，传入实际配置
+  imports: [DatabaseModule.forRoot('mongodb://localhost:27017')],
 })
 export class AppModule {}
 ```
 
-这个特性常用于数据库连接、HTTP 客户端等需要配置的场景。
+**为什么需要动态模块？**
+
+场景：同一个项目要适配多个环境
+
+```
+开发环境：DatabaseModule.forRoot('mongodb://localhost:27017')
+测试环境：DatabaseModule.forRoot('mongodb://test:27017')
+生产环境：DatabaseModule.forRoot('mongodb://prod:27017')
+```
+
+如果用普通模块写死配置，换环境就要改代码。用动态模块，只需要在导入时传不同参数。
+
+| 对比 | 普通模块 | 动态模块 |
+|-----|---------|---------|
+| 配置 | 写死在代码里 | 运行时传入 |
+| 灵活性 | 低 | 高 |
+| 适用场景 | 固定配置 | 需要根据环境切换 |
+
+**常见使用场景：**
+
+- 数据库连接（MySQL、MongoDB、Redis）
+- HTTP 客户端（配置 baseURL、超时时间）
+- 第三方服务（配置 API 地址、密钥）
+- 应用配置（不同环境用不同配置）
+
+> **记忆口诀**：普通模块"写死"，动态模块"传参"
 
 
 
 ---
 
-## 9. MongoDB + Mongoose 集成
+## 10. MongoDB + Mongoose 集成
 
 > **过时提示**：视频中的部分内容可能已过时，请以官方文档为准。
 
@@ -2940,7 +3175,7 @@ export class ItemsService {
 
 ---
 
-## 10. 完整 CRUD 示例
+## 11. 完整 CRUD 示例
 
 ### Controller
 
@@ -3019,7 +3254,7 @@ export class ItemsService {
 
 ---
 
-## 11. 课程总结
+## 12. 课程总结
 
 ### 核心概念
 
