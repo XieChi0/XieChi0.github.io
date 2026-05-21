@@ -1,0 +1,264 @@
+---
+import type { MarkdownHeading } from "astro";
+import { Icon } from "astro-icon/components";
+import { siteConfig } from "../../config";
+
+interface Props {
+	headings: MarkdownHeading[];
+}
+
+let { headings = [] } = Astro.props;
+
+let minDepth = 10;
+for (const heading of headings) {
+	minDepth = Math.min(minDepth, heading.depth);
+}
+
+const maxLevel = siteConfig.toc.depth;
+
+const removeTailingHash = (text: string) => {
+	let lastIndexOfHash = text.lastIndexOf("#");
+	if (lastIndexOfHash !== text.length - 1) {
+		return text;
+	}
+	return text.substring(0, lastIndexOfHash);
+};
+
+let heading1Count = 1;
+---
+
+<mobile-toc class="fixed bottom-24 right-4 z-50 lg:hidden">
+	<!-- Floating button -->
+	<button
+		id="mobile-toc-btn"
+		aria-label="目录"
+		class="btn-card w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-200"
+	>
+		<Icon name="material-symbols:format-list-bulleted-rounded" class="toc-icon text-[1.25rem] text-[var(--primary)]"></Icon>
+	</button>
+
+	<!-- Panel -->
+	<div id="mobile-toc-panel" class="toc-panel">
+		<div class="flex items-center justify-between px-3 py-2.5 border-b border-[var(--toc-badge-bg)]">
+			<div class="flex items-center gap-2">
+				<Icon name="material-symbols:menu-book-rounded" class="text-[1.2rem] text-[var(--primary)]"></Icon>
+				<span class="font-semibold text-sm">目录</span>
+			</div>
+			<span class="text-xs px-1.5 py-0.5 rounded bg-[var(--toc-badge-bg)] text-[var(--toc-badge-text)] opacity-70">{headings.length}</span>
+		</div>
+		<div class="max-h-[50vh] overflow-y-auto py-1">
+			{headings.filter((heading) => heading.depth < minDepth + maxLevel).map((heading) =>
+				<a href={`#${heading.slug}`} class="toc-item block mx-2 my-0.5 px-3 py-2 rounded-lg hover:bg-[var(--btn-plain-bg-hover)] transition-all duration-150">
+					<div class="flex items-center gap-2">
+						<div class:list={["toc-badge w-5 h-5 shrink-0 rounded text-xs flex items-center justify-center font-bold",
+							{
+								"bg-[var(--toc-badge-bg)] text-[var(--btn-content)]": heading.depth == minDepth,
+								"ml-4": heading.depth == minDepth + 1,
+								"ml-8": heading.depth == minDepth + 2,
+							}
+						]}
+						>
+							{heading.depth == minDepth && heading1Count++}
+							{heading.depth == minDepth + 1 && <div class="w-2 h-2 rounded bg-[var(--toc-badge-bg)]"></div>}
+							{heading.depth == minDepth + 2 && <div class="w-1.5 h-1.5 rounded-sm bg-black/20 dark:bg-white/20"></div>}
+						</div>
+						<span class:list={["text-sm truncate", {
+							"font-medium": heading.depth == minDepth,
+							"opacity-80": heading.depth == minDepth + 1,
+							"opacity-60 text-xs": heading.depth == minDepth + 2,
+						}]}>{removeTailingHash(heading.text)}</span>
+					</div>
+				</a>
+			)}
+		</div>
+	</div>
+</mobile-toc>
+
+<style is:global>
+/* Mobile TOC specific styles - placed in global because Web Component styles don't scope */
+mobile-toc {
+	position: fixed;
+	bottom: 10rem;
+	right: 1rem;
+	z-index: 50;
+}
+
+mobile-toc .toc-panel {
+	position: absolute;
+	bottom: 100%;
+	right: 0;
+	margin-bottom: 0.75rem;
+	width: 17rem;
+	max-height: 60vh;
+	overflow-y: auto;
+	background: var(--float-panel-bg);
+	border: 1px solid var(--border-color);
+	border-radius: 1rem;
+	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(0.5rem) scale(0.96);
+	pointer-events: none;
+	transition: opacity 0.2s ease-out, transform 0.2s ease-out, visibility 0.2s, box-shadow 0.2s;
+}
+
+mobile-toc .toc-panel.show {
+	opacity: 1;
+	visibility: visible;
+	transform: translateY(0) scale(1);
+	pointer-events: auto;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+mobile-toc .toc-item {
+	color: var(--text-secondary);
+}
+
+mobile-toc .toc-item:hover {
+	color: var(--text-primary);
+}
+
+mobile-toc .toc-item:active {
+	background: var(--btn-plain-bg-active);
+	transform: scale(0.98);
+}
+
+mobile-toc .toc-item.active {
+	background: var(--toc-btn-hover);
+	color: var(--text-primary);
+}
+
+mobile-toc .toc-item.active .toc-badge {
+	background: var(--primary);
+	color: white;
+}
+
+mobile-toc .toc-badge {
+	transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+
+mobile-toc .toc-item.active .toc-badge {
+	transform: scale(1.1);
+}
+
+/* Button press effect */
+mobile-toc #mobile-toc-btn {
+	transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+mobile-toc #mobile-toc-btn:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+mobile-toc #mobile-toc-btn:active {
+	transform: translateY(1px) scale(0.95);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+mobile-toc #mobile-toc-btn.show {
+	transform: translateY(1px) scale(0.95);
+}
+
+mobile-toc #mobile-toc-btn.show .toc-icon {
+	opacity: 0.7;
+}
+</style>
+
+<script>
+class MobileTOC extends HTMLElement {
+	private toggleBtn: HTMLElement | null = null;
+	private panel: HTMLElement | null = null;
+	private tocItems: HTMLAnchorElement[] = [];
+	private headings: HTMLElement[] = [];
+	private observer: IntersectionObserver | null = null;
+	private activeClass = "active";
+
+	connectedCallback() {
+		this.toggleBtn = this.querySelector<HTMLElement>("#mobile-toc-btn");
+		this.panel = this.querySelector<HTMLElement>("#mobile-toc-panel");
+
+		if (!this.toggleBtn || !this.panel) return;
+
+		this.initScrollSpy();
+
+		this.toggleBtn.addEventListener("click", (e) => {
+			e.stopPropagation();
+			const isShowing = this.panel?.classList.toggle("show");
+			if (isShowing) {
+				this.toggleBtn?.classList.add("show");
+			} else {
+				this.toggleBtn?.classList.remove("show");
+			}
+		});
+
+		document.addEventListener("click", (e) => {
+			const target = e.target as HTMLElement;
+			if (!this.panel?.classList.contains("show")) return;
+			if (!this.contains(target) && target !== this.toggleBtn) {
+				this.panel.classList.remove("show");
+			}
+		});
+
+		this.tocItems.forEach((link) => {
+			link.addEventListener("click", () => {
+				this.panel?.classList.remove("show");
+			});
+		});
+	}
+
+	private initScrollSpy() {
+		const panelLinks = this.panel?.querySelectorAll<HTMLAnchorElement>("a");
+		if (!panelLinks) return;
+
+		this.tocItems = Array.from(panelLinks);
+
+		this.headings = this.tocItems
+			.map((link) => {
+				const id = link.getAttribute("href")?.slice(1);
+				return id ? document.getElementById(id) : null;
+			})
+			.filter((el): el is HTMLElement => el !== null);
+
+		if (this.headings.length === 0) return;
+
+		this.observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						const id = entry.target.getAttribute("id");
+						this.setActiveItem(id);
+					}
+				});
+			},
+			{
+				rootMargin: "-20% 0px -60% 0px",
+				threshold: 0,
+			}
+		);
+
+		this.headings.forEach((heading) => {
+			this.observer?.observe(heading);
+		});
+	}
+
+	private setActiveItem(activeId: string | null) {
+		this.tocItems.forEach((item) => {
+			const href = item.getAttribute("href");
+			if (href === `#${activeId}`) {
+				item.classList.add(this.activeClass);
+			} else {
+				item.classList.remove(this.activeClass);
+			}
+		});
+	}
+
+	disconnectedCallback() {
+		this.observer?.disconnect();
+	}
+}
+
+if (!customElements.get("mobile-toc")) {
+	customElements.define("mobile-toc", MobileTOC);
+}
+</script>

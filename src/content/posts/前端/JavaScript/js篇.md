@@ -13,14 +13,23 @@ draft: false
 ### 概述
 
 * 原始类型（primitive type）
-  * 数值（number）：整数和小数
-  * 字符串（string）
-  * 布尔值
+  
+  ```
+   数值（number）：整数和小数
+   字符串（string）
+   布尔值
+  ```
 * 合成类型（complex type）
-  * 对象（object）：分为狭义对象（object）、数组（array）、函数（function）
+  
+  ```
+  对象（object）：分为狭义对象（object）、数组（array）、函数（function）
+  ```
 * 特殊值
-  * undefined：未定义
-  * null：空值
+  
+  ```
+   undefined：未定义
+   null：空值
+  ```
 
 undefined是本来该有值的地方你没设值，是一种异常情况，所以它返回数值时是NAN.
 
@@ -30,91 +39,37 @@ null表示一个变量明确的被赋值成空值，所以返回0.
 
 <img src="https://s1.imagehub.cc/images/2024/11/26/9456b2965a159f65a321d46356f07892.png" alt="image 20240704000924125" style="zoom:80%;" />
 
-1.类型
+1. 类型
 
-- `typeof undefined`返回`"undefined"`。
-- `typeof null`返回`"object"`（这是一个历史遗留问题，实际上`null`并不是一个对象）。
+   `typeof undefined ` 返回 `"undefined"`。
 
-```
-javascript复制代码console.log(typeof undefined); // 输出："undefined"
-console.log(typeof null); // 输出："object"
-```
+   `typeof null` 返回 `"object"`（这是一个历史遗留问题，实际上`null`并不是一个对象）
 
-> 因为一开始公司设置的数据类型只有对象、整数、浮点数、字符串和布尔值。只把null当做特殊对象，所以typeof null返回object。null,后来`null`独立出来，作为一种单独的数据类型，为了兼容以前的代码，`typeof null`返回`object`就没法改变了。
+   ```
+   console.log(typeof undefined); // 输出："undefined"
+   console.log(typeof null); // 输出："object"
+   ```
 
-2.相等性
+   > 因为一开始公司设置的数据类型只有对象、整数、浮点数、字符串和布尔值。
+   >
+   > 只把null当做特殊对象，所以typeof null返回object。
+   >
+   > 后来`null`独立出来，作为一种单独的数据类型，为了兼容以前的代码，`typeof null`返回`object`就没法改变了。
 
-- `undefined == null`返回`true`，因为它们都被认为是空值。
-- `undefined === null`返回`false`，因为它们类型不同。
+2. 相等性
 
-```
-javascript复制代码console.log(undefined == null); // 输出：true
-console.log(undefined === null); // 输出：false
-```
+   ```
+   console.log(undefined == null); // 输出：true,因为它们都被认为是空值。
+   console.log(undefined === null); // 输出：false,因为它们类型不同
+   ```
 
-总结：undefined表示变量未赋值或未定义
+   总结：
 
-null表示变量明确被赋值为空。
+   undefined表示变量未赋值或未定义
 
-----
+   null表示变量明确被赋值为空。
 
 ## MDN
-
-### 杂】
-
-<h3>箭头函数</h3>
-
-在 JavaScript 中，`() => {}` 是箭头函数（arrow function）语法的一部分。箭头函数是 ES6（ECMAScript 2015）引入的一种新的函数定义方式，提供了一种更简洁的函数表达法，特别是对于简短的函数。
-
-具体来说，`() => {}` 的含义如下：
-
-1. **`()`**: 参数列表，表示函数的参数。如果函数没有参数，可以写成空的圆括号。如果有一个参数，可以省略圆括号。例如，`x => x * x` 是一个接受一个参数 `x` 的箭头函数。如果有多个参数，参数需要用圆括号包起来，如 `(a, b) => a + b`。
-
-2. **`=>`**: 箭头符号，表示这是一个箭头函数。
-
-3. **`{}`**: 函数体，包含需要执行的代码。如果函数体只有一个表达式，并且这个表达式会作为返回值返回，则可以省略大括号和 `return` 关键字。例如，`x => x * x` 是一个返回 `x` 的平方的箭头函数。
-
-箭头函数与传统函数（使用 `function` 关键字定义的函数）有一些重要的区别：
-
-1. **语法简洁**: 箭头函数写起来通常比传统函数更简洁。
-   
-2. **词法上的 `this` 绑定**: 箭头函数没有自己的 `this` 值，它会捕获上下文中 `this` 的值。这意味着箭头函数中的 `this` 会和箭头函数定义时的上下文的 `this` 保持一致。这对于在回调函数中使用 `this` 特别有用。
-
-例子：
-
-传统函数：
-```javascript
-function sum(a, b) {
-    return a + b;
-}
-```
-
-箭头函数：
-```javascript
-const sum = (a, b) => {
-    return a + b;
-};
-
-// 进一步简化
-const sum = (a, b) => a + b;
-```
-
-箭头函数在回调中的使用：
-```javascript
-const numbers = [1, 2, 3, 4, 5];
-
-// 使用传统函数
-const doubled1 = numbers.map(function(number) {
-    return number * 2;
-});
-
-// 使用箭头函数
-const doubled2 = numbers.map(number => number * 2);
-```
-
-总之，箭头函数为编写更简洁、更直观的代码提供了便利，尤其在处理回调函数或嵌套函数时非常有用。
-
-## ------------------------
 
 ## JS第一步🦘
 
@@ -1273,7 +1228,7 @@ console.log(jsonString);  // 输出: '{"name": "Alice", "age": 25}'
 
 
 
-## ⭐
+# ⭐
 
 ## 异步
 

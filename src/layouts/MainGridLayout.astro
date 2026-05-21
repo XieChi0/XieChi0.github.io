@@ -8,6 +8,7 @@ import SideBar from "@components/widget/SideBar.astro";
 import type { MarkdownHeading } from "astro";
 import { Icon } from "astro-icon/components";
 import ImageWrapper from "../components/misc/ImageWrapper.astro";
+import MobileTOC from "../components/widget/MobileTOC.astro";
 import TOC from "../components/widget/TOC.astro";
 import { siteConfig } from "../config";
 import {
@@ -42,6 +43,8 @@ const hasBannerLink = !!siteConfig.banner.credit.url;
 const mainPanelTop = siteConfig.banner.enable
 	? `calc(${BANNER_HEIGHT}vh - ${MAIN_PANEL_OVERLAPS_BANNER_HEIGHT}rem)`
 	: "5.5rem";
+
+const isPostsRoute = Astro.url.pathname.startsWith("/posts/");
 ---
 
 <Layout title={title} banner={banner} description={description} lang={lang} setOGTypeArticle={setOGTypeArticle}>
@@ -127,4 +130,9 @@ const mainPanelTop = siteConfig.banner.enable
         {!siteConfig.toc.enable && <div id="toc"></div>}
     </div>
 </div>
+
+<!-- Mobile TOC floating button and panel -->
+{siteConfig.toc.enable && isPostsRoute && headings.length > 0 && (
+    <MobileTOC headings={headings}></MobileTOC>
+)}
 </Layout>

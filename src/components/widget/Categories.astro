@@ -33,7 +33,7 @@ function renderCategoryNodes(nodes: CategoryNode[], indent = 0): string {
 			if (hasChildren) {
 				// 有子分类：用 details 折叠
 				return `
-                <details class="category-parent" style="--indent: ${paddingLeft}">
+                <details class="category-parent" >
                     <summary class="category-summary">
                         <svg class="category-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
                             <path d="M7 0L8.5 5.5L14 7L8.5 8.5L7 14L5.5 8.5L0 7L5.5 5.5L7 0Z" fill="currentColor"/>
@@ -124,7 +124,7 @@ const style = Astro.props.style;
         width: 1rem;
         height: 1rem;
         color: var(--primary);
-        margin-right: 0.5rem;
+        margin-right: 0.6rem;
         flex-shrink: 0;
         transition: all 0.2s;
         opacity: 0.7;
@@ -189,7 +189,7 @@ const style = Astro.props.style;
         gap: 0.125rem;
         border-left: 1px dashed var(--border);
         padding-left: 1rem;
-        margin-left: 0.625rem;
+        /* margin-left: 0.6rem; */
         width: 100%;
         box-sizing: border-box;
         flex-basis: 100%;
