@@ -1,95 +1,177 @@
 ---
 title: Cookie、Session、Token、JWT 核心知识总结
 published: 2026-05-18
-updated: 2026-05-18
+updated: 2026-05-21
 description: 全面对比 Cookie、Session、通用 Token 与 JWT 的核心概念、适用场景及安全性差异，涵盖分布式认证方案详解。
 image: ''
-tags: [JWT,token]
-category: '基本功'
+tags: [JWT,token,哈希]
+category: '后端/权限与认证'
 draft: false
 ---
 
 # Cookie、Session、Token、JWT 核心知识总结
+
+这篇文章主要解决一个问题：
+
+> **登录态到底可以怎么表示？Cookie、Session、Token、JWT 分别是什么关系？**
+
+所以这里重点讲概念和 JWT 本身，不展开讲 XSS、CSRF、HTTPS 这些安全细节。安全方案可以单独看《XSS 与 CSRF》和《登录态安全与接口防护》。
 
 ## 一、核心概念对比表
 
 | 技术           | 核心本质                                      | 存储位置                                              | 核心工作流程                                                 | 核心优势                                                     | 核心劣势                                                     | 典型适用场景                                          |
 | :------------- | :-------------------------------------------- | :---------------------------------------------------- | :----------------------------------------------------------- | :----------------------------------------------------------- | :----------------------------------------------------------- | :---------------------------------------------------- |
 | **Cookie**     | 浏览器原生支持的**客户端小型数据载体**        | 浏览器 Cookie 文件（自动管理）                        | 1. 服务器通过`Set-Cookie`响应头发送数据<br />2. 后续同域请求浏览器**自动携带**所有 Cookie | 原生支持、无需手动处理、传输透明                             | 容量极小（≈4KB）、易受 CSRF 攻击、易受同源策略严格限制（由自身属性决定） | 简单状态保持、传递 Session ID、记住登录状态           |
-| **Session**    | 服务器端的**用户会话数据存储**                | 服务器内存 / 数据库 / Redis（仅 Session ID 存客户端） | 1. 用户登录后服务器生成唯一 Session ID<br />2. Session ID 通过 Cookie 返回客户端<br />3. 后续请求通过 Session ID 索引服务器端会话数据 | 数据安全（存服务器）、可**主动立即失效**、权限控制灵活       | 分布式系统需共享存储（如 Redis）、存在单点故障风险、扩展性差 | 单体 Web 应用、高安全要求的后台系统                   |
+| **Session**    | 服务器端的**用户会话数据存储**                | 服务器内存 / 数据库 / Redis（仅 Session ID 存客户端） | 1. 用户登录后服务器生成唯一 Session ID<br />2. Session ID 通过 Cookie 返回客户端<br />3. 后续请求通过 Session ID 索引服务器端会话数据 | 敏感数据存在服务端、可**主动立即失效**、权限控制灵活       | Session ID 被偷仍可能被冒用、分布式系统需共享存储（如 Redis）、扩展成本更高 | 单体 Web 应用、企业后台、高安全要求的内部系统         |
 | **通用 Token** | 服务器签发的**无状态身份凭证字符串**          | 客户端（localStorage/sessionStorage/Cookie）          | 1. 用户登录后服务器生成Token<br />2. 客户端手动存储，后续请求放在`Authorization`请求头<br />3. 服务器验证 Token 有效性 | 跨域友好、无状态、不依赖 Cookie、适合 API 接口               | 无法主动失效、泄露后有效期内可被滥用、需手动处理传输         | 前后端分离应用、移动端 API、第三方接口认证            |
 | **JWT**        | **结构化的 Token 标准实现**（JSON Web Token） | 客户端（同通用 Token）                                | 1. 服务器将用户 ID、权限等信息编码进 Token<br />2. Token 包含 Header+Payload+Signature 三部分<br />3. JWT 验证签名后，服务器可以直接读取 Payload 中的用户 ID、角色等信息。<br/>但如果要确认用户是否被禁用、权限是否最新、Token 是否在黑名单中，仍然可能需要查数据库或 Redis。 | 彻底无状态、无需共享存储、跨服务认证无缝、解决分布式单点故障 | 无法主动撤销、Payload 不能存敏感信息、Token 体积较大         | 微服务分布式架构、跨域单点登录 (SSO)、无状态 API 网关 |
 
 ## 二、关键补充说明
 
-1. **包含关系澄清**：JWT 是 Token 的一种**具体实现标准**，不是并列关系。我们常说的 "Token" 如果没有特别说明，很多时候实际指的就是 JWT。
+1. **包含关系澄清**：JWT 是 Token 的一种**具体实现标准**，与token不是并列关系。我们常说的 "Token" 如果没有特别说明，很多时候实际指的就是 JWT。
 2. **主动失效能力差异（安全性核心区别）**
    - Session：最强。检测到异常登录或用户登出时，直接删除服务器端的 Session 数据，即使 Session ID 泄露也立即失效
    - 通用 Token：较弱。若存储在服务器（如 Redis 白名单）可实现失效，但失去了无状态优势
    - JWT：最弱。一旦签发，除非到达过期时间，否则无法主动撤销。泄露后只能等待过期，因此必须配合**短过期时间 + 刷新 Token 机制**使用
 3. **分布式场景适配性**
    - Session：需要 Redis 等中心化存储实现会话共享，Redis 瘫痪会导致全系统认证失败
-   - JWT：每个服务只需持有相同的签名密钥即可独立验证，彻底解决分布式系统的认证单点故障问题
+   - JWT：每个服务只需持有相同的签名密钥即 可独立验证，彻底解决分布式系统的认证单点故障问题
 4. **传输方式差异**
    - Cookie：浏览器自动携带，无需前端代码处理，但天然受同源策略限制
    - Token/JWT：通常放在 HTTP 请求头中，前端需要手动处理存储和传输，但跨域更灵活
-
-
 
 ## 三、历程的详细介绍
 
 在较早的时期，登录的流程通常是这样的，首先是在登录页输入用户和密码，然后每一次请求都会带上用户名和密码，为了确保是这个用户拥有权限。
 
-但是把cookie放在浏览器里面，明文存储是很不安全的，所以有了新的概念**session**。每一次登录就是在进行一次session，这就是开始，至于什么时候结束，通常是由服务器进行定义的（所以每一次会话会服务器会生成session ID和结束时间）
+但是把cookie放在浏览器里面，明文存储是很不安全的，所以有了新的概念**session**。
 
-> Session 可以理解为服务器为某个用户维护的一段登录状态。
-> 用户登录后，服务器创建一份 Session 数据，并给客户端一个 Session ID。
-> 之后客户端每次请求都带着这个 Session ID，服务器就能找到对应的 Session 数据。
+> Session 可以理解为服务器为某个用户维护的一段登录状态
 
-当用户这边先进行登录，服务器收到以后去数据库进行比对，
+当用户这边进行登录，服务器收到以后去数据库进行比对，
 
-看看是否正确，如果验证通过，服务器会生成一个随机、无意义唯一的字符串（即SessionID），
+如果验证通过，服务器创建一份 Session 数据，并给客户端一个 Session ID，通过**Set-Cookie**发送给浏览器，再把会话结束时间对应设置为这个 Cookie 的有效期。
 
-服务器就需要把 SessionID 通过**Set-Cookie**发送给浏览器，再把会话结束时间对应设置为这个 Cookie 的有效期。
+浏览器的下次访问、下下次访问都会自动发送这个 SessionID 给服务器，直到 Cookie 的有效期失效之后，浏览器一般就会自行删除这个 Cookie，这就是会话结束了。
 
-> 但真正的 Session 数据和过期规则主要仍由服务器维护。
->
 > 一般cookie有效期长于session有效期，因为
 >
 > Cookie 还在，但服务器 Session 已过期 → 还是要重新登录
+>
 > Cookie 没了，但服务器 Session 还在 → 浏览器也找不到这个会话了
 
-浏览器拿到 Cookie 后进行保存。注意了，浏览器这个时候没有保存用户名密码，保存的 SessionID 也是没有规律的字符串。这个 Cookie 里也就只有这个 SessionID 最重要，没有别的重要信息。
+### Session ID 被偷了，会不会被冒用？
 
-> 有的服务器在发送 Cookie 之前是会对这个含有 SessionID 的 Cookie 进行签名。如果有人劫持并修改了 SessionID，就会变成服务器识别不了的字符串。
->
-> 但即使 Cookie 没有签名，只要 Session ID 是随机且不可预测的，攻击者也很难凭空猜出有效的 Session ID。
+会。
 
-接着说，浏览器的下次访问、下下次访问都会自动发送这个 SessionID 给服务器，直到 Cookie 的有效期失效之后，浏览器一般就会自行删除这个 Cookie，这就是会话结束了。
+因为 Session 认证的核心逻辑是：
+
+```txt
+浏览器带着 Session ID 来
+        ↓
+服务器用 Session ID 去查自己的 Session 存储
+        ↓
+查到了，就认为这是已登录用户
+```
+
+所以如果攻击者偷到了有效的 Session ID，并且服务器没有做额外校验，攻击者就可以把这个 Session ID 放到 Cookie 里，伪装成这个用户发请求。
+
+这类问题叫：
+
+```txt
+Session Hijacking
+会话劫持
+```
+
+所以 Session 不是“绝对不会被偷”，而是：
+
+> **Session 把真正的登录状态放在服务端，客户端只保存一个随机 ID。这个随机 ID 被偷了仍然危险，但服务端更容易主动控制它。**
+
+### 那为什么很多企业还要选 Session？
+
+因为企业更看重的是：**服务端可控、可以立即失效、权限变化能及时生效**。
+
+Session 的优势主要有这几个：
+
+| 优势 | 说明 |
+|-----|------|
+| 可以立即踢人 | 后端直接删除 Session，用户下次请求马上失效 |
+| 可以集中管理登录态 | 所有登录状态都在服务端或 Redis 里，方便查、删、统计 |
+| 权限变更更及时 | 用户被禁用、角色被改，后端可以立刻让 Session 失效 |
+| 客户端不存用户信息 | Cookie 里通常只有随机 Session ID，不直接放用户 ID、角色等信息 |
+| 适合内部后台系统 | 企业后台更重视可控性，而不是完全无状态 |
+
+JWT 的问题是：一旦签发出去，在过期前默认很难主动收回。除非加黑名单、版本号、短 Access Token + Refresh Token 等机制。
 
 
 
-但是session ID会高度依赖服务器的本身存储，你想想每个对话都需要进行存储ID，如果有很多对话的话，服务器必然是会超载的，以及在分布式系统中多台服务器之间共享 Session 麻烦。
+面试时可以这样说：
 
-| 方式    | 登录状态放哪里 | 前端带什么 | 后端是否需要查登录状态 |
-| ------- | -------------- | ---------- | ---------------------- |
-| Session | 后端           | sessionId  | 需要                   |
-| JWT     | Token 里       | JWT        | 通常不需要             |
+> Session ID 被偷后确实可能被冒用，所以也要配合 HTTPS、HttpOnly、Secure、SameSite、登录异常检测等措施。但企业仍然常用 Session，是因为 Session 的登录状态保存在服务端，服务端可以主动删除、修改和集中管理。相比 JWT，Session 在踢人、权限变更、风控控制上更直接，所以很多后台系统和企业内部系统仍然会选择 Session。
 
 
 
 ## JWT
 
-### 优势
+### 优缺点
 
--  JWT 是无状态的，服务器不用存数据，只靠 Token 本身验证
--  另外Session 依赖 Cookie 传递，受同源策略限制，JWT 放请求头里跨域更方便。
+**优点**
 
-### 缺点
+- JWT 是无状态的，服务器不用存数据，只靠 Token 本身验证
+- 另外Session 依赖 Cookie 传递，受同源策略限制，JWT 放请求头里跨域更方便。
+
+**缺点**
 
 - 一旦签发，在过期前不太好主动失效
 - Token 被偷会有风险
 - Payload 不能放敏感信息
+
+### 无状态的含义
+
+JWT 的“无状态”，说白了就是：
+
+> **后端不需要像 Session 那样，专门保存一份“这个用户”的会话记录。**
+
+Session 的思路是：
+
+```txt
+前端带 sessionId
+        ↓
+后端拿 sessionId 去 Redis / 内存里查 Session
+        ↓
+查到了，说明用户已登录
+```
+
+JWT 的思路是：
+
+```txt
+前端带 JWT
+        ↓
+后端验证签名、过期时间
+        ↓
+验证通过，就认为这个 Token 是可信的
+```
+
+也就是说，JWT 把用户 ID、过期时间、角色等信息放进 Token 里，再用签名保证它没有被篡改。后端只要保存签名密钥，就能验证这个 Token。
+
+举个很简单的理解：
+
+```txt
+Session：像去前台报手机号，前台查系统确认你是不是会员
+JWT：像拿一张带防伪签名的门票，门口验票通过就让你进
+```
+
+但注意：无状态不是“后端永远不查数据库”。
+
+如果系统还需要判断：
+
+```txt
+用户是否被禁用
+权限是否刚刚被修改
+Token 是否进入黑名单
+```
+
+那后端仍然可能查数据库或 Redis。只是 JWT 默认不需要像 Session 一样，每次都查一份“登录态记录”。
 
 ### 构成
 
@@ -99,8 +181,8 @@ draft: false
 
   - ```
     {
-      "alg": "HS256",	//使用什么签名算法
-      "typ": "JWT"		//这是一个 JWT
+      "alg": "HS256", //使用什么签名算法
+      "typ": "JWT"  //这是一个 JWT
     }
     ```
 
@@ -137,31 +219,11 @@ draft: false
    无效：返回 401 未登录
 ```
 
-
-
-浏览器和服务器用 JWT 交互时，用户登录成功后，服务器会生成 JWT，包含三部分：Header 里是算法信息，Payload 里是用户 ID、权限、过期时间等非敏感数据，Signature 是用密钥对前两部分签名。
-
-然后服务器把这个 JWT 返回给浏览器，浏览器存起来。之后每次请求受保护资源，浏览器会把 JWT 放在请求头的 Authorization 字段里发给服务器，服务器收到后验证 Signature，确认 Token 没被篡改且没过期，就从 Payload 里拿用户信息处理请求。
-
-> 也就是说JWT不保存在服务器这里，服务器保存的是生成签名时使用的密钥。
+> JWT不保存在服务器这里，服务器保存的是生成签名时使用的密钥。
 >
 > 至于过期时间，它是存储在payload里面，服务器收到请求后，会先解析 JWT 的 Payload，读取这个过期时间，和当前时间对比，如果已过期就拒绝请求。
 
-
-
-### 场景
-
-1. 登录成功后保存 token
-2. Axios 请求拦截器自动携带 token
-3. 响应拦截器处理 401
-4. 路由守卫判断是否登录
-5. 退出登录时清除 token
-
-### 前端一般怎么用 JWT&&token是什么？
-
-JWT 本身就是一种具体的 Token 实现，那一串用点分隔的字符串就是完整的 JWT Token。服务器生成 Token，里面有用户信息和有效期等。之后客户端用它访问需要认证的资源，服务器通过验证 Token 来确认用户身份和权限。
-
-也就是说 token 直接被窃取的话就完蛋了，因为 JWT 是无状态的，服务器只认 Token 本身，一旦 Token 被窃取，攻击者就能用它冒充用户身份访问权限内的资源，直到 Token 过期。所以实际使用中会通过缩短 Token 有效期、用 HTTPS 加密传输、存储在 HttpOnly Cookie 里等方式降低被窃取的风险。
+### 前端一般怎么用 JWT？
 
 前端登录成功后拿到 token：
 
@@ -210,6 +272,97 @@ axios.interceptors.request.use(config => {
 
 这样每个接口就不用手动写一遍 token 了。
 
+### 退出登录时怎么清除 Token？
+
+JWT 退出登录，本质上分两种情况：
+
+```txt
+1. 只做前端退出：清掉浏览器里的 Token
+2. 要让 Token 立刻失效：后端配合黑名单或版本号机制
+```
+
+#### 1. Token 存在 Storage
+
+如果 token 存在 `localStorage`，退出登录时直接删掉：
+
+```typescript
+function logout() {
+  localStorage.removeItem('token')
+  window.location.href = '/login'
+}
+```
+
+这样前端以后请求接口时就拿不到 token，也就不会再带 `Authorization` 请求头。
+
+
+
+如果 token 存在 `sessionStorage`：
+
+```typescript
+function logout() {
+  sessionStorage.removeItem('token')
+  window.location.href = '/login'
+}
+```
+
+`sessionStorage` 本来就会在浏览器标签页关闭后清空，适合一些临时登录场景。
+
+#### 2. Token 存在普通 Cookie
+
+如果是前端 JS 能读写的普通 Cookie，可以把 Cookie 过期时间设置成过去：
+
+```typescript
+document.cookie = 'token=; Max-Age=0; path=/'
+```
+
+这样浏览器会删除这个 Cookie。
+
+#### 3. Token 存在 HttpOnly Cookie
+
+如果 token 存在 **HttpOnly Cookie**，前端 JS 不能直接删除它。
+
+因为 `HttpOnly` 的含义就是：
+
+```txt
+前端 JS 不能读取，也不能直接操作这个 Cookie
+```
+
+所以前端只负责通知后端“我要退出”，真正清 Cookie 的动作由后端完成。
+
+后端示例：
+
+```javascript
+app.post('/api/logout', (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'lax'
+  })
+
+  res.json({ message: '退出成功' })
+})
+```
+
+
+
+#### 4. 清掉前端 Token 后，旧 JWT 还有效吗？
+
+如果只是前端删除 token，旧 JWT 本身在过期前仍然可能有效。
+
+比如攻击者之前已经偷到了这个 token，即使你本地清掉了，他仍然可能继续使用，直到 token 过期。
+
+所以更安全的做法是：
+
+```txt
+Access Token 设置短过期时间
+Refresh Token 退出时从服务端删除
+必要时把 JWT 的 jti 加入 Redis 黑名单
+```
+
+面试时可以这样回答：
+
+> JWT 退出登录时，前端会清除本地保存的 Token，比如删除 localStorage、sessionStorage，或者调用后端接口清除 HttpOnly Cookie。但因为 JWT 是无状态的，已经签发出去的 Token 在过期前默认仍然有效。如果要做到真正的立即失效，需要后端配合黑名单、Token 版本号，或者使用短 Access Token + Refresh Token 机制。
+
 ### 后端怎么验证 JWT？
 
 后端收到请求后，会读取请求头：
@@ -239,8 +392,6 @@ Authorization: Bearer xxxxx.yyyyy.zzzzz
 
 也就是未登录或登录失效。
 
-
-
 ## Access Token 和 Refresh Token
 
 前者是短期有效，用于正常访问接口。
@@ -257,14 +408,18 @@ Access Token 过期
 返回新的 Access Token
 ```
 
+**正常刷新流程：**
 
+Access Token 过期后，客户端用还没过期的 Refresh Token 请求后端的"刷新 Token 接口"，后端验证 Refresh Token 有效后，返回新的 Access Token 和新的 Refresh Token。
+
+如果 Refresh Token 也过期了，客户端引导用户重新登录，这时候才需要输入账号密码等凭证——而不是直接拿 Cookie 请求。Cookie 里可能存的是 Refresh Token，但核心还是靠有效的 Refresh Token 去换，过期了就只能重登。
 
 需要先注意一点：
 
 ```
-JWT 默认只是编码 + 签名，不是加密。
 Base64URL 只是编码，任何拿到 Token 的人都可以解码 Header 和 Payload。
 Signature 只是用来防止篡改，不负责隐藏内容。
+JWT 默认只是编码 + 签名，不是加密。
 ```
 
 在深入了解 JWT 签名之前，我们需要先弄清楚三个容易混淆的概念：
@@ -274,6 +429,17 @@ Signature 只是用来防止篡改，不负责隐藏内容。
 ```
 
 它们看起来有点像，但解决的是完全不同的问题。
+
+### 区分踢人和彻底拉黑
+
+| 场景 | 操作 | 黑名单 TTL |
+|-----|------|-----------|
+| **踢人**（只让当前 Token 失效） | 拉黑 Access Token | 和 Access Token 过期时间一致 |
+| **彻底拉黑**（让用户完全无法使用） | 拉黑 Access Token + Refresh Token | 各自和自己的过期时间一致 |
+
+因为 Access Token 是直接用来访问接口的，踢人时主要是让这个 Access Token 立刻失效，所以黑名单过期时间设为和 Access Token 一样，能确保在它有效期内一直被拦截。
+
+而 Refresh Token 是用来换 Access Token 的，如果要让用户彻底下线，除了拉黑当前 Access Token，也可以把对应的 Refresh Token 一起拉黑，这时 Refresh Token 的黑名单过期时间就和它自身的过期时间一致。
 
 ------
 
@@ -306,14 +472,6 @@ Signature 只是用来防止篡改，不负责隐藏内容。
 输出："b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
 ```
 
-**哈希的用途：**
-
-```
-存储密码：数据库存的是密码的哈希值，而不是明文
-文件完整性校验：下载文件后对比哈希值，确认没有被篡改
-数字签名：先对内容做哈希，再对哈希值做签名
-```
-
 **注意：** 哈希不是加密，因为它不能解密，无法还原。有人说"MD5 加密密码"是错误的说法，正确说法是"用 MD5 做哈希处理"。
 
 ### 2. 对称加密（Symmetric Encryption）
@@ -325,8 +483,8 @@ Signature 只是用来防止篡改，不负责隐藏内容。
 ```
 
 ```
-明文 + 密钥 -> 密文（加密）
-密文 + 密钥 -> 明文（解密）
+明文 + 密钥1 -> 密文（加密）
+密文 + 密钥1 -> 明文（解密）
 ```
 
 **可以理解成：** 一个保险箱，一把钥匙，锁和开都靠这把钥匙。
@@ -375,11 +533,7 @@ const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
 
 ```
 这把 key 怎么安全地交给对方？
-
-比如你和服务器要用 AES 加密通信，那你俩得先拥有同一把 key。
-可是如果直接在网络上传 key，别人抓包就看到了。
-
-所以对称加密很快，但密钥分发麻烦。
+这个后面讨论。
 ```
 
 ### 3. 非对称加密（Asymmetric Encryption）
@@ -527,40 +681,6 @@ const decrypted = crypto.privateDecrypt(
 对称加密适合加密大量数据。
 ```
 
-### 7. 最终大图
-
-```
-哈希：
-内容 -> 指纹
-不能还原
-用于校验内容有没有变化
-
-对称加密：
-同一把 key 加密和解密
-速度快
-适合大量数据
-
-非对称加密：
-公钥加密，私钥解密
-适合安全传递秘密、交换密钥
-
-对称签名：
-同一个 secret 签名和验签
-比如 JWT 的 HS256
-
-非对称签名：
-私钥签名，公钥验签
-比如 JWT 的 RS256
-```
-
-**最简单的总结就是：**
-
-```
-加密关心"别人能不能看懂内容"。
-签名关心"别人有没有改内容，以及是不是你发的"。
-对称/非对称关心"用的是一把钥匙，还是一对钥匙"。
-```
-
 ------
 
 ## JWT 中的哈希与密钥
@@ -673,80 +793,20 @@ HS256 的 secret 不能放进 JWT，也不能暴露给前端。
 RS256 的私钥必须由签发方严格保存；公钥可以分发给需要验签的服务。
 ```
 
-## token放置的位置
+## Token 放置位置：这里只做选型对比
 
-### Cookie
+Token 放在哪里，不改变 JWT 的本质，只影响**前端怎么携带**和**主要安全风险是什么**。
 
-登录成功后，后端通过响应头设置 Cookie：
+| 放置方式 | 怎么携带 | 主要优点 | 主要风险 | 常见场景 |
+|---------|---------|---------|---------|---------|
+| HttpOnly Cookie | 浏览器自动带上 | 前端 JS 读不到，降低 XSS 偷 Token 的风险 | Cookie 自动携带，要防 CSRF | 传统 Web、SSR、同域系统 |
+| Authorization Header | 前端手动加请求头 | 语义清晰，适合 API 和前后端分离 | Token 常由前端保存，要防 XSS | SPA、移动端、跨域 API |
 
-```
-Set-Cookie: token=xxxxx; HttpOnly; Secure; SameSite=Lax
-```
+### Authorization Header 示例
 
-之后浏览器请求同一个站点时，会自动带上：
+前后端分离项目里，经常用 `Authorization: Bearer token`：
 
-```
-Cookie: token=xxxxx
-```
-
-前端代码一般不需要手动加。
-
-**优点**
-
-最大的优点是浏览器自动携带、前端不用每个请求都手动写。
-
-**缺点**
-
-缺点：容易和 CSRF 扯上关系。
-
-> 假设你已经登录了 `a.com`，然后你访问了恶意网站 `evil.com`，恶意网站诱导浏览器向 `a.com` 发请求时，浏览器可能也会自动带上 `a.com` 的 Cookie。
-
-所以 Cookie 存 Token 时，一般要配合：
-
-```
-SameSite
-CSRF Token
-Origin / Referer 校验
-```
-
-**适合场景**
-
-适合：
-
-```
-传统 Web 登录
-服务端渲染项目
-希望浏览器自动管理登录态
-比较重视 XSS 防护
-```
-
-比如：
-
-```
-后台管理系统
-官网登录
-服务端渲染项目
-```
-
-### Authorization
-
-这是前后端分离里最常见的方式。
-
-登录成功后，前端拿到 token，自己保存，比如：
-
-```
-localStorage.setItem('token', token)
-```
-
-请求接口时放到请求头：
-
-```
-Authorization: Bearer xxxxx
-```
-
-Axios 里通常这样写：
-
-```
+```typescript
 axios.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
 
@@ -758,91 +818,100 @@ axios.interceptors.request.use(config => {
 })
 ```
 
-**优点**
+这段代码的意思是：每次 Axios 发请求前，先从 `localStorage` 取出 token，如果有 token，就统一加到请求头里。
 
-明确、规范、适合 API
+### HttpOnly Cookie 示例
 
-**缺点**
+同域或 SSR 项目里，也经常让后端直接设置 Cookie：
 
-前端要自己保存 token
-
-> 如果你把 token 存在：
->
-> ```
-> localStorage
-> sessionStorage
-> ```
->
-> 那么一旦页面出现 XSS 漏洞，攻击者可能通过 JS 读到 token。
->
-> 所以这种方式要特别注意：
->
-> ```
-> 防 XSS
-> 不要乱用 v-html
-> 不要插入不可信脚本
-> 接口使用 HTTPS
-> ```
-
-### Body
-
-比如请求时这样传：
-
-```
-axios.post('/api/user/info', {
-  token: 'xxxxx'
+```javascript
+res.cookie('token', jwtToken, {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'lax'
 })
 ```
 
-也就是 token 被放在请求体中。
-
-能用，但不是主流认证方式。
-
-
-
-### 一般项目怎么选
-
-对你做前端来说，可以简单记：
-
-```
-前后端分离项目：常用 Authorization: Bearer token
-传统 Web / SSR 项目：常用 Cookie
-Body：一般不作为通用登录认证方式
-```
-
-更实际一点：
-
-```
-Vue + 后端 API：Authorization 请求头最常见
-Next/Nuxt SSR + 服务端登录态：Cookie 更常见
-刷新 Refresh Token：有时会放 Cookie，也可能放 Body
-```
-
-
+这段代码的意思是：后端把 token 写进 Cookie，`httpOnly` 让前端 JS 读不到，`secure` 要求 HTTPS，`sameSite` 用来减少 CSRF 风险。
 
 ### 面试回答
 
-Token 放在不同位置，主要区别是携带方式和安全风险不同。
+Token 常见有两种放法：一种是放在 `Authorization` 请求头里，适合前后端分离和 API 调用；另一种是放在 HttpOnly Cookie 里，适合同域 Web 登录态。
 
-如果放在 Cookie 中，浏览器会自动携带，后端也容易通过 Cookie 读取登录态。如果设置 `HttpOnly`，前端 JS 无法直接读取 Token，可以降低 XSS 偷 Token 的风险。但 Cookie 自动携带也带来 CSRF 风险，所以需要配合 `SameSite`、CSRF Token、Origin 校验等手段。
+放在 Header 里不会被浏览器自动携带，CSRF 风险较小，但前端要自己保存 token，所以要注意 XSS。放在 Cookie 里前端 JS 读不到，能降低 XSS 偷 token 的风险，但浏览器会自动带 Cookie，所以要配合 `SameSite`、CSRF Token、Origin 校验等方式防 CSRF。
 
-如果放在 Authorization 请求头中，通常使用 `Bearer Token` 格式，这是前后端分离和 REST API 中比较常见的方式。它语义清晰，不会像 Cookie 那样被浏览器自动附带到请求中，但前端需要自己保存 Token，比如 localStorage 或内存中，因此要注意 XSS。
+简单记：**Header 方式重点防 XSS，Cookie 方式重点防 CSRF。**
 
-如果放在 Body 中，也能传给后端，但不太适合作为通用认证方式。因为 GET 请求通常没有 Body，而且认证信息放在 Body 中不如放在 Authorization 请求头中规范。Body 更适合传业务参数，而不是通用身份凭证。
+---
 
-所以一般来说，前后端分离项目更常用 Authorization 请求头；传统 Web 或 SSR 登录态更常用 Cookie；Body 只适合少量特殊接口，不建议作为统一认证方案。
+## 强制下线：Redis 黑名单 TTL 要和 Token 过期时间一致
 
 
-
-## XSS、CSRF
-
-这两个就是学登录认证、Cookie、Token 时绕不开的两个安全词。
-
-你可以先这样记：
+### 如果 Redis 过期时间更短
 
 ```
-XSS：坏人把“恶意 JS 代码”塞进你的网站里执行
-CSRF：坏人借用“你已经登录的身份”去偷偷发请求
+Token 今天 24:00 过期
+Redis 黑名单今天 12:00 过期
 ```
 
-一个是**偷东西/执行脚本**，一个是**冒充你发请求**。
+12:00 后，黑名单记录没了，但 Token 还没过期。如果用户继续拿这个 Token 请求，后端只验证 JWT 本身，可能发现它还有效，踢人就失效了。
+
+### 如果 Redis 过期时间更长
+
+```
+Token 今天 24:00 过期
+Redis 黑名单明天 24:00 过期
+```
+
+今天 24:00 后token已经自然失效了，Redis 再多存一天没有价值，只是浪费空间。
+
+### 最合理的做法
+
+```
+Redis 黑名单过期时刻 = Token 自身过期时刻
+```
+
+这样有三个好处：
+
+- Token 有效期内，黑名单一直有效，踢人不会失效
+- Token 过期后，Redis 自动清理，不浪费存储
+- 逻辑简单，不需要维护两套过期规则
+
+### 真实代码示例
+
+```java
+// 1. 用户退出登录 / 管理员踢人
+void kickUser(String token) {
+    // 2. 获取这个 Token 自己还有多久过期
+    long expireTime = getTokenExpireTime(token);
+
+    // 3. 存入 Redis 黑名单，过期时间 = Token 本身的过期时间
+    redis.set("blacklist:" + token, "true", expireTime);
+}
+```
+
+```java
+// 接口请求时校验
+boolean checkToken(String token) {
+    // 查 Redis，如果在黑名单里，直接拒绝
+    if (redis.hasKey("blacklist:" + token)) {
+        return false;
+    }
+    return true;
+}
+```
+
+就这么简单。
+
+### 区分踢人和彻底拉黑
+
+### 面试回答
+
+JWT 可以放在 HttpOnly Cookie，也可以放在 Authorization Header。Cookie 方案的好处是前端 JS 读不到 token，但因为浏览器会自动带 Cookie，所以要防 CSRF；Header 方案更适合前后端分离和 API，但 token 通常由前端保存，所以要防 XSS。
+SSO 场景下，内部同域系统常用 Cookie 或统一登录中心，第三方登录更常用 OAuth2/OIDC。强制下线时，如果用 Redis 黑名单记录失效 Token，黑名单 TTL 应该设置到 Token 自身过期时刻，这样既能保证踢人有效，也不会让 Redis 存无意义的数据。
+
+记忆口诀：
+
+```
+Cookie 防伪造，Header 防脚本；黑名单存到 Token 过期就够了。
+```

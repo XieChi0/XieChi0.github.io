@@ -5,7 +5,7 @@ updated: 2026-05-11
 description: 'Read more about Markdown features in Fuwari'
 image: ''
 tags: [SQL, 数据库, 教程]
-category: '基本功/数据库'
+category: '后端'
 draft: false
 ---
 

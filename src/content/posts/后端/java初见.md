@@ -3,7 +3,7 @@ title: "Java 初见"
 published: 2026-05-18
 description: "Java 基础概念：JDK、JRE、JVM 的关系与理解"
 tags: [Java, 后端]
-category: "基本功"
+category: "后端"
 draft: false
 ---
 

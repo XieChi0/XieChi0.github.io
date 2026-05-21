@@ -1,24 +1,28 @@
 ---
 title: XSS 与 CSRF：两种常见 Web 安全攻击解析
 published: 2026-05-18
-updated: 2026-05-18
+updated: 2026-05-21
 description: 用通俗易懂的方式解释 XSS 跨站脚本攻击和 CSRF 跨站请求伪造的区别、原理及防御方法。
 image: ''
 tags: [XSS, CSRF, 认证授权]
-category: '基本功'
+category: '后端/权限与认证'
 draft: false
 ---
 
 这两个就是学登录认证、Cookie、Token 时绕不开的两个安全词。
 
+Cross-Site Scripting、Cross-Site Request Forgery
+
+跨站脚本攻击、跨站请求伪造。
+
 你可以先这样记：
 
 ```txt
-XSS：坏人把“恶意 JS 代码”塞进你的网站里执行
-CSRF：坏人借用“你已经登录的身份”去偷偷发请求
+XSS：注入恶意代码
+CSRF：伪造成你的身份
 ```
 
-一个是**偷东西/执行脚本**，一个是**冒充你发请求**。
+这篇文章只讲两种攻击的**原理、区别和基本防法**。至于登录态到底放 Cookie 还是 Header，以及项目里怎么组合 HTTPS、SameSite、CSRF Token，可以看《登录态安全与接口防护》。
 
 ---
 
@@ -34,6 +38,12 @@ Cross-Site Scripting
 它的核心是：
 
 > 攻击者想办法让恶意 JavaScript 代码在你的网页里执行。
+
+---
+
+## 1. XSS 能干什么？（场景举例）
+
+最典型的场景是：**你把用户输入的内容，原样渲染到了页面里**。
 
 比如你的网站有一个评论区。
 
@@ -53,13 +63,34 @@ Cross-Site Scripting
 
 如果你的页面没有做处理，直接把这段内容渲染到页面里，那浏览器就会真的执行这段 JS。
 
-这就是 XSS。
+所以简单记就是：
+
+```txt
+凡是用户能输入，又会被页面展示出来的地方，都要小心 XSS
+```
+
+比如：
+
+```txt
+评论区
+昵称
+文章内容
+富文本编辑器
+搜索框回显
+URL 参数回显
+```
+
+比如 Vue 里这样写就危险：
+
+```vue
+<div v-html="content"></div>
+```
+
+因为 `v-html` 会把字符串当 HTML 插入页面。如果 `content` 是用户传来的不可信内容，里面混了恶意标签、事件、脚本，就可能出事。
 
 ---
 
-## 1. XSS 能干什么？
-
-如果恶意 JS 在你的网站里执行，它就能做很多坏事，比如：
+一旦恶意 JS 在你的网站里执行，它就能做很多坏事：
 
 ```txt
 读取 localStorage 里的 token
@@ -83,52 +114,15 @@ const token = localStorage.getItem('token')
 
 然后把 token 发到他的服务器。
 
-所以前面说：
+所以：
 
 ```txt
 Token 放 localStorage，要注意 XSS
 ```
 
-就是这个意思。
-
 ---
 
-## 2. XSS 的典型场景
-
-最典型的是你把用户输入的内容，原样渲染到了页面里。
-
-比如 Vue 里：
-
-```vue
-<div v-html="content"></div>
-```
-
-如果 `content` 是用户传来的不可信内容，就危险。
-
-因为 `v-html` 会把字符串当 HTML 插入页面。
-
-如果里面混了恶意标签、事件、脚本，就可能出事。
-
-所以你可以简单记：
-
-```txt
-凡是用户能输入，又会被页面展示出来的地方，都要小心 XSS
-```
-
-比如：
-
-```txt
-评论区
-昵称
-文章内容
-富文本编辑器
-搜索框回显
-URL 参数回显
-```
-
----
-
-## 3. 怎么防 XSS？
+## 2. 怎么防 XSS？
 
 前端角度先记几个重点就行：
 
@@ -139,6 +133,29 @@ URL 参数回显
 4. 后端也要做内容过滤
 5. Cookie 存 token 时尽量配合 HttpOnly
 ```
+
+## XSS 防御：用什么库？
+
+这里重点讲 XSS，所以核心是：**不要把不可信内容当成 HTML 直接渲染**。
+
+| 场景 | 推荐做法 |
+|-----|--------|
+| 普通文本展示 | 直接用框架默认渲染，React/Vue 默认会转义文本 |
+| 富文本展示 | 用 `DOMPurify` 过滤危险标签 |
+| Vue 项目 | 少用 `v-html`，必须用时配合 `vue-dompurify-html` |
+| React 项目 | 少用 `dangerouslySetInnerHTML`，必须用时先 `DOMPurify.sanitize()` |
+
+```typescript
+// React：展示普通评论，默认按文本渲染，比较安全
+<p>{userComment}</p>
+
+// 必须展示富文本时，先用 DOMPurify 清洗
+import DOMPurify from 'dompurify'
+
+const safeHTML = DOMPurify.sanitize(dangerousHTML)
+```
+
+简单理解：**普通文本交给框架默认渲染；富文本才考虑 DOMPurify。**
 
 `HttpOnly` 的意思是：
 
@@ -165,11 +182,9 @@ Cross-Site Request Forgery
 
 > 攻击者不一定偷你的 token，而是诱导你的浏览器带着你的登录状态，去目标网站发一个请求。
 
-这句话有点绕，我们用例子讲。
-
 ---
 
-## 1. CSRF 的例子
+## 1. CSRF 是什么？
 
 假设你已经登录了银行网站：
 
@@ -212,9 +227,48 @@ https://evil.com
 攻击者借用了这个“自动携带”的特性
 ```
 
+## 1.1 恶意网站不需要在 A 网站里
+
+CSRF 的恶意代码**不需要运行在 A 网站里**。
+
+它可以在任何地方：
+
+```txt
+evil.com
+某个论坛页面
+某个广告页面
+某封 HTML 邮件
+某个钓鱼网页
+```
+
+只要这个页面能让用户的浏览器向 A 网站发请求，就有机会触发 CSRF。
+
+因为 Cookie 是浏览器根据**请求目标地址**自动带的。
+
+不是说：
+
+> 只有用户正在访问 A 网站，才会带 A 的 Cookie。
+
+而是：
+
+> 只要浏览器要向 A 网站发送请求，并且 Cookie 规则允许，浏览器就可能带上 A 的 Cookie。
+
+```txt
+1. 用户登录 A 网站
+2. A 网站把登录态存在 Cookie 里
+3. 用户没有退出 A
+4. 用户访问恶意网站 B
+5. B 页面诱导浏览器向 A 发请求
+6. 浏览器发现请求目标是 A，于是自动带上 A 的 Cookie
+7. A 后端验证 Cookie 成功
+8. A 误以为是用户本人操作，于是执行敏感动作
+```
+
+
+
 ---
 
-## 2. CSRF 为什么主要和 Cookie 有关？
+## 2. 为什么 Cookie 容易中招，Authorization 不容易？
 
 因为 Cookie 有一个特点：
 
@@ -233,11 +287,7 @@ https://evil.com
 风险：也可能被恶意网站借用
 ```
 
----
-
-## 3. Authorization 请求头为什么相对不容易 CSRF？
-
-如果你的 token 是这样带的：
+而如果你的 token 是放在 Authorization 请求头里的：
 
 ```http
 Authorization: Bearer xxxxx
@@ -251,15 +301,55 @@ config.headers.Authorization = `Bearer ${token}`
 
 恶意网站一般不能随便让浏览器自动带上你在另一个网站的 `Authorization` 请求头。
 
-所以它不像 Cookie 那样“天然自动携带”。
+所以它不像 Cookie 那样"天然自动携带"，CSRF 风险相对小一些。
 
-但这不代表绝对安全，只是说：
+但这不代表 Authorization 方式绝对安全——它更需要担心的是 XSS，因为 token 往往保存在 localStorage 或内存里。
 
-```txt
-Authorization 方式相比 Cookie，传统 CSRF 风险小一些
+---
+
+## 2.1 同源策略限制的是"读响应"，不是"发请求"
+
+这点非常重要。
+
+恶意网站 `evil.com` 通常**不能读取** `a.com` 的响应内容。
+
+比如：
+
+```js
+fetch('https://a.com/userinfo')
 ```
 
-它更需要担心的是 XSS，因为 token 往往保存在 localStorage 或内存里。
+浏览器可能会因为 CORS / 同源策略，不让 evil.com 拿到响应数据。
+
+但是 CSRF 不关心能不能读响应。
+
+它只需要让浏览器把请求发出去。
+
+比如转账、删除、修改密码、点赞、关注，这些接口只要执行了，攻击就成功了。
+
+所以：
+
+```txt
+同源策略：主要防止 B 网站读取 A 网站的数据
+CSRF：利用浏览器能向 A 网站发送带 Cookie 的请求
+```
+
+这和"同源策略"不是一回事。
+
+更准确地说：
+
+```txt
+Cookie 是否携带，主要看 Cookie 自己的规则（Domain、Path、Secure、SameSite）
+不是看同源策略
+```
+
+比如 A 网站设置了：
+
+```http
+Set-Cookie: token=abc; Domain=a.com; Path=/; HttpOnly
+```
+
+那么浏览器以后请求 `https://a.com/api/xxx`，就可能自动带上这个 Cookie。
 
 ---
 
