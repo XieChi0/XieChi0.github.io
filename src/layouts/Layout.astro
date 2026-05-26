@@ -404,7 +404,40 @@ const setup = () => {
 			navbar.classList.add('navbar-hidden')
 		}
 	})
-	window.swup.hooks.on('content:replace', initCustomScrollbar)
+	// Helper to update MobileTOC visibility and content
+	const updateMobileTOC = () => {
+		const mobileToc = document.querySelector('mobile-toc');
+		if (!mobileToc) return;
+		
+		// 根据路由判断是否是文章页（更可靠）
+		const isPostPage = window.location.pathname.startsWith('/posts/');
+		
+		if (isPostPage) {
+			// 显示目录按钮
+			mobileToc.classList.remove('toc-hidden');
+			
+			// 更新目录内容（只在文章页需要）
+			const currentHeadings = (window as any).__CURRENT_HEADINGS__;
+			if (currentHeadings && Array.isArray(currentHeadings) && currentHeadings.length > 0) {
+				window.dispatchEvent(new CustomEvent('mobiletoc:update', {
+					detail: { headings: currentHeadings }
+				}));
+			}
+		} else {
+			// 隐藏目录按钮
+			mobileToc.classList.add('toc-hidden');
+		}
+	};
+	
+	window.swup.hooks.on('content:replace', () => {
+		initCustomScrollbar();
+		// Update MobileTOC after content is replaced
+		updateMobileTOC();
+	});
+	window.swup.hooks.on('page:view', () => {
+		// Update MobileTOC visibility based on route after page transition completes
+		updateMobileTOC();
+	})
 	window.swup.hooks.on('visit:start', (visit: {to: {url: string}}) => {
 		// change banner height immediately when a link is clicked
 		const bodyElement = document.querySelector('body')
@@ -425,12 +458,11 @@ const setup = () => {
 		if (toc) {
 			toc.classList.add('toc-not-ready')
 		}
-	});
-	window.swup.hooks.on('page:view', () => {
-		// hide the temp high element when the transition is done
-		const heightExtend = document.getElementById('page-height-extend')
-		if (heightExtend) {
-			heightExtend.classList.remove('hidden')
+
+		// Hide MobileTOC button immediately when starting navigation
+		const mobileToc = document.querySelector('mobile-toc');
+		if (mobileToc) {
+			mobileToc.classList.add('toc-hidden');
 		}
 	});
 	window.swup.hooks.on('visit:end', (_visit: {to: {url: string}}) => {
