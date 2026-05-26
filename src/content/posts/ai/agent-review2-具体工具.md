@@ -1,5 +1,5 @@
 ---
-title: AI Coding Agent 工具详解
+title: agent-review2-具体工具
 published: 2026-05-22
 updated: 2026-05-22
 description: '详细介绍 AI Coding Agent 中的浏览器自动化工具，包括 cursor-ide-browser、Playwright MCP 和 Chrome DevTools MCP。'
