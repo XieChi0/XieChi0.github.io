@@ -5,7 +5,7 @@ updated: 2026-05-22
 description: '总结小公司使用 Coding Agent 的常见方式'
 image: ''
 tags: [Review]
-category: 'ai'
+category: 'AI'
 draft: false
 ---
 

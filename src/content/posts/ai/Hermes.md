@@ -5,7 +5,7 @@ updated: 2026-05-19
 description: '深度解析 Hermes Agent 的核心机制 Self-Improving Loop，与 Open Cloud 的对比，以及技术架构分析'
 image: ''
 tags: [Hermes, 开源]
-category: ai
+category: AI
 draft: false
 ---
 

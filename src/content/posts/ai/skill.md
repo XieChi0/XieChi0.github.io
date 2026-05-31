@@ -5,7 +5,7 @@ updated: 2026-05-16
 description: '记录 Codex Skill 的概念、文件结构、触发方式、安装命令和常见问题。'
 image: ''
 tags: [AI, Codex, Skill]
-category: 'ai'
+category: 'AI'
 draft: false
 ---
 ## 1. Skill 到底是什么？

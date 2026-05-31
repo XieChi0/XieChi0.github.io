@@ -5,7 +5,7 @@ updated: 2026-05-19
 description: '介绍Harness概念、AI工程发展三阶段（Prompt Engineering → Context Engineering → Harness Engineering）及核心方法'
 image: ''
 tags: [harness,工程化]
-category: ai
+category: AI
 draft: false
 ---
 

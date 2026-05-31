@@ -5,7 +5,7 @@ updated: 2026-05-22
 description: '用面试准备阶段能看懂的方式介绍 MCP：它是什么、和 Skill 有什么区别、MCP 连接在哪里发生、AI 怎么知道有哪些工具，以及如何写一个最小 MCP Server。'
 image: ''
 tags: [MCP概念]
-category: 'ai'
+category: 'AI'
 draft: false
 ---
 
