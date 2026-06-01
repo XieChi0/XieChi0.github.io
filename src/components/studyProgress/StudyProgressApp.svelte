@@ -1,0 +1,186 @@
+<script lang="ts">
+import { onMount } from "svelte";
+import { createStudyProgressApi } from "@/lib/studyProgress/study-progress-api";
+import type {
+	ArticleProgress,
+	SaveProgressInput,
+	StudyArticle,
+	StudyGoal,
+	StudySession,
+} from "@/lib/studyProgress/types";
+import StudyProgressDashboard from "./StudyProgressDashboard.svelte";
+import StudyProgressLogin from "./StudyProgressLogin.svelte";
+
+export let articles: StudyArticle[] = [];
+
+const api = createStudyProgressApi();
+const debug = import.meta.env.DEV;
+
+let session: StudySession | null = null;
+let progressItems: ArticleProgress[] = [];
+let goals: StudyGoal[] = [];
+let loading = true;
+let savingArticleKey = "";
+let message = "";
+let error = "";
+
+function getArticleKey(article: StudyArticle) {
+	return `${article.source}:${article.id}`;
+}
+
+function getErrorMessage(value: unknown) {
+	return value instanceof Error ? value.message : String(value);
+}
+
+function mergeProgress(saved: ArticleProgress) {
+	if (debug) {
+		console.debug("[studyProgress] merge progress", saved);
+	}
+
+	progressItems = [
+		saved,
+		...progressItems.filter(
+			(item) =>
+				`${item.articleSource}:${item.articleId}` !==
+					`${saved.articleSource}:${saved.articleId}` &&
+				`${item.articleSource}:${item.articleUrl}` !==
+					`${saved.articleSource}:${saved.articleUrl}` &&
+				`${item.articleSource}:${item.articleTitle}` !==
+					`${saved.articleSource}:${saved.articleTitle}`,
+		),
+	];
+}
+
+function createOptimisticProgress(
+	article: StudyArticle,
+	progressPercent: number,
+): ArticleProgress {
+	const now = new Date().toISOString();
+	return {
+		id: `optimistic:${article.source}:${article.id}`,
+		userId: session?.userId ?? "",
+		articleId: article.id,
+		articleSource: article.source,
+		articleTitle: article.title,
+		articleUrl: article.url,
+		progressPercent,
+		status:
+			progressPercent >= 100
+				? "completed"
+				: progressPercent > 0
+					? "reading"
+					: "not_started",
+		lastReadAt: now,
+		createdAt: now,
+		updatedAt: now,
+	};
+}
+
+async function loadData() {
+	loading = true;
+	error = "";
+	try {
+		session = await api.getSession();
+		if (debug) {
+			console.debug("[studyProgress] session", session);
+		}
+		if (session) {
+			const [progress, goalItems] = await Promise.all([
+				api.listProgress(),
+				api.listGoals(),
+			]);
+			progressItems = progress;
+			goals = goalItems;
+			if (debug) {
+				console.debug("[studyProgress] load data", {
+					articlesCount: articles.length,
+					progressCount: progress.length,
+					goalsCount: goalItems.length,
+					articlesPreview: articles.slice(0, 12).map((article) => ({
+						key: getArticleKey(article),
+						url: article.url,
+						title: article.title,
+					})),
+					progressPreview: progress.slice(0, 20).map((item) => ({
+						key: `${item.articleSource}:${item.articleId}`,
+						url: item.articleUrl,
+						title: item.articleTitle,
+						progressPercent: item.progressPercent,
+					})),
+				});
+			}
+		}
+	} catch (err) {
+		error = getErrorMessage(err);
+	} finally {
+		loading = false;
+	}
+}
+
+async function handleLogin(password: string) {
+	loading = true;
+	error = "";
+	message = "";
+	try {
+		await api.signIn(password);
+		await loadData();
+		message = "Signed in and connected to Supabase.";
+	} catch (err) {
+		error = getErrorMessage(err);
+	} finally {
+		loading = false;
+	}
+}
+
+async function handleLogout() {
+	await api.signOut();
+	session = null;
+	progressItems = [];
+	goals = [];
+	message = "";
+	error = "";
+}
+
+async function handleSaveProgress(
+	article: StudyArticle,
+	progressPercent: number,
+) {
+	savingArticleKey = getArticleKey(article);
+	error = "";
+	message = "";
+	try {
+		const input: SaveProgressInput = { article, progressPercent };
+		if (debug) {
+			console.debug("[studyProgress] save requested", input);
+		}
+		mergeProgress(createOptimisticProgress(article, progressPercent));
+		const saved = await api.saveProgress(input);
+		mergeProgress(saved);
+		message = `Saved: ${saved.articleTitle} ${saved.progressPercent}%`;
+	} catch (err) {
+		error = getErrorMessage(err);
+	} finally {
+		savingArticleKey = "";
+	}
+}
+
+onMount(loadData);
+</script>
+
+{#if session}
+	<StudyProgressDashboard
+		{session}
+		{articles}
+		{progressItems}
+		{goals}
+		{loading}
+		{savingArticleKey}
+		{message}
+		{error}
+		{debug}
+		onLogout={handleLogout}
+		onSaveProgress={handleSaveProgress}
+	/>
+{:else}
+	<StudyProgressLogin {loading} {error} onLogin={handleLogin} />
+{/if}

@@ -1,0 +1,11 @@
+---
+import StudyProgressApp from "@components/studyProgress/StudyProgressApp.svelte";
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+import { getStudyProgressArticles } from "@/lib/studyProgress/article-index";
+
+const articles = await getStudyProgressArticles();
+---
+
+<MainGridLayout title="Study Progress" description="个人学习进度">
+	<StudyProgressApp client:load articles={articles} />
+</MainGridLayout>
