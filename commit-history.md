@@ -2,6 +2,79 @@
 
 ---
 
+## [2026-06-02] 扩展学习中心筛选与目标模式
+
+**Commit ID**: (提交后补充)
+**变更文件数量**: 8
+**主要目标**: 在学习中心补充分页、分类筛选和可用的目标模式，让文章进度从单篇记录扩展到“按目标组织多篇文章”。
+
+### 变更清单
+
+| 文件 | 变更类型 | 说明 |
+|-----|---------|------|
+| src/components/studyProgress/ArticleProgressList.svelte | 修改 | 移除临时 debug UI，增加分类筛选、分页和受控下拉菜单 |
+| src/components/studyProgress/GoalPanel.svelte | 修改 | 实现目标创建、文章加入目标、完成率展示和目标删除 |
+| src/components/studyProgress/StudyProgressApp.svelte | 修改 | 增加目标创建、目标文章关联、目标删除的状态处理 |
+| src/components/studyProgress/StudyProgressDashboard.svelte | 修改 | 向目标面板传递文章、进度和目标操作回调 |
+| src/lib/studyProgress/types.ts | 修改 | 增加目标文章、创建目标、添加目标文章和删除目标类型 |
+| src/lib/studyProgress/adapters/supabase-study-progress-adapter.ts | 修改 | 增加 Supabase 目标读取、创建、关联文章和删除实现 |
+| docs/studyProgress/schema.prisma | 修改 | 精简并同步目标相关表结构说明 |
+| 知识库.md | 修改 | 更新当前已实现能力、未实现能力和艾宾浩斯复习模型后续方向 |
+
+### 已实现成果
+
+- 文章列表支持按博客现有 category 口径筛选，父分类会包含子分类。
+- 文章列表改为每页 10 篇，避免一次性展开全部文章。
+- 分类筛选使用自定义下拉菜单，控制菜单高度。
+- 目标模式支持创建目标、给目标添加多篇文章、按文章当前进度计算目标完成率。
+- 目标支持删除；删除目标不会删除博客文章，也不会删除文章当前进度。
+- 记录了艾宾浩斯复习模型方向：后续应单独设计复习计划和复习记录，不把它和当前文章进度混在同一字段里。
+
+### 提交前检查
+
+- `pnpm check`：通过，保留既有提示。
+
+---
+
+## [2026-06-01] 新增博客学习进度中心
+
+**Commit ID**: a9c8bd4796325eaabbb4988182115beb0dfe90b7
+**变更文件数量**: 20
+**主要目标**: 在个人博客中新增一个可登录的私人学习中心，验证文章索引、Supabase 云端进度同步和手动进度记录闭环。
+
+### 变更清单
+
+| 文件 | 变更类型 | 说明 |
+|-----|---------|------|
+| src/pages/studyProgress.astro | 新增 | 新增学习进度中心页面 |
+| src/pages/about.astro | 修改 | 在 About 页面增加学习进度入口 |
+| src/components/studyProgress/* | 新增 | 新增登录、仪表盘、文章进度列表和目标占位组件 |
+| src/lib/studyProgress/* | 新增 | 新增文章索引、Supabase 客户端、数据访问 API 和适配器 |
+| docs/studyProgress/schema.prisma | 新增 | 以 Prisma 风格伪代码记录 Supabase 表结构 |
+| docs/studyProgress/supabase-schema.sql | 新增 | 记录 Supabase SQL 建表和 RLS 策略 |
+| docs/studyProgress/setup.md | 新增 | 记录 Supabase 环境变量和验证步骤 |
+| .env.example | 新增 | 提供前端公开 Supabase 配置模板 |
+| package.json / pnpm-lock.yaml | 修改 | 新增 @supabase/supabase-js 依赖 |
+
+### 已实现成果
+
+- 新增 `/studyProgress/` 私人学习中心页面。
+- 支持通过 Supabase Auth 密码登录。
+- 从博客内容集合生成文章索引。
+- 支持 0%、25%、50%、75%、100% 手动保存文章进度。
+- 进度写入 `study_progress`，进度变化日志写入 `study_events`。
+- 使用 Supabase RLS 限制用户只能访问自己的学习数据。
+- 修复了 Svelte 响应式匹配问题，前端可以正确展示数据库中的文章进度。
+- 将 Prisma 风格 schema 放在 `docs/studyProgress/schema.prisma`，避免 Astro/Vite 构建时解析 `.prisma` 文件。
+
+### 提交前检查
+
+- `npx astro check`：通过，保留既有提示。
+- `npx astro build`：通过，保留既有代码块语言警告。
+- `npx biome ci ./src`：通过。
+
+---
+
 ## [2026-06-01] 修复移动端代码块体验
 
 **Commit ID**: (提交后补充)

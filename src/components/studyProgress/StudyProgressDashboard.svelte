@@ -1,6 +1,8 @@
 <script lang="ts">
 import type {
+	AddGoalItemInput,
 	ArticleProgress,
+	CreateStudyGoalInput,
 	StudyArticle,
 	StudyGoal,
 	StudySession,
@@ -16,11 +18,17 @@ export let loading = false;
 export let savingArticleKey = "";
 export let message = "";
 export let error = "";
-export let debug = false;
 export let onLogout: () => void | Promise<void> = () => {};
 export let onSaveProgress:
 	| ((article: StudyArticle, progressPercent: number) => void | Promise<void>)
 	| undefined;
+export let onCreateGoal:
+	| ((input: CreateStudyGoalInput) => void | Promise<void>)
+	| undefined;
+export let onAddGoalItem:
+	| ((input: AddGoalItemInput) => void | Promise<void>)
+	| undefined;
+export let onDeleteGoal: ((goalId: string) => void | Promise<void>) | undefined;
 
 $: completedCount = progressItems.filter(
 	(item) => item.progressPercent >= 100,
@@ -28,22 +36,6 @@ $: completedCount = progressItems.filter(
 $: readingCount = progressItems.filter(
 	(item) => item.progressPercent > 0 && item.progressPercent < 100,
 ).length;
-
-$: debugState = {
-	articlesCount: articles.length,
-	progressCount: progressItems.length,
-	visibleArticles: articles.slice(0, 12).map((article) => ({
-		key: `${article.source}:${article.id}`,
-		url: article.url,
-		title: article.title,
-	})),
-	progressPreview: progressItems.slice(0, 20).map((item) => ({
-		key: `${item.articleSource}:${item.articleId}`,
-		url: item.articleUrl,
-		title: item.articleTitle,
-		progressPercent: item.progressPercent,
-	})),
-};
 </script>
 
 <div class="flex flex-col gap-4">
@@ -88,20 +80,20 @@ $: debugState = {
 			<p class="mt-4 text-sm text-red-500">{error}</p>
 		{/if}
 
-		{#if debug}
-			<details class="mt-4 rounded-xl border border-dashed border-black/10 p-3 text-xs text-50 dark:border-white/10">
-				<summary class="cursor-pointer font-semibold text-75">Debug state</summary>
-				<pre class="mt-3 max-h-80 overflow-auto whitespace-pre-wrap break-all">{JSON.stringify(debugState, null, 2)}</pre>
-			</details>
-		{/if}
 	</section>
 
 	<ArticleProgressList
 		{articles}
 		{progressItems}
 		{savingArticleKey}
-		{debug}
 		{onSaveProgress}
 	/>
-	<GoalPanel {goals} />
+	<GoalPanel
+		{goals}
+		{articles}
+		{progressItems}
+		{onCreateGoal}
+		{onAddGoalItem}
+		{onDeleteGoal}
+	/>
 </div>

@@ -48,6 +48,33 @@ export type StudyGoal = {
 	notes: string;
 	createdAt: string;
 	updatedAt: string;
+	items: StudyGoalItem[];
+};
+
+export type StudyGoalItem = {
+	id: string;
+	userId: string;
+	goalId: string;
+	articleId: string;
+	articleSource: StudyArticleSource;
+	articleTitle: string;
+	articleUrl: string;
+	targetPercent: number;
+	sortOrder: number;
+	createdAt: string;
+};
+
+export type CreateStudyGoalInput = {
+	title: string;
+	topic: string;
+	targetDate: string;
+	notes: string;
+};
+
+export type AddGoalItemInput = {
+	goalId: string;
+	article: StudyArticle;
+	targetPercent: number;
 };
 
 export type StudyApi = {
@@ -57,4 +84,7 @@ export type StudyApi = {
 	listProgress(): Promise<ArticleProgress[]>;
 	saveProgress(input: SaveProgressInput): Promise<ArticleProgress>;
 	listGoals(): Promise<StudyGoal[]>;
+	createGoal(input: CreateStudyGoalInput): Promise<StudyGoal>;
+	addGoalItem(input: AddGoalItemInput): Promise<StudyGoalItem>;
+	deleteGoal(goalId: string): Promise<void>;
 };

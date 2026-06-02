@@ -1,11 +1,14 @@
 import { supabase } from "../supabase-client";
 import type {
+	AddGoalItemInput,
 	ArticleProgress,
 	ArticleProgressStatus,
+	CreateStudyGoalInput,
 	SaveProgressInput,
 	StudyApi,
 	StudyArticleSource,
 	StudyGoal,
+	StudyGoalItem,
 	StudyGoalStatus,
 	StudySession,
 } from "../types";
@@ -36,16 +39,36 @@ type StudyGoalRow = {
 	updated_at: string;
 };
 
+type StudyGoalItemRow = {
+	id: string;
+	user_id: string;
+	goal_id: string;
+	article_id: string;
+	article_source: StudyArticleSource;
+	article_title: string;
+	article_url: string;
+	target_percent: number;
+	sort_order: number;
+	created_at: string;
+};
+
 type ProgressErrorStep =
 	| "load existing progress"
 	| "update progress"
 	| "create progress"
 	| "record study event";
 
+type GoalErrorStep = "create goal" | "add goal item" | "delete goal";
+
 function getProgressErrorMessage(
 	step: ProgressErrorStep,
 	error: unknown,
 ): string {
+	const message = error instanceof Error ? error.message : String(error);
+	return `${step} failed: ${message}`;
+}
+
+function getGoalErrorMessage(step: GoalErrorStep, error: unknown): string {
 	const message = error instanceof Error ? error.message : String(error);
 	return `${step} failed: ${message}`;
 }
@@ -81,7 +104,7 @@ function mapProgress(row: StudyProgressRow): ArticleProgress {
 	};
 }
 
-function mapGoal(row: StudyGoalRow): StudyGoal {
+function mapGoal(row: StudyGoalRow, items: StudyGoalItem[] = []): StudyGoal {
 	return {
 		id: row.id,
 		userId: row.user_id,
@@ -92,6 +115,22 @@ function mapGoal(row: StudyGoalRow): StudyGoal {
 		notes: row.notes,
 		createdAt: row.created_at,
 		updatedAt: row.updated_at,
+		items,
+	};
+}
+
+function mapGoalItem(row: StudyGoalItemRow): StudyGoalItem {
+	return {
+		id: row.id,
+		userId: row.user_id,
+		goalId: row.goal_id,
+		articleId: row.article_id,
+		articleSource: row.article_source,
+		articleTitle: row.article_title,
+		articleUrl: row.article_url,
+		targetPercent: row.target_percent,
+		sortOrder: row.sort_order,
+		createdAt: row.created_at,
 	};
 }
 
@@ -240,13 +279,108 @@ export function createSupabaseStudyProgressApi(): StudyApi {
 		},
 
 		async listGoals() {
+			const [goalsResult, itemsResult] = await Promise.all([
+				supabase
+					.from("study_goals")
+					.select("*")
+					.order("created_at", { ascending: false }),
+				supabase
+					.from("study_goal_items")
+					.select("*")
+					.order("sort_order", { ascending: true })
+					.order("created_at", { ascending: true }),
+			]);
+
+			if (goalsResult.error) throw goalsResult.error;
+			if (itemsResult.error) throw itemsResult.error;
+
+			const itemsByGoal = new Map<string, StudyGoalItem[]>();
+			for (const row of itemsResult.data ?? []) {
+				const item = mapGoalItem(row as StudyGoalItemRow);
+				itemsByGoal.set(item.goalId, [
+					...(itemsByGoal.get(item.goalId) ?? []),
+					item,
+				]);
+			}
+
+			return (goalsResult.data ?? []).map((row) => {
+				const goal = row as StudyGoalRow;
+				return mapGoal(goal, itemsByGoal.get(goal.id) ?? []);
+			});
+		},
+
+		async createGoal(input: CreateStudyGoalInput) {
+			const user = await requireUser();
+			const title = input.title.trim();
+			if (!title) throw new Error("Goal title is required.");
+
+			const payload = {
+				user_id: user.id,
+				title,
+				topic: input.topic.trim(),
+				target_date: input.targetDate || null,
+				notes: input.notes.trim(),
+				status: "active" satisfies StudyGoalStatus,
+			};
+
 			const { data, error } = await supabase
 				.from("study_goals")
-				.select("*")
-				.order("created_at", { ascending: false });
+				.insert(payload)
+				.select()
+				.single();
 
-			if (error) throw error;
-			return (data ?? []).map((row) => mapGoal(row as StudyGoalRow));
+			if (error) throw new Error(getGoalErrorMessage("create goal", error));
+			return mapGoal(data as StudyGoalRow);
+		},
+
+		async addGoalItem(input: AddGoalItemInput) {
+			const user = await requireUser();
+			const targetPercent = Math.min(
+				100,
+				Math.max(1, Math.round(input.targetPercent)),
+			);
+
+			const { count, error: countError } = await supabase
+				.from("study_goal_items")
+				.select("id", { count: "exact", head: true })
+				.eq("goal_id", input.goalId);
+
+			if (countError) {
+				throw new Error(getGoalErrorMessage("add goal item", countError));
+			}
+
+			const payload = {
+				user_id: user.id,
+				goal_id: input.goalId,
+				article_id: input.article.id,
+				article_source: input.article.source,
+				article_title: input.article.title,
+				article_url: input.article.url,
+				target_percent: targetPercent,
+				sort_order: count ?? 0,
+			};
+
+			const { data, error } = await supabase
+				.from("study_goal_items")
+				.upsert(payload, {
+					onConflict: "goal_id,article_source,article_id",
+				})
+				.select()
+				.single();
+
+			if (error) throw new Error(getGoalErrorMessage("add goal item", error));
+			return mapGoalItem(data as StudyGoalItemRow);
+		},
+
+		async deleteGoal(goalId: string) {
+			const user = await requireUser();
+			const { error } = await supabase
+				.from("study_goals")
+				.delete()
+				.eq("id", goalId)
+				.eq("user_id", user.id);
+
+			if (error) throw new Error(getGoalErrorMessage("delete goal", error));
 		},
 	};
 }

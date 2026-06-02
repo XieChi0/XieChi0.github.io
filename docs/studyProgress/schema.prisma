@@ -1,202 +1,84 @@
-// Prisma 伪代码，用于 studyProgress 功能的文档说明。
-// 实际数据库托管在 Supabase。
+// Prisma 风格数据模型文档。实际数据库托管在 Supabase。
 // 请保持此文件与 docs/studyProgress/supabase-schema.sql 同步。
 
-// 文章来源类型，用于追踪阅读进度。
-// posts    = 来自 src/content/posts 的 Markdown 内容。
-// external = 来自 src/content/external 的 HTML 或外部内容。
-enum StudyArticleSource {
-  posts
-  external
-}
-
-// 根据 progressPercent 推导的阅读状态。
-// not_started = 0%。
-// reading     = 1% 到 99%。
-// completed   = 100%。
-enum ArticleProgressStatus {
-  not_started
-  reading
-  completed
-}
-
-// 基于主题的学习目标生命周期状态。
-enum StudyGoalStatus {
-  active    // 进行中
-  paused    // 已暂停
-  completed // 已完成
-  archived  // 已归档
-}
-
-// 每行代表一个用户和一篇文章的阅读进度。
-// 这是第一个原型中使用的主要表，用于同步手动记录的进度。
+// 表1：用户对某篇文章的当前阅读进度
 model StudyProgress {
-  // 实际 Supabase 表：public.study_progress。
+  id              String   @id @default(uuid()) // 主键
+  userId          String   @map("user_id") // 用户ID，对应 Supabase auth.users.id
+  articleId       String   @map("article_id") // 文章slug，如 "个人/护肤"
+  articleSource   String   @default("posts") @map("article_source") // 来源：posts 或 external
+  articleTitle    String   @default("") @map("article_title") // 标题快照
+  articleUrl      String   @default("") @map("article_url") // 文章URL
+  progressPercent Int      @default(0) @map("progress_percent") // 进度 0-100
+  status          String   @default("not_started") @map("status") // not_started | reading | completed
+  lastReadAt      DateTime? @map("last_read_at") // 上次阅读时间
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
-  // 主键，由 Supabase/Postgres 自动生成。
-  id              String                @id @default(uuid())
-
-  // 用户 ID，对应 Supabase auth.users.id。
-  // RLS 策略只允许所有者读写自己的行。
-  userId          String                @map("user_id")
-
-  // 文章 ID，来自 Astro 内容 slug 的稳定标识符。
-  articleId       String                @map("article_id")
-
-  // 文章来源，标识内容来自 Markdown 文章还是外部 HTML 内容。
-  articleSource   StudyArticleSource    @default(posts) @map("article_source")
-
-  // 文章标题快照，保存进度时记录当时的标题。
-  articleTitle    String                @default("") @map("article_title")
-
-  // 文章公开 URL，供学习页面跳转回文章使用。
-  articleUrl      String                @default("") @map("article_url")
-
-  // 阅读进度，手动或自动记录，范围 0-100。
-  progressPercent Int                   @default(0) @map("progress_percent")
-
-  // 状态，用于筛选和仪表盘统计。
-  status          ArticleProgressStatus @default(not_started)
-
-  // 上次主动保存/阅读的时间。
-  lastReadAt      DateTime?             @map("last_read_at")
-
-  // 创建时间和更新时间，用于审计。
-  createdAt       DateTime              @default(now()) @map("created_at")
-  updatedAt       DateTime              @updatedAt @map("updated_at")
-
-  // 同一用户对同一文章只能有一条进度记录。
   @@unique([userId, articleSource, articleId])
   @@map("study_progress")
 }
 
-// 只追加的进度变更日志。
-// 为未来回顾页面提供足够的数据来回答"我今天学了什么？"
+// 表2：进度变更日志（只追加，用于每日复盘）
 model StudyEvent {
-  // 实际 Supabase 表：public.study_events。
-
-  // 主键，由 Supabase/Postgres 自动生成。
-  id              String             @id @default(uuid())
-
-  // 用户 ID，对应 Supabase auth.users.id。
-  userId          String             @map("user_id")
-
-  // 文章标识快照（ID、来源、标题）。
-  articleId       String             @map("article_id")
-  articleSource   StudyArticleSource @default(posts) @map("article_source")
-  articleTitle    String             @default("") @map("article_title")
-
-  // 本次事件的进度变化（前后百分比）。
-  previousPercent Int                @default(0) @map("previous_percent")
-  currentPercent  Int                @default(0) @map("current_percent")
-
-  // 事件日期，用于每日回顾。
-  eventDate       DateTime           @default(now()) @map("event_date")
-
-  // 精确的插入时间。
-  createdAt       DateTime           @default(now()) @map("created_at")
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  articleId        String   @map("article_id")
+  articleSource    String   @default("posts") @map("article_source")
+  articleTitle     String   @default("") @map("article_title")
+  previousPercent  Int      @default(0) @map("previous_percent") // 变化前进度
+  currentPercent   Int      @default(0) @map("current_percent") // 变化后进度
+  eventDate        DateTime @default(now()) @map("event_date") // 日期桶，用于按天汇总
+  createdAt        DateTime @default(now()) @map("created_at")
 
   @@map("study_events")
 }
 
-// 基于主题的学习目标，如"6月30日前完成 Node 基础"。
+// 表3：学习目标（如 "6月30日前学完AI专题"）
 model StudyGoal {
-  // 实际 Supabase 表：public.study_goals。
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  title      String // 目标标题
+  topic      String   @default("") // 主题名，用于分组
+  targetDate DateTime? @map("target_date") // 截止日期
+  status     String   @default("active") @map("status") // active | paused | completed | archived
+  notes      String   @default("") // 备注
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
-  // 主键，由 Supabase/Postgres 自动生成。
-  id         String          @id @default(uuid())
-
-  // 用户 ID，对应 Supabase auth.users.id。
-  userId     String          @map("user_id")
-
-  // 目标标题，UI 中显示的简短描述。
-  title      String
-
-  // 主题名称，用于分组和推荐。
-  topic      String          @default("")
-
-  // 目标日期，可选的截止时间。
-  targetDate DateTime?       @map("target_date")
-
-  // 目标生命周期状态。
-  status     StudyGoalStatus @default(active)
-
-  // 自由文本笔记，供未来规划逻辑使用。
-  notes      String          @default("")
-
-  // 创建时间和更新时间，用于审计。
-  createdAt  DateTime        @default(now()) @map("created_at")
-  updatedAt  DateTime        @updatedAt @map("updated_at")
-
-  // 关联此目标的所有文章。
   items      StudyGoalItem[]
-
   @@map("study_goals")
 }
 
-// 分配给目标的一篇文章。
-// 支持用一个目标追踪多篇文章或外部文档。
+// 表4：目标关联的文章（一个目标可包含多篇文章）
 model StudyGoalItem {
-  // 实际 Supabase 表：public.study_goal_items。
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id") // 冗余存储，简化RLS和查询
+  goalId        String   @map("goal_id") // 所属目标ID
+  articleId     String   @map("article_id")
+  articleSource String   @default("posts") @map("article_source")
+  articleTitle  String   @default("") @map("article_title")
+  articleUrl    String   @default("") @map("article_url")
+  targetPercent Int      @default(100) @map("target_percent") // 目标进度，通常100
+  sortOrder     Int      @default(0) @map("sort_order") // 排序
+  createdAt     DateTime @default(now()) @map("created_at")
 
-  // 主键，由 Supabase/Postgres 自动生成。
-  id            String             @id @default(uuid())
-
-  // 用户 ID，对应 Supabase auth.users.id。为简化 RLS 和查询而冗余存储。
-  userId        String             @map("user_id")
-
-  // 父目标 ID。
-  goalId        String             @map("goal_id")
-
-  // 文章标识快照（ID、来源、标题、URL）。
-  articleId     String             @map("article_id")
-  articleSource StudyArticleSource @default(posts) @map("article_source")
-  articleTitle  String             @default("") @map("article_title")
-  articleUrl    String             @default("") @map("article_url")
-
-  // 此文章在目标内的目标进度，通常为 100。
-  targetPercent Int                @default(100) @map("target_percent")
-
-  // 手动排序，在目标内的顺序。
-  sortOrder     Int                @default(0) @map("sort_order")
-
-  // 精确的插入时间。
-  createdAt     DateTime           @default(now()) @map("created_at")
-
-  // 关联的父目标。
-  goal          StudyGoal          @relation(fields: [goalId], references: [id], onDelete: Cascade)
-
-  // 防止同一文章被重复添加到同一目标。
+  goal          StudyGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
   @@unique([goalId, articleSource, articleId])
   @@map("study_goal_items")
 }
 
-// 预留给未来知识库问答功能。
-// 每篇文章可拆分成多个片段，后续可与向量嵌入配对。
+// 表5：文章切片（预留，未来知识库问答用，可配 embedding）
 model ArticleChunk {
-  // 实际 Supabase 表：public.article_chunks。
+  id            String   @id @default(uuid())
+  articleId     String   @map("article_id")
+  articleSource String   @default("posts") @map("article_source")
+  articleTitle  String   @default("") @map("article_title")
+  chunkIndex    Int      @default(0) @map("chunk_index") // 切片序号
+  content       String // 切片文本
+  metadata      Json     @default("{}") @map("metadata") // 元数据
+  createdAt     DateTime @default(now()) @map("created_at")
 
-  // 主键，由 Supabase/Postgres 自动生成。
-  id            String             @id @default(uuid())
-
-  // 文章标识（ID、来源、标题）。
-  articleId     String             @map("article_id")
-  articleSource StudyArticleSource @default(posts) @map("article_source")
-  articleTitle  String             @default("") @map("article_title")
-
-  // 片段在文章中的位置索引。
-  chunkIndex    Int                @default(0) @map("chunk_index")
-
-  // 纯文本内容，用于搜索、摘要和未来向量嵌入。
-  content       String
-
-  // 灵活元数据，如标题路径、标签或来源偏移量。
-  metadata      Json               @default("{}")
-
-  // 精确的插入时间。
-  createdAt     DateTime           @default(now()) @map("created_at")
-
-  // 同一文章内片段索引唯一。
   @@unique([articleSource, articleId, chunkIndex])
   @@map("article_chunks")
 }

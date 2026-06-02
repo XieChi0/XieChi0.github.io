@@ -2,10 +2,13 @@
 import { onMount } from "svelte";
 import { createStudyProgressApi } from "@/lib/studyProgress/study-progress-api";
 import type {
+	AddGoalItemInput,
 	ArticleProgress,
+	CreateStudyGoalInput,
 	SaveProgressInput,
 	StudyArticle,
 	StudyGoal,
+	StudyGoalItem,
 	StudySession,
 } from "@/lib/studyProgress/types";
 import StudyProgressDashboard from "./StudyProgressDashboard.svelte";
@@ -74,6 +77,28 @@ function createOptimisticProgress(
 		createdAt: now,
 		updatedAt: now,
 	};
+}
+
+function mergeGoal(saved: StudyGoal) {
+	goals = [saved, ...goals.filter((goal) => goal.id !== saved.id)];
+}
+
+function mergeGoalItem(saved: StudyGoalItem) {
+	goals = goals.map((goal) => {
+		if (goal.id !== saved.goalId) return goal;
+
+		return {
+			...goal,
+			items: [
+				saved,
+				...goal.items.filter(
+					(item) =>
+						`${item.articleSource}:${item.articleId}` !==
+						`${saved.articleSource}:${saved.articleId}`,
+				),
+			],
+		};
+	});
 }
 
 async function loadData() {
@@ -164,6 +189,51 @@ async function handleSaveProgress(
 	}
 }
 
+async function handleCreateGoal(input: CreateStudyGoalInput) {
+	loading = true;
+	error = "";
+	message = "";
+	try {
+		const saved = await api.createGoal(input);
+		mergeGoal(saved);
+		message = `Goal created: ${saved.title}`;
+	} catch (err) {
+		error = getErrorMessage(err);
+	} finally {
+		loading = false;
+	}
+}
+
+async function handleAddGoalItem(input: AddGoalItemInput) {
+	loading = true;
+	error = "";
+	message = "";
+	try {
+		const saved = await api.addGoalItem(input);
+		mergeGoalItem(saved);
+		message = `Added to goal: ${saved.articleTitle}`;
+	} catch (err) {
+		error = getErrorMessage(err);
+	} finally {
+		loading = false;
+	}
+}
+
+async function handleDeleteGoal(goalId: string) {
+	loading = true;
+	error = "";
+	message = "";
+	try {
+		await api.deleteGoal(goalId);
+		goals = goals.filter((goal) => goal.id !== goalId);
+		message = "Goal deleted.";
+	} catch (err) {
+		error = getErrorMessage(err);
+	} finally {
+		loading = false;
+	}
+}
+
 onMount(loadData);
 </script>
 
@@ -177,9 +247,11 @@ onMount(loadData);
 		{savingArticleKey}
 		{message}
 		{error}
-		{debug}
 		onLogout={handleLogout}
 		onSaveProgress={handleSaveProgress}
+		onCreateGoal={handleCreateGoal}
+		onAddGoalItem={handleAddGoalItem}
+		onDeleteGoal={handleDeleteGoal}
 	/>
 {:else}
 	<StudyProgressLogin {loading} {error} onLogin={handleLogin} />
