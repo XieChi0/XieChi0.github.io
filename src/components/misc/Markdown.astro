@@ -4,10 +4,13 @@ import "@fontsource-variable/jetbrains-mono/wght-italic.css";
 
 interface Props {
 	class: string;
+	pagefindBody?: boolean;
 }
 const className = Astro.props.class;
+const pagefindBody = Astro.props.pagefindBody ?? true;
+const pagefindAttrs = pagefindBody ? { "data-pagefind-body": true } : {};
 ---
-<div data-pagefind-body class={`prose dark:prose-invert prose-base !max-w-none custom-md ${className}`}>
+<div {...pagefindAttrs} class={`prose dark:prose-invert prose-base !max-w-none custom-md ${className}`}>
     <!--<div class="prose dark:prose-invert max-w-none custom-md">-->
     <!--<div class="max-w-none custom-md">-->
     <slot/>

@@ -18,11 +18,12 @@ const interval = 50;
                 published={entry.data.published}
                 updated={entry.data.updated}
                 url={getPostUrlBySlug(entry.slug)}
-                image={entry.data.image}
-                description={entry.data.description}
-                draft={entry.data.draft}
-                class:list="onload-animation"
-                style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}
+				image={entry.data.image}
+				description={entry.data.description}
+				draft={entry.data.draft}
+				private={entry.data.private}
+				class:list="onload-animation"
+				style={`animation-delay: calc(var(--content-delay) + ${delay++ * interval}ms);`}
         ></PostCard>
     ))}
 </div>

@@ -21,6 +21,7 @@ interface Props {
 	image: string;
 	description: string;
 	draft: boolean;
+	private: boolean;
 	style: string;
 }
 const {
@@ -33,6 +34,7 @@ const {
 	category,
 	image,
 	description,
+	private: isPrivatePost,
 	style,
 } = Astro.props;
 const className = Astro.props.class;
@@ -53,6 +55,7 @@ const { remarkPluginFrontmatter } = await entry.render();
         before:absolute before:top-[35px] before:left-[18px] before:hidden md:before:block
         ">
             {title}
+			{isPrivatePost && <Icon class="inline ml-2 text-[1.35rem] text-[var(--primary)] translate-y-0.5" name="material-symbols:lock"></Icon>}
             <Icon class="inline text-[2rem] text-[var(--primary)] md:hidden translate-y-0.5 absolute" name="material-symbols:chevron-right-rounded" ></Icon>
             <Icon class="text-[var(--primary)] text-[2rem] transition hidden md:inline absolute translate-y-0.5 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0" name="material-symbols:chevron-right-rounded"></Icon>
         </a>
@@ -62,7 +65,7 @@ const { remarkPluginFrontmatter } = await entry.render();
 
         <!-- description -->
         <div class:list={["transition text-75 mb-3.5 pr-4", {"line-clamp-2 md:line-clamp-1": !description}]}>
-            { description || remarkPluginFrontmatter.excerpt }
+			{ isPrivatePost ? "私密文章。输入密码后可阅读。" : description || remarkPluginFrontmatter.excerpt }
         </div>
 
         <!-- word count and read time  -->

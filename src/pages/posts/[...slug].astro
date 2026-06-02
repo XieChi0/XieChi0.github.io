@@ -3,6 +3,7 @@
 import path from "node:path";
 import License from "@components/misc/License.astro";
 import Markdown from "@components/misc/Markdown.astro";
+import PrivatePostGate from "@components/PrivatePostGate.svelte";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
@@ -25,6 +26,8 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content, headings } = await entry.render();
+const isPrivatePost = entry.data.private === true;
+const privateContentId = `private-post-content-${entry.slug.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 
 const { remarkPluginFrontmatter } = await entry.render();
 
@@ -106,9 +109,14 @@ const jsonLd = {
             }
 
 
-            <Markdown class="mb-6 markdown-content onload-animation">
-                <Content />
-            </Markdown>
+            <div class:list={["private-post-frame", {"private-post-frame--locked": isPrivatePost}]}>
+                {isPrivatePost && <PrivatePostGate client:load targetId={privateContentId} title={entry.data.title} />}
+                <div id={privateContentId} class:list={["private-post-content", {"is-private": isPrivatePost}]}>
+                    <Markdown class="mb-6 markdown-content onload-animation" pagefindBody={!isPrivatePost}>
+                        <Content />
+                    </Markdown>
+                </div>
+            </div>
 
             {licenseConfig.enable && <License title={entry.data.title} slug={entry.slug} pubDate={entry.data.published} class="mb-6 rounded-xl license-container onload-animation"></License>}
 
@@ -138,3 +146,22 @@ const jsonLd = {
     </div>
 
 </MainGridLayout>
+
+<style>
+    .private-post-frame {
+        position: relative;
+    }
+
+    .private-post-frame--locked {
+        min-height: 360px;
+    }
+
+    .private-post-content.is-private:not(.is-unlocked) {
+        max-height: 360px;
+        overflow: hidden;
+        opacity: 0.3;
+        filter: blur(8px);
+        pointer-events: none;
+        user-select: none;
+    }
+</style>

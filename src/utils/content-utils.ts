@@ -44,6 +44,7 @@ export async function getSortedPosts(includeExternal?: boolean) {
 						category: string;
 						lang: string;
 						image: string;
+						private: boolean;
 						externalSlug: string;
 						externalExtension: string;
 						externalFilePath: string;
@@ -74,6 +75,7 @@ export async function getSortedPosts(includeExternal?: boolean) {
 					category: "external",
 					lang: "",
 					image: "",
+					private: false,
 					externalSlug: e.slug,
 					externalExtension: e.extension,
 					externalFilePath: e.filePath,

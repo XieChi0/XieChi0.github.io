@@ -195,3 +195,38 @@ A: 避免 DOM 污染。虽然元素不可见，但留在页面上会浪费内存
 - Swup 页面切换与事件机制
 
 ---
+## [2026-06-02] 增加私密文章网页锁罩
+
+**Commit ID**: (提交后补充)
+**变更文件数量**: 10
+**核心改动**: 为 Markdown 文章增加 `private: true` 标记能力，在网页端用 Supabase Auth 密码校验后解除正文遮罩，并同步更新项目知识库记录。
+
+### 变更文件清单
+
+| 文件 | 变更类型 | 说明 |
+|-----|---------|------|
+| src/content/config.ts | 修改 | 为 posts frontmatter schema 增加 `private` 字段 |
+| src/pages/posts/[...slug].astro | 修改 | 识别私密文章并包裹锁罩、模糊正文 |
+| src/components/PrivatePostGate.svelte | 新增 | 复用学习中心 Supabase 登录能力完成解锁 |
+| src/components/PostCard.astro | 修改 | 私密文章显示锁图标并隐藏列表摘要 |
+| src/components/PostPage.astro | 修改 | 将 `entry.data.private` 传给文章卡片 |
+| src/components/misc/Markdown.astro | 修改 | 支持关闭 Pagefind 正文索引 |
+| src/utils/content-utils.ts | 修改 | 外部文章合并数据补齐 `private: false` |
+| src/content/posts/个人/护肤.md | 修改 | 标记为第一篇私密文章 |
+| 知识库.md | 修改 | 记录私密文章锁罩阶段、限制与后续方向 |
+| commit-history.md | 修改 | 增加本次提交总结 |
+
+### 功能效果
+
+- 文章 frontmatter 可通过 `private: true` 标记为私密文章。
+- 私密文章正文默认被模糊遮罩覆盖，输入学习中心密码后解锁。
+- 已登录学习中心的浏览器会复用 Supabase session，进入私密文章时自动解锁。
+- 私密文章在列表页显示锁图标，摘要替换为私密提示。
+- 私密文章正文不进入 Pagefind 正文索引，减少搜索摘要泄露。
+
+### 剩余风险
+
+- 该方案只是在网页端遮住内容，不是严格保密；公开仓库和静态产物仍可能暴露正文。
+- 真正私密版需要后端或加密内容方案。
+
+---
