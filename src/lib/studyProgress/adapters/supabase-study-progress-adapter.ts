@@ -1,4 +1,5 @@
-import { supabase } from "../supabase-client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createStudyProgressSupabaseClient } from "../supabase-client";
 import type {
 	AddGoalItemInput,
 	ArticleProgress,
@@ -140,7 +141,7 @@ function getStatus(progressPercent: number): ArticleProgressStatus {
 	return "not_started";
 }
 
-async function requireUser() {
+async function requireUser(supabase: SupabaseClient) {
 	const {
 		data: { user },
 		error,
@@ -152,6 +153,8 @@ async function requireUser() {
 }
 
 export function createSupabaseStudyProgressApi(): StudyApi {
+	const supabase = createStudyProgressSupabaseClient();
+
 	return {
 		async signIn(password: string) {
 			const email = import.meta.env.PUBLIC_STUDY_OWNER_EMAIL;
@@ -201,7 +204,7 @@ export function createSupabaseStudyProgressApi(): StudyApi {
 		},
 
 		async saveProgress(input: SaveProgressInput) {
-			const user = await requireUser();
+			const user = await requireUser(supabase);
 			const progressPercent = Math.min(
 				100,
 				Math.max(0, Math.round(input.progressPercent)),
@@ -310,7 +313,7 @@ export function createSupabaseStudyProgressApi(): StudyApi {
 		},
 
 		async createGoal(input: CreateStudyGoalInput) {
-			const user = await requireUser();
+			const user = await requireUser(supabase);
 			const title = input.title.trim();
 			if (!title) throw new Error("Goal title is required.");
 
@@ -334,7 +337,7 @@ export function createSupabaseStudyProgressApi(): StudyApi {
 		},
 
 		async addGoalItem(input: AddGoalItemInput) {
-			const user = await requireUser();
+			const user = await requireUser(supabase);
 			const targetPercent = Math.min(
 				100,
 				Math.max(1, Math.round(input.targetPercent)),
@@ -373,7 +376,7 @@ export function createSupabaseStudyProgressApi(): StudyApi {
 		},
 
 		async deleteGoal(goalId: string) {
-			const user = await requireUser();
+			const user = await requireUser(supabase);
 			const { error } = await supabase
 				.from("study_goals")
 				.delete()
