@@ -1,6 +1,13 @@
 <script lang="ts">
 import { onMount } from "svelte";
-import { createStudyProgressApi } from "@/lib/studyProgress/study-progress-api";
+import {
+	createStudyProgressApi,
+	hasStudyProgressSupabaseEnv,
+} from "@/lib/studyProgress/study-progress-api";
+import {
+	clearStudyProgressSupabaseConfig,
+	saveStudyProgressSupabaseConfig,
+} from "@/lib/studyProgress/supabase-client";
 import type {
 	AddGoalItemInput,
 	ArticleProgress,
@@ -16,12 +23,13 @@ import StudyProgressLogin from "./StudyProgressLogin.svelte";
 
 export let articles: StudyArticle[] = [];
 
-const api = createStudyProgressApi();
+let api = createStudyProgressApi();
 const debug = import.meta.env.DEV;
 
 let session: StudySession | null = null;
 let progressItems: ArticleProgress[] = [];
 let goals: StudyGoal[] = [];
+let configMissing = !hasStudyProgressSupabaseEnv();
 let loading = true;
 let savingArticleKey = "";
 let message = "";
@@ -143,6 +151,11 @@ async function loadData() {
 }
 
 async function handleLogin(password: string) {
+	if (configMissing) {
+		error = "Save your local Supabase config before signing in.";
+		return;
+	}
+
 	loading = true;
 	error = "";
 	message = "";
@@ -155,6 +168,34 @@ async function handleLogin(password: string) {
 	} finally {
 		loading = false;
 	}
+}
+
+async function handleSaveConfig(text: string) {
+	loading = true;
+	error = "";
+	message = "";
+	try {
+		saveStudyProgressSupabaseConfig(text);
+		api = createStudyProgressApi();
+		configMissing = !hasStudyProgressSupabaseEnv();
+		message = "Supabase config saved locally.";
+		await loadData();
+	} catch (err) {
+		error = getErrorMessage(err);
+		loading = false;
+	}
+}
+
+async function handleClearConfig() {
+	clearStudyProgressSupabaseConfig();
+	api = createStudyProgressApi();
+	configMissing = !hasStudyProgressSupabaseEnv();
+	session = null;
+	progressItems = [];
+	goals = [];
+	message = "Local Supabase config cleared.";
+	error = "";
+	loading = false;
 }
 
 async function handleLogout() {
@@ -254,5 +295,12 @@ onMount(loadData);
 		onDeleteGoal={handleDeleteGoal}
 	/>
 {:else}
-	<StudyProgressLogin {loading} {error} onLogin={handleLogin} />
+	<StudyProgressLogin
+		{loading}
+		{error}
+		{configMissing}
+		onLogin={handleLogin}
+		onSaveConfig={handleSaveConfig}
+		onClearConfig={handleClearConfig}
+	/>
 {/if}

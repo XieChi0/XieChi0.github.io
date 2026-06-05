@@ -2,18 +2,10 @@
 import StudyProgressApp from "@components/studyProgress/StudyProgressApp.svelte";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getStudyProgressArticles } from "@/lib/studyProgress/article-index";
-import { hasStudyProgressSupabaseEnv } from "@/lib/studyProgress/study-progress-api";
 
 const articles = await getStudyProgressArticles();
-const studyProgressEnabled = hasStudyProgressSupabaseEnv();
 ---
 
-<MainGridLayout title="Study Progress" description="个人学习进度">
-	{studyProgressEnabled ? (
-		<StudyProgressApp client:load articles={articles} />
-	) : (
-		<div class="card-base rounded-[var(--radius-large)] p-6 text-sm text-75">
-			学习进度功能当前未配置，已在静态构建时自动跳过 Supabase 依赖。
-		</div>
-	)}
+<MainGridLayout title="Study Progress" description="Personal study progress">
+	<StudyProgressApp client:load articles={articles} />
 </MainGridLayout>

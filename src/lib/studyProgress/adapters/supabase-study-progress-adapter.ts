@@ -1,5 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createStudyProgressSupabaseClient } from "../supabase-client";
+import {
+	createStudyProgressSupabaseClient,
+	getStudyOwnerEmail,
+} from "../supabase-client";
 import type {
 	AddGoalItemInput,
 	ArticleProgress,
@@ -157,7 +160,7 @@ export function createSupabaseStudyProgressApi(): StudyApi {
 
 	return {
 		async signIn(password: string) {
-			const email = import.meta.env.PUBLIC_STUDY_OWNER_EMAIL;
+			const email = getStudyOwnerEmail();
 			if (!email) {
 				throw new Error("Missing PUBLIC_STUDY_OWNER_EMAIL.");
 			}
