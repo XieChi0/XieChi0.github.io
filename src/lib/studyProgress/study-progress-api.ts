@@ -1,4 +1,5 @@
 import { createSupabaseStudyProgressApi } from "./adapters/supabase-study-progress-adapter";
+import { createUnavailableStudyProgressApi } from "./adapters/unavailable-study-progress-adapter";
 import type { StudyApi } from "./types";
 
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
@@ -10,9 +11,7 @@ export function hasStudyProgressSupabaseEnv() {
 
 export function createStudyProgressApi(): StudyApi {
 	if (!hasStudyProgressSupabaseEnv()) {
-		throw new Error(
-			"Study progress is unavailable because Supabase is not configured.",
-		);
+		return createUnavailableStudyProgressApi();
 	}
 
 	return createSupabaseStudyProgressApi();
