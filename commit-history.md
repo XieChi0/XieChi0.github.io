@@ -2,6 +2,37 @@
 
 ---
 
+## [2026-06-05] 支持学习进度本地 Supabase 配置
+
+**Commit ID**: c68b940
+**变更文件数量**: 5
+**主要目标**: 在静态部署环境没有 Supabase env 时，仍然显示学习进度入口，并允许用户把 Supabase 配置粘贴到浏览器本地保存后继续使用。
+
+### 变更清单
+
+| 文件 | 变更类型 | 说明 |
+|-----|---------|------|
+| src/lib/studyProgress/supabase-client.ts | 修改 | 增加本地配置解析、保存、清除和读取逻辑，优先使用 env，缺失时回退到 localStorage |
+| src/lib/studyProgress/adapters/supabase-study-progress-adapter.ts | 修改 | Supabase client 和 owner email 改为运行时读取，支持本地配置 |
+| src/components/studyProgress/StudyProgressApp.svelte | 修改 | 增加保存/清除本地配置后的 API 重建流程 |
+| src/components/studyProgress/StudyProgressLogin.svelte | 修改 | 在缺少配置时显示粘贴配置面板 |
+| src/pages/studyProgress.astro | 修改 | 取消构建期隐藏页面，始终挂载学习进度应用 |
+
+### 已实现成果
+
+- GitHub Pages / Actions 没有 Supabase env 时，静态构建不再失败。
+- `/studyProgress/` 页面仍然可访问，并能提示用户粘贴本地 Supabase 配置。
+- 配置只保存到当前浏览器 `localStorage`，不写入仓库。
+- 已粘贴配置后会重新初始化学习进度 API，继续走 Supabase 登录和数据同步。
+
+### 提交前检查
+
+- `pnpm check`：通过，保留既有 `document.execCommand` 和 `_cssVar` hint。
+- 无 Supabase env 的 `pnpm build`：通过，保留既有 `astro-expressive-code` 语言高亮 warning。
+- `.husky/pre-commit.cjs`：通过。
+
+---
+
 ## [2026-06-02] 扩展学习中心筛选与目标模式
 
 **Commit ID**: f9caa7f9a7444d171656e19d4661d38c32319651

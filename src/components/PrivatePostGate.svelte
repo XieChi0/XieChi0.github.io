@@ -113,7 +113,6 @@ onMount(loadSession);
 	border-radius: 1rem;
 	background: rgba(255, 255, 255, 0.92);
 	padding: 1.5rem;
-	box-shadow: 0 18px 50px rgba(0, 0, 0, 0.12);
 	color: rgba(0, 0, 0, 0.86);
 }
 
@@ -148,15 +147,17 @@ onMount(loadSession);
 }
 
 .private-post-gate__form {
-	display: flex;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: stretch;
 	gap: 0.75rem;
 	margin-top: 1.25rem;
 }
 
 .private-post-gate input {
 	min-width: 0;
-	flex: 1;
-	height: 2.75rem;
+	width: 100%;
+	min-height: 2.75rem;
 	border: 1px solid rgba(0, 0, 0, 0.12);
 	border-radius: 0.75rem;
 	background: rgba(255, 255, 255, 0.86);
@@ -175,7 +176,7 @@ onMount(loadSession);
 }
 
 .private-post-gate button {
-	height: 2.75rem;
+	min-height: 2.75rem;
 	border: 0;
 	border-radius: 0.75rem;
 	background: var(--primary);
@@ -202,7 +203,17 @@ onMount(loadSession);
 	}
 
 	.private-post-gate__form {
-		flex-direction: column;
+		grid-template-columns: minmax(0, 1fr);
+		gap: 0.65rem;
+	}
+
+	.private-post-gate button {
+		width: 100%;
+	}
+
+	.private-post-gate input,
+	.private-post-gate button {
+		min-height: 2.625rem;
 	}
 }
 </style>
