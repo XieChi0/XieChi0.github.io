@@ -195,7 +195,33 @@ A: 避免 DOM 污染。虽然元素不可见，但留在页面上会浪费内存
 - Swup 页面切换与事件机制
 
 ---
-## [2026-06-02] 增加私密文章网页锁罩
+## [2026-06-05] 兼容无 Supabase 环境的静态构建
+
+**Commit ID**: (提交后补充)
+**变更文件数量**: 4
+**主要目标**: 让学习进度页在缺少 Supabase 公开环境变量时自动降级，避免 GitHub Pages 静态构建因为私有运行时配置缺失而失败。
+
+### 变更清单
+
+| 文件 | 变更类型 | 说明 |
+|-----|---------|------|
+| src/lib/studyProgress/study-progress-api.ts | 修改 | 增加 Supabase 环境变量检测并在未配置时阻止创建 API |
+| src/pages/studyProgress.astro | 修改 | 根据环境变量决定渲染学习进度应用或降级提示 |
+| 知识库.md | 修改 | 补充静态部署下学习进度功能的构建降级策略 |
+| commit-history.md | 修改 | 追加本次构建兼容性提交摘要 |
+
+### 已实现成果
+
+- 构建阶段不再因为缺少 `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_PUBLISHABLE_KEY` 而直接抛错。
+- `/studyProgress/` 页面在未配置 Supabase 时会显示降级提示，而不是让整站构建失败。
+- 保留已配置环境下的学习进度能力，不影响正常登录和 Supabase 数据读写路径。
+- GitHub Actions 这类没有私有运行时环境变量的静态构建场景可以继续产出站点。
+
+### 提交前检查
+
+- `pnpm build`：通过，保留既有 `astro-expressive-code` 语言高亮 warning。
+
+---
 
 **Commit ID**: (提交后补充)
 **变更文件数量**: 10
