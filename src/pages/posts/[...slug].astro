@@ -1,6 +1,7 @@
 <!-- 文章详情页，用entry.render()渲染md -->
 ---
 import path from "node:path";
+import ArticleProgressSaver from "@components/ArticleProgressSaver.svelte";
 import License from "@components/misc/License.astro";
 import Markdown from "@components/misc/Markdown.astro";
 import PrivatePostGate from "@components/PrivatePostGate.svelte";
@@ -28,6 +29,16 @@ const { entry } = Astro.props;
 const { Content, headings } = await entry.render();
 const isPrivatePost = entry.data.private === true;
 const privateContentId = `private-post-content-${entry.slug.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+const articleProgressTargetId = privateContentId;
+const currentStudyArticle = {
+	id: entry.slug,
+	source: "posts" as const,
+	title: entry.data.title,
+	url: getPostUrlBySlug(entry.slug),
+	category: entry.data.category ?? "",
+	tags: entry.data.tags ?? [],
+	published: entry.data.published.toISOString(),
+};
 
 const { remarkPluginFrontmatter } = await entry.render();
 
@@ -125,6 +136,13 @@ const jsonLd = {
 
         </div>
     </div>
+
+    <ArticleProgressSaver
+        slot="floating"
+        client:load
+        article={currentStudyArticle}
+        targetId={articleProgressTargetId}
+    />
 
     <div class="flex flex-col md:flex-row justify-between mb-4 gap-4 overflow-hidden w-full">
         <a href={entry.data.nextSlug ? getPostUrlBySlug(entry.data.nextSlug) : "#"}

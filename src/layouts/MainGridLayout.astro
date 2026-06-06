@@ -106,6 +106,7 @@ const isPostsRoute = Astro.url.pathname.startsWith("/posts/");
             </div>
         </div>
 
+        <slot name="floating"></slot>
         <BackToTop></BackToTop>
     </div>
 </div>
