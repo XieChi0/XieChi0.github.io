@@ -1,5 +1,5 @@
 ---
-title: 自研 Python API 回归测试工具
+title: python_api_test-interview_outline
 published: 2026-06-05
 description: '面向面试讲解的 Python API 回归测试工具项目大纲，梳理背景、分层架构、配置驱动与测试价值。'
 image: ''

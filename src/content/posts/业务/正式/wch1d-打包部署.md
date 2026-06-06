@@ -1,5 +1,5 @@
 ---
-title: 'WCH1D 打包部署：双仓推送、Windows 打包链路与 GitLab CI/CD 整合思路'
+title: wch1d-打包部署
 published: 2026-06-05
 updated: 2026-06-05
 description: '梳理 WCH1D 当前前后端打包部署流程，并说明如何逐步接入 GitLab CI/CD。'

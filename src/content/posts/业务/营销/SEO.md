@@ -1,5 +1,5 @@
 ---
-title: Astro 博客 SEO 实现完全分析指南
+title: SEO
 published: 2026-05-26
 updated: 2026-05-26
 description: Astro 博客项目 SEO 完整实现分析，涵盖 meta 标签、Open Graph、Twitter Card、JSON-LD、Sitemap、robots.txt、RSS 等核心功能

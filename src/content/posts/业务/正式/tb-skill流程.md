@@ -1,5 +1,5 @@
 ---
-title: '拓展坞 Skill 流程：仓库目录讲解与处理链路说明'
+title: tb-skill流程
 published: 2026-06-05
 updated: 2026-06-05
 description: '面向入门读者梳理拓展坞研究仓库的目录结构、各子技能职责与整体处理流程。'

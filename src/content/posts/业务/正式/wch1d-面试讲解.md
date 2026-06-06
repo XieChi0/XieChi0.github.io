@@ -1,5 +1,5 @@
 ---
-title: 'GIS 体系搭建：学习版讲解、需求演进与代码阅读路线'
+title: wch1d-面试讲解
 published: 2026-06-01
 updated: 2026-06-04
 description: '从学习视角梳理 GIS 体系搭建的需求演进、架构分层与代码阅读路线。'
