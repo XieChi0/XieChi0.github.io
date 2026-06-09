@@ -3,51 +3,58 @@ import { Icon } from "astro-icon/components";
 ---
 
 <!-- There can't be a filter on parent element, or it will break `fixed` -->
-<div class="back-to-top-wrapper hidden lg:block">
-    <div id="back-to-top-btn" class="back-to-top-btn hide flex items-center justify-center rounded-2xl overflow-visible transition" onclick="backToTop()">
-        <!-- 按钮主体 -->
-        <button aria-label="Back to Top" class="btn-card h-[3.75rem] w-[3.75rem] rounded-2xl relative flex flex-col items-center justify-center">
-            <!-- 圆角矩形进度条 SVG -->
-            <svg class="progress-ring" width="60" height="60" viewBox="0 0 60 60">
-                <!-- 背景矩形（遮罩层，显示未涉及的部分） -->
-                <rect
-                    class="progress-ring-bg"
-                    x="1.5"
-                    y="1.5"
-                    width="0"
-                    height="0"
-                    rx="16"
-                    fill="none"
-                    stroke-width="3.1"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                />
-                <!-- 进度矩形 -->
-                <rect
-                    id="progress-ring-path"
-                    class="progress-ring-path"
-                    x="1.5"
-                    y="1.5"
-                    width="57"
-                    height="57"
-                    rx="16"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="3"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-dasharray="200.53"
-                    stroke-dashoffset="200.53"
-                    opacity="0"
-                />
-            </svg>
-            
-            <!-- 上升图标 -->
-            <div id="back-to-top-icon" class="icon-wrapper relative z-10 flex items-center justify-center">
-                <Icon name="material-symbols:keyboard-arrow-up-rounded"></Icon>
-            </div>
-        </button>
-    </div>
+<div class="back-to-top-wrapper">
+	<div
+		id="back-to-top-btn"
+		class="back-to-top-btn hide flex items-center justify-center rounded-2xl overflow-visible transition"
+		onclick="backToTop()"
+	>
+		<!-- 按钮主体 -->
+		<button
+			aria-label="Back to Top"
+			class="btn-card relative flex h-[3.75rem] w-[3.75rem] flex-col items-center justify-center rounded-2xl"
+		>
+			<!-- 圆角矩形进度条 SVG -->
+			<svg class="progress-ring" width="60" height="60" viewBox="0 0 60 60">
+				<!-- 背景矩形（遮罩层，显示未涉及的部分） -->
+				<rect
+					class="progress-ring-bg"
+					x="1.5"
+					y="1.5"
+					width="0"
+					height="0"
+					rx="16"
+					fill="none"
+					stroke-width="3.1"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				/>
+				<!-- 进度矩形 -->
+				<rect
+					id="progress-ring-path"
+					class="progress-ring-path"
+					x="1.5"
+					y="1.5"
+					width="57"
+					height="57"
+					rx="16"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="3"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-dasharray="200.53"
+					stroke-dashoffset="200.53"
+					opacity="0"
+				/>
+			</svg>
+
+			<!-- 上升图标 -->
+			<div id="back-to-top-icon" class="icon-wrapper relative z-10 flex items-center justify-center">
+				<Icon name="material-symbols:keyboard-arrow-up-rounded"></Icon>
+			</div>
+		</button>
+	</div>
 </div>
 
 <style lang="stylus">
@@ -109,6 +116,35 @@ import { Icon } from "astro-icon/components";
         
     &:active
         transform: translateX(5rem) scale(0.9)  /* 与上面一致 */
+
+@media (max-width: 1023px)
+    .back-to-top-wrapper
+        width: 2.5rem
+        height: 2.5rem
+        right: 1rem
+
+    .back-to-top-btn
+        bottom: 9.5rem
+        font-size: 1.75rem
+        transform: none
+
+        button
+            width: 2.5rem
+            height: 2.5rem
+            border-radius: 0.875rem
+
+        .progress-ring
+            width: 40px
+            height: 40px
+
+        i
+            font-size: 1.15rem
+
+        &.hide
+            transform: translateX(4rem) scale(0.9)
+
+        &:active
+            transform: scale(0.9)
 
 </style>
 

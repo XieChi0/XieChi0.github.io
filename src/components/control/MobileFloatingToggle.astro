@@ -1,0 +1,134 @@
+---
+import { Icon } from "astro-icon/components";
+---
+
+<button
+	id="mobile-floating-toggle"
+	type="button"
+	aria-label="展开悬浮按钮"
+	aria-expanded="false"
+>
+	<Icon
+		name="material-symbols:chevron-left-rounded"
+		class="mobile-floating-toggle__icon mobile-floating-toggle__icon--open"
+	/>
+	<Icon
+		name="material-symbols:chevron-right-rounded"
+		class="mobile-floating-toggle__icon mobile-floating-toggle__icon--close"
+	/>
+</button>
+
+<style is:global>
+	#mobile-floating-toggle {
+		position: fixed;
+		right: 0;
+		bottom: 3rem;
+		z-index: 120;
+		display: none;
+		width: 2.75rem;
+		height: 2.75rem;
+		align-items: center;
+		justify-content: center;
+		border: 1px solid rgba(0, 0, 0, 0.08);
+		border-radius: 1rem;
+		background: var(--card-bg);
+		box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
+		color: var(--primary);
+		transition:
+			background 0.2s ease,
+			box-shadow 0.2s ease;
+	}
+
+	#mobile-floating-toggle:hover {
+		background: var(--btn-plain-bg-hover);
+		box-shadow: 0 8px 22px rgba(0, 0, 0, 0.16);
+	}
+
+	#mobile-floating-toggle .mobile-floating-toggle__icon {
+		width: 1.35rem;
+		height: 1.35rem;
+		transition:
+			opacity 0.18s ease,
+			transform 0.18s ease;
+	}
+
+	#mobile-floating-toggle .mobile-floating-toggle__icon--close {
+		position: absolute;
+		opacity: 0;
+		transform: translateX(-0.2rem) scale(0.8);
+	}
+
+	#mobile-floating-toggle[aria-expanded="true"] .mobile-floating-toggle__icon--open {
+		opacity: 0;
+		transform: translateX(0.2rem) scale(0.8);
+	}
+
+	#mobile-floating-toggle[aria-expanded="true"] .mobile-floating-toggle__icon--close {
+		opacity: 1;
+		transform: translateX(0) scale(1);
+	}
+
+	@media (max-width: 1023px) {
+		#mobile-floating-toggle {
+			display: flex;
+		}
+
+		#back-to-top-btn,
+		.article-progress-saver {
+			transition:
+				opacity 0.2s ease,
+				transform 0.2s ease,
+				right 0.2s ease,
+				bottom 0.2s ease;
+		}
+
+		html:not(.mobile-floating-open) #back-to-top-btn,
+		html:not(.mobile-floating-open) .article-progress-saver {
+			opacity: 0;
+			pointer-events: none;
+			transform: translateX(5rem);
+		}
+
+		mobile-toc {
+			right: 0 !important;
+			bottom: 6.75rem !important;
+			transform: none !important;
+		}
+
+		html.mobile-floating-open #back-to-top-btn {
+			right: 3.4rem !important;
+			bottom: 8rem !important;
+			transform: none !important;
+		}
+
+		html.mobile-floating-open .article-progress-saver {
+			right: 3.4rem !important;
+			bottom: 4rem !important;
+			transform: none !important;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		#mobile-floating-toggle {
+			display: none;
+		}
+	}
+</style>
+
+<script is:inline>
+	(() => {
+		const button = document.getElementById("mobile-floating-toggle");
+		if (!button) return;
+
+		const update = (open) => {
+			document.documentElement.classList.toggle("mobile-floating-open", open);
+			button.setAttribute("aria-expanded", String(open));
+			button.setAttribute("aria-label", open ? "收起悬浮按钮" : "展开悬浮按钮");
+		};
+
+		update(false);
+		button.onclick = () => {
+			update(!document.documentElement.classList.contains("mobile-floating-open"));
+		};
+	})();
+</script>

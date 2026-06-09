@@ -36,6 +36,37 @@
 
 ---
 
+## [2026-06-09] 调整移动端悬浮按钮
+
+**Commit ID**: (提交后补充)
+**变更文件数量**: 5
+**核心改动**: 为文章页移动端悬浮控件增加统一开关，缩小保存按钮与返回顶部按钮尺寸，并更新知识库文档说明当前学习系统状态。
+
+### 变更文件清单
+
+| 文件 | 变更类型 | 说明 |
+|-----|---------|------|
+| src/components/ArticleProgressSaver.svelte | 修改 | 缩小移动端保存按钮尺寸并调整底部间距与文案字号 |
+| src/components/control/BackToTop.astro | 修改 | 允许移动端显示返回顶部按钮，并单独调整按钮尺寸与位置 |
+| src/components/control/MobileFloatingToggle.astro | 新增 | 新增移动端悬浮按钮总开关，统一控制显示与收起状态 |
+| src/layouts/MainGridLayout.astro | 修改 | 在文章页挂载移动端悬浮按钮开关组件 |
+| 知识库.md | 修改 | 重构学习系统说明，补充当前状态、边界和 RAG 规划 |
+
+### 功能效果
+
+- 移动端文章页默认收起返回顶部和阅读进度按钮，避免遮挡正文。
+- 用户可通过右侧悬浮开关统一展开或收起这组控件。
+- 展开后返回顶部和阅读进度按钮在移动端使用更紧凑的尺寸与间距。
+- 知识库文档同步更新为当前学习系统、问答规划和后续路线说明。
+
+### 验证结果
+
+- `npx astro check`：通过，保留既有 hints。
+- `npx astro build`：通过，保留既有 `astro-expressive-code` 语言 warning。
+- `npx biome ci ./src`：提交前由 pre-commit 再次校验。
+
+---
+
 ## [2026-06-05] 支持学习进度本地 Supabase 配置
 
 **Commit ID**: c68b940

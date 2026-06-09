@@ -358,13 +358,22 @@ onMount(() => {
 
 @media (max-width: 640px) {
 	.article-progress-saver {
-		right: max(0.75rem, env(safe-area-inset-right));
-		bottom: max(4.75rem, env(safe-area-inset-bottom));
+		right: max(1rem, env(safe-area-inset-right));
+		bottom: max(2.5rem, env(safe-area-inset-bottom));
 	}
 
 	.article-progress-saver__trigger {
-		width: 3.75rem;
-		height: 3.75rem;
+		width: 3rem;
+		height: 3rem;
+	}
+
+	.article-progress-saver__trigger span {
+		font-size: 0.82rem;
+	}
+
+	.article-progress-saver__trigger small {
+		margin-top: 0.15rem;
+		font-size: 0.6rem;
 	}
 }
 </style>
