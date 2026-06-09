@@ -1,9 +1,10 @@
 ---
 title: python_api_test-python_syntax_guide
 published: 2026-06-05
+updated: 2026-06-05
 description: '结合 Python API 测试项目讲解常见语法，帮助初学者理解配置、函数、类与请求参数结构。'
 image: ''
-tags: ['Python', '语法入门']
+tags: ['Python']
 category: '业务/正式'
 private: true
 draft: false

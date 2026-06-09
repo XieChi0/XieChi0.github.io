@@ -4,7 +4,7 @@ published: 2026-06-05
 updated: 2026-06-05
 description: '面向入门读者梳理拓展坞研究仓库的目录结构、各子技能职责与整体处理流程。'
 image: ''
-tags: ['拓展坞','skill流程']
+tags: ['skill']
 category: '业务/正式'
 private: true
 draft: false

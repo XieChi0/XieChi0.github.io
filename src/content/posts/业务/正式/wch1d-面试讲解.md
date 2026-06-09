@@ -4,7 +4,7 @@ published: 2026-06-01
 updated: 2026-06-04
 description: '从学习视角梳理 GIS 体系搭建的需求演进、架构分层与代码阅读路线。'
 image: ''
-tags: ['gis','坐标转换']
+tags: ['gis']
 category: '业务/正式'
 private: true
 draft: false

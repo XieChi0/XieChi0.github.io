@@ -4,7 +4,7 @@ published: 2026-06-05
 updated: 2026-06-05
 description: '梳理 WCH1D 当前前后端打包部署流程，并说明如何逐步接入 GitLab CI/CD。'
 image: ''
-tags: ['wch1d','打包部署']
+tags: []
 category: '业务/正式'
 private: true
 draft: false
@@ -62,19 +62,41 @@ scp 上传 update 包到远程机器
 前端在 wuchuan-master/wch_hydro1d：
 
 ```
-手动运行 bat  -> 拉取指定版本/分支的前端代码  -> 安装依赖  -> npm run build:win  -> 生成 Electron Windows 安装包 exe  -> 复制 exe/latest.yml 到本地 artifacts 目录
+1. 手动运行 bat
+2. 拉取指定版本/分支的前端代码
+3. 安装依赖
+4. 执行 `npm run build:win`
+5. 生成 Electron Windows 安装包 exe
+6. 复制 `exe/latest.yml` 到本地 `artifacts` 目录
 ```
 
 后端在 wuchuan-Backend/wch1d_modelingtool_crossplatform：
 
 ```
-手动运行 bat  -> 拉取指定版本/分支的后端代码  -> 安装生产依赖  -> pkg 打成 WCH1D.exe  -> 组装 Windows 后端运行目录  -> 压缩完整包和 update 包  -> 启动打包后的后端服务  -> 跑 Node 集成测试  -> 跑 Python API 测试  -> 生成测试报告  -> 复制 zip 和报告到本地 artifacts 目录  -> 用 scp 上传 update 包到远程服务器
+1. 手动运行 bat
+2. 拉取指定版本/分支的后端代码
+3. 安装生产依赖
+4. 用 `pkg` 打成 `WCH1D.exe`
+5. 组装 Windows 后端运行目录
+6. 压缩完整包和 update 包
+7. 启动打包后的后端服务
+8. 跑 Node 集成测试
+9. 跑 Python API 测试
+10. 生成测试报告
+11. 复制 zip 和报告到本地 `artifacts` 目录
+12. 用 `scp` 上传 update 包到远程服务器
 ```
 
 后端 Linux 这边也已经有基础：
 
 ```
-Dockerfile podman-xbuild.toml compose 示例 quadlet 示例 s6-overlay 启动配置 Caddy 反向代理 template_db 初始化脚本
+1. `Dockerfile`
+2. `podman-xbuild.toml`
+3. `compose` 示例
+4. `quadlet` 示例
+5. `s6-overlay` 启动配置
+6. `Caddy` 反向代理
+7. `template_db` 初始化脚本
 ```
 
 也就是说：**Windows 打包测试已经靠 bat 跑起来了，Linux 容器化基础也已经存在，但两边还没有被统一纳入 GitLab 流水线。**
