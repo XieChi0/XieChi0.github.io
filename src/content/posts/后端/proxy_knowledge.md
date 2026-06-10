@@ -326,7 +326,7 @@ Node.js (容器端口 81)
 
 ### Caddy 配置示例
 
-```caddy
+```nginx
 # Caddyfile
 :80 {
     reverse_proxy /wch/* localhost:81

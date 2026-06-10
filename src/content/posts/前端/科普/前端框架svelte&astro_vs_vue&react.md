@@ -1,11 +1,10 @@
 ---
 title: '前端框架svelte&astro vs vue/react'
-
 published: 2026-04-30
 updated: 2026-04-30
 description: '聚焦编译时 / 运行时、DOM 操作、开发 / 生产环境差异、性能取舍等核心逻辑'
 image: ''
-tags: [前端, 框架对比, Astro, Svelte, Vue, React]
+tags: [Astro, Svelte]
 category: '前端/科普'
 draft: false 
 ---

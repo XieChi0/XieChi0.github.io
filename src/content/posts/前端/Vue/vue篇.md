@@ -1,9 +1,9 @@
 ﻿---
 title: Vue 篇
 published: 2024-01-01
-updated: 2026-05-31
-description: Vue 学习笔记，基于 B 站教程补充
-tags: [Vue, 前端, 框架]
+updated: 2026-06-08
+description: Vue 学习笔记
+tags: [Vue]
 category: 前端/Vue
 draft: false
 ---
@@ -3180,18 +3180,17 @@ export const useUserStore = defineStore('user', {
 
 **1.传入属性和属性值**
 
-![image-20241205161708880](./image-20241205161708880.png)
+![image-20241205161708880](./assets/image-20241205161708880.png)
 
-![image-20241205161847974](./image-20241205161847974.png)
+![image-20241205161847974](./assets/image-20241205161847974.png)
 
 
 
 **2.传入对象**（静态数据）
 
-![image-20241205161938624](./image-20241205161938624.png)
+![image-20241205161938624](./assets/image-20241205161938624.png)
 
-![image-20241205162009290](./image-20241205162009290.png)
-
+![image-20241205162009290](./assets/image-20241205162009290.png)
 > 子组件变量名我建议别叫 `staticProps`，容易和父组件里的 `staticProps` 混淆。
 
 ##### 补充（v-bind用法2）

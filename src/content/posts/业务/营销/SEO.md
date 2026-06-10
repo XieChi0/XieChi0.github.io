@@ -21,7 +21,7 @@ draft: false
 
 **SEO 元标签实现** (第 79-103 行):
 
-```79:103:src/layouts/Layout.astro
+```astro
 <head>
 		<title>{pageTitle}</title>
 
@@ -63,7 +63,7 @@ draft: false
 
 **配置位置**: `astro.config.mjs` (第 103 行)
 
-```103:103:astro.config.mjs
+```js
 sitemap(),
 ```
 
@@ -75,7 +75,7 @@ sitemap(),
 
 **文件路径**: `f:\zz_blog\astro-boke\src\pages\robots.txt.ts`
 
-```1:16:src/pages/robots.txt.ts
+```ts
 import type { APIRoute } from "astro";
 
 const robotsTxt = `
@@ -108,7 +108,7 @@ export const GET: APIRoute = () => {
 
 **文章详情页的 JSON-LD 实现** (第 31-50 行):
 
-```31:50:src/pages/posts/[...slug].astro
+```astro
 const jsonLd = {
 	"@context": "https://schema.org",
 	"@type": "BlogPosting",
@@ -147,7 +147,7 @@ const jsonLd = {
 
 **配置文件**: `f:\zz_blog\astro-boke\pagefind.yml`
 
-```1:6:pagefind.yml
+```yaml
 exclude_selectors:
   - "span.katex"
   - "span.katex-display"
@@ -199,7 +199,7 @@ exclude_selectors:
 
 **站点配置**: `f:\zz_blog\astro-boke\src\config.ts`
 
-```10:75:src/config.ts
+```ts
 export const siteConfig: SiteConfig = {
 	title: "XChi的云端",
 	subtitle: "Demo Site",

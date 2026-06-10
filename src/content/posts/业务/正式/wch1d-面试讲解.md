@@ -128,7 +128,7 @@ views/index.vue
 
 在 `layer.ts` 中，全局 `Earth` 对象的创建流程如下：
 
-```1:18:src/layerCore/layer.ts
+```ts
 const _earth = {}
 
 export const Earth: any = _earth
@@ -138,7 +138,7 @@ export const Earth: any = _earth
 
 #### 3. InitEarth 函数（真正的初始化逻辑）
 
-```24:50:src/layerCore/layer.ts
+```ts
 export function InitEarth(earthContainer, globalStore?: any, router?: any) {
   const DEFAULT_CESIUM_CONFIG: object = {
     // 关闭所有默认UI控件
@@ -162,7 +162,7 @@ export function InitEarth(earthContainer, globalStore?: any, router?: any) {
 
 #### 4. 挂载各类管理器
 
-```59:107:src/layerCore/layer.ts
+```ts
   Earth.viewer = viewer
   
   // 挂载各种图层管理器
@@ -178,7 +178,7 @@ export function InitEarth(earthContainer, globalStore?: any, router?: any) {
 
 在 `MapLayer/index.vue` 的 `onMounted` 钩子中：
 
-```180:601:src/views/MapLayer/index.vue
+```vue
     <div id="cesiumContainer" class="cesium-container">
       <!-- 地图容器 -->
     </div>

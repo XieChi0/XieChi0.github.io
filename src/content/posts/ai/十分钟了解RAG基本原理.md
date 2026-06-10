@@ -5,7 +5,7 @@ updated: 2026-06-06
 description: '用十分钟快速讲清 RAG 的背景、核心流程以及常见优化点。'
 image: ''
 tags: ['RAG', '大模型']
-category: 'ai'
+category: 'AI'
 draft: false
 ---
 

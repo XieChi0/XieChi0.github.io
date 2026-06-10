@@ -4,8 +4,8 @@ published: 2026-05-29
 updated: 2026-05-29
 description: '基于 Traversy Media React 2024 Crash Course 字幕整理，覆盖 Vite、Tailwind、组件、Props、State、Hooks、React Router、JSON Server 与 React Jobs 项目。'
 image: ''
-tags: [React, Vite, TailwindCSS, React Router, JSON Server, 前端]
-category: '框架/React'
+tags: [React]
+category: '前端/React'
 draft: false
 ---
 

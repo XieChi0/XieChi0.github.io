@@ -226,7 +226,7 @@ docker compose -f deploy-examples/compose/compose.yml up -d
 
 容器内环境变量 - 应用运行时的默认配置。
 
-```env
+```bash
 DATASOURCE_TYPE=sqlite        # 使用 SQLite 数据库
 SERVER_PORT=81                # 服务监听 81 端口
 PROJECT_DIR=/wch1d-data/projects  # 项目数据存放目录

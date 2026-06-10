@@ -4,8 +4,8 @@
 title: CSS 篇
 published: 2024-01-01
 description: CSS 学习笔记，基于 MDN 补充 B 站细节知识
-tags: [CSS, 前端, 基础]
-category: 前端/css
+tags: [CSS]
+category: 前端/CSS
 draft: false
 ---
 

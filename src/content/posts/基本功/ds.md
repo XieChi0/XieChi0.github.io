@@ -167,7 +167,7 @@ LNode LocateElem(Linklist L,int x){
 
 一定要注意区分队头队尾，容易忘，队头叫front，是删除的一端。队尾叫rear，是插入的一端。
 
-~~~C++
+```cpp
 //顺序栈的定义
 tepedef struct{
     int top;
@@ -215,7 +215,7 @@ bool GetTop(SqStack &S,ElemType &x){
     x=S.data[top];
     return true;
 }
-~~~
+```
 
 ![image 20230906200806672](https://s1.imagehub.cc/images/2024/11/26/00ed9f9fb24d3508f98f70d2f8aea045.png)
 

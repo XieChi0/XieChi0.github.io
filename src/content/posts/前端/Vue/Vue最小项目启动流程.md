@@ -3,7 +3,7 @@ title: Vue 最小项目启动流程
 published: 2026-05-29
 updated: 2026-05-29
 description: 从真实 Vue3 + Vite 项目出发，理解 index.html、main.ts、App.vue、router、store 之间的关系
-tags: [Vue, Vue3, Vite, 前端, 项目结构]
+tags: [Vue]
 category: 前端/Vue
 draft: false
 ---

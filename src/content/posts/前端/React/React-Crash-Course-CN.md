@@ -4,8 +4,8 @@ published: 2026-05-29
 updated: 2026-05-29
 description: '基于 React 2021 Crash Course 视频转录稿整理，覆盖 React 基础、组件、Props、State、Hooks、JSON Server、路由与构建部署。'
 image: ''
-tags: [React, JavaScript, 前端, Hooks, SPA]
-category: '框架/React'
+tags: [React]
+category: '前端/React'
 draft: false
 ---
 
