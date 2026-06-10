@@ -25,34 +25,45 @@ function countAllCategories(nodes: CategoryNode[]): number {
 // 递归渲染分类树节点，返回 HTML 字符串
 // indent 是缩进深度，每深入一层增加 1.25rem
 function renderCategoryNodes(nodes: CategoryNode[], indent = 0): string {
-	return nodes
+	const leafNodes = nodes.filter(
+		(node) => !node.children || node.children.length === 0,
+	);
+	const branchNodes = nodes.filter(
+		(node) => node.children && node.children.length > 0,
+	);
+	const orderedNodes = [...branchNodes, ...leafNodes];
+
+	return orderedNodes
 		.map((node) => {
 			const paddingLeft = `${0.75 + indent * 1.25}rem`;
 			const hasChildren = node.children && node.children.length > 0;
 
 			if (hasChildren) {
-				// 有子分类：用 details 折叠
+				const childrenHtml = renderCategoryNodes(
+					node.children ?? [],
+					indent + 1,
+				);
+
 				return `
-                <details class="category-parent" >
-                    <summary class="category-summary">
-                        <svg class="category-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <path d="M7 0L8.5 5.5L14 7L8.5 8.5L7 14L5.5 8.5L0 7L5.5 5.5L7 0Z" fill="currentColor"/>
-                        </svg>
-                        <a href="${node.url}" class="category-link">${node.name.trim()}</a>
-                        <span class="category-count">${node.count}</span>
-                        <span class="category-arrow">
-                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                                <path d="M2 4l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </span>
-                    </summary>
-                    <div class="category-children">
-                        ${renderCategoryNodes(node.children ?? [], indent + 1)}
-                    </div>
-                </details>
-            `;
+					<details class="category-parent" >
+						<summary class="category-summary">
+							<svg class="category-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
+								<path d="M7 0L8.5 5.5L14 7L8.5 8.5L7 14L5.5 8.5L0 7L5.5 5.5L7 0Z" fill="currentColor"/>
+							</svg>
+							<a href="${node.url}" class="category-link">${node.name.trim()}</a>
+							<span class="category-count">${node.count}</span>
+							<span class="category-arrow">
+								<svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+									<path d="M2 4l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>
+							</span>
+						</summary>
+						<div class="category-children">
+							${childrenHtml}
+						</div>
+					</details>
+				`;
 			}
-			// 叶子节点：普通链接按钮样式，无图标
 			return `
                 <a href="${node.url}" class="category-leaf" style="padding-left: ${paddingLeft}">
                     <span class="leaf-name">${node.name.trim()}</span>
