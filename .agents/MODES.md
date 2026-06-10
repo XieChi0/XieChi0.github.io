@@ -59,12 +59,12 @@
 ### 执行方式
 
 1. 生成上述格式的摘要内容
-2. **将摘要追加到 `commit-history.md`**（无需写 Commit ID）
+2. **将摘要插入到 `commit-history.md` 最上方（紧跟标题 `# Commit History` 之后）**（无需写 Commit ID）
 3. 如果有涉及知识库的，可以将当前的改动和知识库.md结合起来修改这个文档
 4. 把 `commit-history.md` 一起 commit（和其他代码变更同时提交）
 5. Commit ID 等提交成功后再补充到 commit-history.md 中
 
-> **核心原则**：commit-history.md 的记录必须和代码变更在同一个 commit 里，避免"上一次的需求到下一次才总结"的文不对题问题。
+> **核心原则**：commit-history.md 的新记录必须写在最上面，并且和代码变更在同一个 commit 里，避免"上一次的需求到下一次才总结"的文不对题问题。
 
 ---
 
