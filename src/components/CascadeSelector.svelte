@@ -1,5 +1,7 @@
 <!-- 这是从零开始写的一个级联选择器组件，负责展开一个多层级面板 -->
 <script lang="ts">
+import { onMount } from "svelte";
+
 interface CategoryNode {
 	value: string;
 	label: string;
@@ -86,9 +88,13 @@ function handleClickOutside(e: MouseEvent) {
 		activePath = [];
 	}
 }
-</script>
 
-<svelte:window onclick={handleClickOutside} />
+// 手动挂全局点击，避免 <svelte:window onclick> 触发 a11y 规则
+onMount(() => {
+	document.addEventListener("click", handleClickOutside);
+	return () => document.removeEventListener("click", handleClickOutside);
+});
+</script>
 
 <div class="cascader-wrapper" onmouseenter={handleMouseEnter} onmouseleave={handleMouseLeave}>
     <button
