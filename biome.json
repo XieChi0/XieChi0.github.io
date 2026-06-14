@@ -11,6 +11,7 @@
       "**",
       "!**/src/**/*.css",
       "!**/src/public/**/*",
+      "!**/src/content/external/**/*",
       "!**/dist/**/*",
       "!**/node_modules/**/*"
     ]
