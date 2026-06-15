@@ -530,7 +530,7 @@ const b = identity<number>(123)      // T = number，b 是 number
 >
 >  这就是泛型在项目里**最实际的作用**——**让类型"可配置"，又保持类型安全**。
 
-![ChatGPT Image 2026.4.29 10_28_11](./assets/ChatGPT%20Image%202026.4.29%2010_28_11.png)
+![ChatGPT Image 2026.4.29 10_28_11](./assets/ChatGPT_Image_2026.4.29_10_28_11.png)
 
 #### 泛型
 

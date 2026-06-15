@@ -12,8 +12,6 @@ draft: false
 
 # 热工院新能源智慧化生产平台前端面试讲解稿
 
-
-
 > **热工院新能源智慧化生产平台｜前端开发**
 >
 > **技术栈**：Vue2 / Element UI / Vuex / Vue Router / ECharts / Axios /qiankun 微前端 
@@ -539,29 +537,37 @@ router.beforeEach((to, from, next) => {
 
 
 
-## 6. 核心工作三：智能排程可视化
+## 6. 核心工作二：智能排程可视化
 
 > 整个过程做的重点，不是单纯把算法接口接入页面，而是把调度业务中的关键判断步骤前置到交互链路里。
 
-**任务筛选：**这一步完成的是排程范围确认。用户先按场站、设备、处理窗口等维度选择本轮要进入排程的任务，先完成本轮任务筛选。
+**任务筛选**：这一步完成的是排程范围确认。用户先按场站、设备、处理窗口等维度选择本轮要进入排程的任务，先完成本轮任务筛选。
 
-**前置信息选择：**任务进入排程前，先在列表中为每个已选任务选择设备类型和影响类型。这两个字段是触发后续计算的前置条件。
+**前置信息选择**：任务进入排程前，先在列表中为每个已选任务选择设备类型和影响类型。这两个字段是触发后续计算的前置条件。
 
-**优先级判定：**页面顶部提供“优先级判定”按钮，点击后前端会把当前选中的任务整理成请求数据，调用后端接口自动生成处理时长、人员数量、优先级等结果，并回填到表格。
+**优先级判定**：页面顶部提供“优先级判定”按钮，点击后前端会把当前选中的任务整理成请求数据，调用后端接口自动生成处理时长、人员数量、优先级等结果，并回填到表格。
 
-**人工排序确认：**在自动排程之前，保留人工排序步骤，允许结合现场经验手动调整先后顺序。
+---
+
+点击**排程管理：**
+
+**人工排序确认**：在自动排程之前，保留人工排序步骤，允许结合现场经验手动调整先后顺序。
 
 这一步完成的是人工经验纳入。系统没有把排程完全做成黑盒自动计算，而是在算法之前保留人工干预入口，让排程结果更贴近现场执行逻辑。
 
-**资源约束配置：**排程前单独配置时间范围、可用人数、作业时段、关键工具数量等资源条件，而不是把这些参数默认写死在后台。
+点击**智慧排程**：
+
+**资源约束配置**：排程前单独配置时间范围、可用人数、作业时段、关键工具数量等资源条件，而不是把这些参数默认写死在后台。
 
 这一步完成的是约束显式化。用户可以明确知道当前结果是在什么条件下生成的；如果结果不理想，也可以回到这一层重新调整资源条件后再次排程。
 
-**结果校验：**算法返回结果后，页面通过结果列表和甘特图展示任务安排、时间分布和资源占用情况，方便继续核对是否存在时间冲突、人员超限、任务分布不合理等问题。
+**结果校验**：算法返回结果后，页面通过结果列表和甘特图展示任务安排、时间分布和资源占用情况，方便继续核对是否存在时间冲突、人员超限、任务分布不合理等问题。
 
+<img src="./assets/image-20260614205206447.png" alt="image-20260614205206447" style="zoom: 67%;" /><img src="./assets/image-20260614205218297.png" alt="image-20260614205218297" style="zoom:67%;" />
 
+![image-20260614205244407](./assets/image-20260614205244407.png)
 
-## 7. 核心工作四：视频流能力封装
+## 7. 核心工作三：视频流能力封装
 
 ### 7.1 先解释 WebSocket
 
@@ -569,44 +575,101 @@ router.beforeEach((to, from, next) => {
 
 WebSocket 不一样，它是浏览器和服务端之间建立一条持续连接。连接建立后，服务端可以不断往前端推数据，前端也可以随时发消息给服务端。
 
-可以这样讲：
+> 它适合实时性比较强的场景，比如消息通知、设备状态、实时视频流。它不像 HTTP 那样每次都要重新建立请求，而是建立一条长连接，后续数据都在这条连接里传输。
 
-> WebSocket 适合实时性比较强的场景，比如消息通知、设备状态、实时视频流。它不像 HTTP 那样每次都要重新建立请求，而是建立一条长连接，后续数据都在这条连接里传输。
+**注：WebSocket不生产内容，只负责搬运。**
 
-### 7.2 视频流为什么会用 WebSocket
+### 7.2 WebSocket在视频流中的作用
 
-摄像头常见的视频协议是 RTSP，但浏览器原生不能直接播放 RTSP。实际项目里通常会有一个流媒体服务做中转：
+摄像头常见的视频协议是 RTSP，但浏览器原生不能直接播放 RTSP。实际项目里通常会有一个流媒体服务做中转
 
-```text
-摄像头 RTSP 流
-  -> 流媒体服务转码/转封装
-  -> WebSocket / WebRTC / HLS 等浏览器可播放协议
-  -> 前端播放器组件播放
+```
+摄像头 ──RTSP──> 翻译机 ──WebSocket推MP4小片──> 浏览器
 ```
 
-在这个项目里，前端拿到设备或摄像头的 `stream id` 后，拼成播放地址：
+![ChatGPTImage 2026.6.14 22_56_22](./assets/ChatGPTImage 2026.6.14 22_56_22.png)
 
-```js
-return `ws://${window.location.hostname}/stream_proxy/camera/${s}.live.mp4`;
-```
-
-这说明前端不是直接连摄像头，而是连一个流媒体代理服务。
+> websocket只是传话筒，把翻译好的切片递给浏览器。
+>
+> 流媒体服务才是翻译官，把摄像头的RTSP翻译成浏览器能消化的MP4分片。
 
 > RTSP（Real Time Streaming Protocol）是安防和硬件摄像头领域的“老大哥”。市面上你能买到的海康威视、大华等绝大多数网络摄像头，默认都使用这个协议来传输视频流。
 >
 > **优点**：实时性好、延迟低，专门为控制流媒体设计的（比如控制播放、暂停、录制）。
 >
-> 早年的浏览器可以通过安装第三方插件强行播放RSTP视频，但现代浏览器出于安全考虑，封杀第三方插件，现代浏览器只认属于web标准的协议，比如 HTTP、HTTPS，以及 HTML5 原生支持的视频格式（MP4、WebRTC、HLS 等）。
+> 早年的浏览器可以通过安装第三方插件强行播放RTSP视频，但现代浏览器出于安全考虑，封杀第三方插件，现代浏览器只认属于web标准的协议，比如 HTTP、HTTPS，以及 HTML5 原生支持的视频格式（MP4、WebRTC、HLS 等）。
 >
-> 所以为了播放RSTP，需要在服务器部署**流媒体服务软件**，
+> 所以为了播放RTSP，需要在服务器部署**流媒体服务软件**，
 >
-> - 它会连接摄像头的RSTP地址，把原始的视频流拉取到服务器。
-> - 服务器内部对RSTP进行拆解和重打包，转换成浏览器能看懂的格式，比如WebRTC(毫秒级延迟)、HLS（兼容性好，但有延迟）
+> - 它会连接摄像头的RTSP地址，把原始的视频流拉取到服务器。
+> - 服务器内部对RTSP进行拆解和重打包，转换成浏览器能看懂的格式，比如WebRTC(毫秒级延迟)、HLS（兼容性好，但有延迟）
 > - 把翻译好的web视频流通过HTTP或webSocket发送给浏览器。
 >
 > 总结：因为硬件设备（摄像头）和软件终端（浏览器）说着不同的网络语言，所以必须在架构中间加一层服务器作为“桥梁”来转换格式，这就是“流媒体中转”的本质。
 
-### 7.3 EasyPlayerPro 组件封装
+### 7.3 WebSocket 视频流的播放地址
+
+结合前面的内容，聊到我们前端，所以前端真正拿到的，就是个 ws 地址 + 一个播放器库。
+
+```
+摄像头 ──RTSP──> 翻译机 ──WebSocket──> 浏览器
+                              ↑
+                              │
+                        这个地址是这段的水龙头名字
+```
+
+两端的角色：
+
+- 前端（浏览器这边的 EasyPlayer Pro）：水龙头用户——访问这个地址去"开水龙头取水"。
+- 翻译机（流媒体服务，比如 EasyNVR / ZLMediaKit）：水龙头的主人——监听这个地址，一有人访问就打开对应摄像头的流，开始往这边推分片。
+
+在这个项目里，前端拿到设备或摄像头的 `stream id` 后，拼成播放地址：
+
+```js
+ws://${window.location.hostname}/stream_proxy/camera/${s}.live.mp4
+│   │                            │              │      │
+│   │                            │              │      └─ 文件后缀：.mp4
+│   │                            │              └─ 流标识 / 摄像头 ID
+│   │                            └─ 流媒体服务的中转路径
+│   └─ 主机名（跟着当前页面走）
+└─ WebSocket 协议（不是 http）
+```
+
+> - `ws://`：用 WebSocket 协议传输，不是 HTTP。
+> - `window.location.hostname`：直接拿当前页面所在的主机名，部署到哪就跟到哪，避免硬编码 IP。
+> - `/stream_proxy/camera/${s}.live.mp4`：告诉流媒体服务"我要订阅摄像头 ID = `${s}` 的这一路流"。
+> - `.live.mp4`：后缀骗人。后端实际上没有一个 `.mp4` 文件在等你下载，`.mp4` 只是流媒体服务约定的"路径名后缀"，表示"这里是一路实时 MP4 流"。
+
+这说明前端不是直接连摄像头，而是连一个流媒体代理服务。
+
+### 7.4 EasyPlayerPro是怎么播放画面的
+
+注：下面是组件内部实现的，咱其实不用干这些，咱要干的看7.5
+
+浏览器不会自己把 MP4 分片拼成画面（`<video>` 标签也不行，因为它要的是完整文件）。EasyPlayer Pro 干的是这件事：
+
+```
+浏览器主线程
+  └─ new window.EasyPlayerPro(el, config)         ← 创建播放器
+       │
+       └─ 内部起一个 Web Worker（独立线程，专门解码）
+            │
+            ├─ fetch("EasyPlayer-lib.js")         ← 加载解码库
+            ├─ fetch("EasyPlayer-decode.js")
+            ├─ fetch("EasyPlayer-pro.wasm")       ← 加载 H.264 解码 wasm
+            └─ fetch("EasyPlayer-snap.wasm")
+                 │
+                 └─ 收到 WebSocket 推过来的 MP4 chunk
+                      → 用 .wasm 软解 H.264/H.265
+                      → 把每帧画到 <canvas> 上
+                      → 主线程刷新就出画面
+```
+
+> webworker是独立线程，不会影响主线程，
+>
+> 解码后画面铺到`<canvas>`上。
+
+### 7.5 EasyPlayerPro 组件封装
 
 组件大致职责：
 
@@ -638,13 +701,19 @@ props: {
 }
 ```
 
-> 介绍了父组件在使用easyPlayerPro时怎么用，
->
+> prop决定播什么
+
+
+
+**父组件在使用easyPlayerPro时**怎么用，
+
 > ```
-> <EasyPlayerPro app="camera" :stream="deviceId" />
+><EasyPlayerPro app="camera" :stream="deviceId" />
 > ```
->
+> 
 > stream代表某个摄像头ID、某个流ID..
+
+
 
 **生成播放地址：**
 
@@ -706,7 +775,69 @@ async initPlayer() {
 }
 ```
 
-监听流切换：
+> window.EasyPlayerPro是全局变量，源于 public/index.html 引入的 `EasyPlayer-pro.js`（带 wasm 解码器）
+
+**真正"播起来"的动作：`autoPlay`**
+
+> **问题 1：浏览器自动播放策略（Autoplay Policy）**
+>
+> 现代浏览器（Chrome/Safari/Firefox）的策略是：
+>
+> - 没有用户手势时，页面不能"有声音地"自动播放
+> - 但**静音（muted）**的视频是允许自动播放的
+> - 任何未经过用户手势触发的 `play()`，如果没静音，可能直接被拒，或者 promise reject
+>
+> 所以代码的策略是：先静音开播，等用户点了页面再开声。
+>
+> **问题 2：EasyPlayerPro 的 play() 是异步且可能失败**
+>
+> `playerInstance.play(url)` 返回的是 Promise：
+>
+> - 成功 → 视频开始渲染
+> - 失败（被浏览器策略拦、ws 没连上、媒体格式不支持等）→ 进入 catch
+>
+> 所以 `autoPlay` 用 `try / catch` 写了两条路径
+
+```js
+async autoPlay() {
+      if (!this.playerInstance || !this.getPlayUrl()) return
+
+      try {
+        // 尝试直接自动播放（此时是静音的，浏览器策略不会拦）
+        await this.playerInstance.play(this.getPlayUrl())
+        console.log('视频自动播放成功')
+        // 视频已经在播了，只是没声音。
+        // 监听整个 document 的第一次点击，用户手势触发后再解除静音
+        // （浏览器只允许在用户手势上下文内把声音打开）
+        const handleClick = () => {
+          if (this.playerInstance) this.playerInstance.setMute(false)
+          document.removeEventListener('click', handleClick)
+        }
+        document.addEventListener('click', handleClick, { once: true })	//先监听再解除，比较安全
+      } 
+    
+    catch (error) {
+        console.warn('直接自动播放失败，等待用户交互触发：', error)
+        // 挂一个用户手势兜底：等用户点/摸一下屏幕时再重试播放
+        // 注意：手机端没有 click 事件，必须同时监听 touchstart
+        const handleUserInteraction = async() => {
+          if (this.playerInstance && this.getPlayUrl()) {
+       // 从用户手势里发起的 play() 可以带声音，所以这里直接解除静音
+            await this.playerInstance.play(this.getPlayUrl())
+            this.playerInstance.setMute(false)
+          }
+          document.removeEventListener('click', handleUserInteraction)
+          document.removeEventListener('touchstart', handleUserInteraction)
+        }	//结束函数
+        document.addEventListener('click', handleUserInteraction, { once: true })
+        document.addEventListener('touchstart', handleUserInteraction, { once: true })
+      }
+    },
+```
+
+
+
+**监听流切换**：
 
 ```js
 watch: {
@@ -730,7 +861,7 @@ async replayIfReady() {
 
 
 
-销毁播放器：
+**销毁播放器**：
 
 ```js
 // Vue2 组件销毁前调用。
@@ -751,17 +882,13 @@ destroyPlayer() {
 
 
 
-### 7.4 面试时怎么讲这块成果
+### 7.6 面试时怎么讲这块成果
 
 可以这样说：
 
 > 我把视频播放逻辑封装成一个通用组件，页面只需要传摄像头或设备的 stream id。组件内部负责生成播放地址、初始化播放器、处理自动播放、切换视频源和销毁实例。这样巡检大屏、分区监控、云台控制等页面都可以复用同一套播放逻辑。
 
-如果被问“视频预览加载速度提升 70% 怎么来的”，可以稳一点：
 
-> 这个指标主要来自项目验收或业务侧对比反馈。前端侧做的事情是减少页面重复初始化逻辑，把视频播放封装成可复用组件，并在切换视频源时复用播放器能力，减少页面层重复处理和不必要的交互等待。
-
-不要说成“我靠 WebSocket 本身让速度提升 70%”，这样容易被追问到很细。
 
 ## 8. 安防监控模块怎么讲
 

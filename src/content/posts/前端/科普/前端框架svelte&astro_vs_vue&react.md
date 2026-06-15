@@ -10,7 +10,7 @@ draft: false
 ---
 # Astro、Svelte、Vue、React 核心原理深度对比笔记
 
-![ChatGPT Image 2026.4.30 21_35_00](./assets/ChatGPT%20Image%202026.4.30%2021_35_00.png)
+![ChatGPT Image 2026.4.30 21_35_00](./assets/ChatGPT_Image_2026.4.30_21_35_00.png)
 
 ## 一、核心概念前置
 

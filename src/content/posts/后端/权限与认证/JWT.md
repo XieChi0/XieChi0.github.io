@@ -194,7 +194,7 @@ Token 是否进入黑名单
 
   - 前两部分内容会经过Base64编码，经过两段算法运算以及只存储在服务器端的密钥，得到签名
 
-![ChatGPT Image 2026.5.18 14_52_01](./assets/ChatGPT%20Image%202026.5.18%2014_52_01.png)
+![ChatGPT Image 2026.5.18 14_52_01](./assets/ChatGPT_Image_2026.5.18_14_52_01.png)
 
 ### 过程
 

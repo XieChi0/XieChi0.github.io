@@ -3,7 +3,7 @@ title: google日历
 published: 2026-06-13
 updated: 2026-06-13
 image: ''
-tags: [效率, 快捷键, 工具]
+tags: [google日历]
 category: '个人'
 draft: false
 ---

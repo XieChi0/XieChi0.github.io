@@ -147,7 +147,7 @@ npx prisma init
 6. 执行 migrate，把 schema 同步到真实数据库
 7. 在代码里用 Prisma Client 操作数据库
 
-![ChatGPT Image 2026.5.11 10_48_47](./assets/ChatGPT Image 2026.5.11 10_48_47.png)
+![ChatGPT Image 2026.5.11 10_48_47](./assets/ChatGPT_Image_2026.5.11_10_48_47.png)
 
 ### 定义数据模型（schema.prisma）
 

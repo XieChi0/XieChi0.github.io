@@ -1,7 +1,8 @@
 ---
+
 title: python_api_test-interview_outline
 published: 2026-06-05
-updated: 2026-06-05
+updated: 2026-06-14
 description: '面向面试讲解的 Python API 回归测试工具项目大纲，梳理背景、分层架构、配置驱动与测试价值。'
 image: ''
 tags: ['API测试']
@@ -77,9 +78,9 @@ runner/run_tests.py
 - “如何生成测试用例”
 - “如何执行并校验结果”拆成不同层
 
-### 3.1 基础配置层 config.py
+### 3.1 环境配置层 config.py
 
-这一层负责存放环境级和项目级配置，例如服务地址、登录账号、密码、不同业务模块使用的项目 ID。它解决的是“环境和测试数据不应该散落在代码逻辑里”的问题。
+这一层负责存放环境和项目配置，例如后端地址、登录账密、不同api分类使用的project ID。
 
 ```python
 # config.py
@@ -99,11 +100,19 @@ PROJECTS = {
 }
 ```
 
-面试里可以强调：这里把不同业务模块的项目 ID 提前配置好，后续测试用例生成时可以根据接口所在模块自动选择项目 ID，避免每个接口都手动传参。
+
 
 ### 3.2 HTTP 通信层 http_client.py
 
-这一层封装底层 HTTP 细节，包括 `requests.Session`、登录、token 保存、请求头拼装、GET/POST 请求发送。业务接口层不直接感知 `requests` 的使用细节。
+基于`requests`封装HTTP客户端，文件里只有一个HTTPClient类，里面有初始化，登录获取token，GET/POST 请求发送方法。
+
+它对外只暴露一个 `client` 对象——上层谁要发请求，就 `client.post(path, body)`，谁要登录就 `client.login()`。
+
+> 关于token：
+>
+> 1. token 只在 `client.login()` 里向服务器拿一次。
+> 2. 拿回来之后，存在 `self.token` 这个属性里。
+> 3. 之后每次 `post`，只是从 `self.token` 把 token 读出来塞进请求头，不会再向服务器要。
 
 ```python
 # http_client.py
@@ -116,13 +125,14 @@ class HttpClient:
         self.timeout = timeout
         self.token = None
         self.session = requests.Session()  # 复用 TCP 连接，提升请求效率
-
+	
+    # login() 用 config 里的账号调一次登录接口，把返回的 token 存到 self.token
     def login(self, username: str, password: str) -> str:
         url = f"{self.base_url}/user/login"
         body = {"name": username, "password": password}
 
         resp = self.session.post(url, json=body, timeout=self.timeout)
-        resp.raise_for_status()  # HTTP 4xx/5xx 直接抛异常，避免后续处理脏响应
+        resp.raise_for_status()  # HTTP 4xx/5xx 直接抛异常
         result = resp.json()
 
         if result.get("code") != 200:
@@ -158,9 +168,13 @@ class HttpClient:
 
 ### 3.3 通用 API 调用层 base_api.py
 
-这里可以把 `base_api.py` 理解成建立在 HTTP 通信层之上的通用 API 层，后面 `apis/` 里的真实业务接口函数，调用的就是这一层，而不是自己直接去操作底层 HTTP。
+这里可以把 `base_api.py` 理解成建立在 HTTP 通信层之上的通用 API 层。
 
-这一层负责处理所有业务接口都共有的逻辑：发送 POST JSON、判断业务状态码 `code == 200`、记录最近一次请求 path 和响应信息。
+`base_api.py` 只提供了一个纯函数 `post_json(client, path, body)`，依赖 `http_client.HttpClient`，被 `apis/` 下所有 API 文件 `import`。
+
+它的核心是"检查业务 code"：调一次 `client.post(...)`，如果响应里的 `code != 200` 就直接抛 `Exception`，否则返回 `data` 字段。
+
+它是把把 HTTP 异常和业务异常统一兜在框架里，业务函数不用自己再判断。
 
 ```python
 # base_api.py
@@ -188,11 +202,11 @@ def post_json(client: HttpClient, path: str, body: Dict[str, Any], headers=None)
 
 ### 3.4 业务接口封装层 apis/*.py
 
-这一层每个函数对应一个业务接口，
+`apis/` 下每个文件（`hydrologic.py`、`project_manage.py` 等）只放一种业务模块的接口——`hydrologic.py` 全是水文相关的，`project_manage.py` 全是工程管理相关的。
 
-只负责组装 url 和请求 body。
-
-项目按业务域拆分为水文、一维、二维、项目管理，方便维护 80+ 接口。
+> `apis/` *目录下的所有文件都遵循同一种写法：每个函数接收一个* `HttpClient` *作为第一参数，再按接口签名接收* `project_id` *与业务参数（可能是一个* `body` *字典、一个列表，或一个简单字段），最后调用* `base_api.post_json` *发请求并拿到* `data`*。
+>
+> 所以这些函数不是"创建出新函数"，而是把"每个具体接口"包装成一个扁平的 Python 函数——它对外可以让别人通过一个偏业务的名字去调用它，对那可以去调用之前封装好的一个post请求
 
 ```python
 # apis/one_dimensional.py
@@ -211,21 +225,62 @@ def put_weir_info(client: HttpClient, project_id: str, weir_info: List[Dict[str,
     }
     return post_json(client, path, body)
 
-
-def query_one_d_result(client: HttpClient, project_id: str, locations: List[Dict[str, str]]):
-    path = "/business/point-result/queryByReachIdAndChainagesAndProjectIdForExternal"
-    body = {
-        "projectId": project_id,
-        "locations": locations,  # 用断面位置列表作为结果查询条件
-    }
-    return post_json(client, path, body)
 ```
 
-这里的接口函数写得很薄，这是刻意设计的。它们不负责测试逻辑、不负责报告、不负责历史对比，只表达“某个业务接口需要什么 path 和 body”。
+
 
 ### 3.5 测试用例生成层 test_def/test_cases.py
 
 这一层负责把 `apis/` 下的业务接口函数转成可执行测试用例。它会自动发现函数、匹配项目 ID、读取参数配置、展开场景。
+
+> 它会扫描`apis`下的所有api函数，根据`test_config.py`里的配置把每个函数包装成 标准的测试用例，交给runner。
+>
+> > 这里对api函数的要求是这样的，第一个参数是client，
+> >
+> > 这个函数在相应的文件里
+>
+> **测试用例长这样**：
+>
+> - `name`：用例名（中文，给报告和人看的）。
+> - `steps`：一个列表，每一项是一个"步骤"字典：
+>   - `func`：真正要调用的那个 API 函数对象。
+>   - `args`：调用时用的参数字典（项目ID、业务参数都已经填好）。
+>   - 可选的 `scene_id`：如果是多场景接口会带上。
+>
+> 在生成测试用例的过程中，还会去做一些其他的操作，
+>
+> 比如去查找这个接口对应的project ID，去看看他是否在test_config定义的内容里，比如是不是脏接口（是的话要使用特定的project ID），
+>
+> 比如是不是要跳过的接口，比如是否需要场景展开（也就是一个接口可能会有多个测试用例，某个参数可能会传入1或者2）
+>
+> **用一句话讲给面试官/自己听**
+>
+> > `test_cases.py` *做的事情就是* **用 Python 扫 `apis/` 目录，挑出"第一个参数是 HttpClient"的函数，把函数对象连同它要用的项目ID、业务参数、是否跳过、是否要拆成多个场景一起，组装成统一结构的"用例字典"列表。**
+> >
+> > *一个 API 函数对应一个用例，每个用例本质就是* `{"name": 用例名, "steps": [{"name": 步骤名, "func": 函数, "args": 参数}]}`*，反射出来的函数对象会被原样塞进字典里，runner 拿到这个字典后直接* `func(args)` *就能跑。*
+> >
+> > runner拿到的结果是这样的
+> >
+> > 这里的args是调用 `func` 时真正要传进去的参数。
+> >
+> > ```python
+> > {
+> >     "name": "获取水文基础信息",          # 用例名，中文，给报告和人看的
+> >     "steps": [                         # 步骤列表
+> >         {
+> >             "name": "get_hydrologic_data",   # 步骤名，英文
+> >             "func": <function get_hydrologic_data>,  # 真的函数对象
+> >             "args": {                          # 调用这个函数要传的参数
+> >                 "project_id": "d4b81cde-...",
+> >                 "type": 1
+> >             },
+> >             "scene_id": "type_1"             # 可选，多场景时才有
+> >         }
+> >     ]
+> > }
+> > ```
+
+
 
 ```python
 # test_def/test_cases.py
@@ -289,6 +344,57 @@ def build_test_args(func: Callable, project_id: str, scene_args=None) -> Dict[st
 ### 3.6 测试执行与结果处理层 test_def/test_runner.py
 
 这一层负责真正执行测试 case，记录每一步的开始时间、结束时间、耗时、请求参数、响应结果、异常信息，并继续执行后续 case。
+
+*runner 的核心逻辑就两行：从 step 里拿* `func` *和* `args`*，执行* `func(client, args)`*，再把每步结果（成功/失败、耗时、响应、校验结果、历史比对结果）收集成一份* `step_result` *字典塞回用例结果里。*
+
+调完一次 API 之后，它还要做两件事： 按 `test_def/schemas/*.py` 里的 schema 做数据结构校验，再做历史结果比对——任一失败都会把 `step_result["success"]` 改成 `False` ，但不中断后续步骤。
+
+> 产出
+>
+> ```python 
+> # test_cases.py 产出的（输入）
+> test_cases = [
+>     {
+>         "name": "查询水文分区信息",
+>         "steps": [
+>             {
+>                 "name": "查询分区",
+>                 "func": get_hydrologic_data,          # 函数对象
+>                 "args": {"project_id": "d4b81cde-..."},
+>                 "scene_id": "hydrologic_data_001",
+>             }
+>         ]
+>     }
+> ]
+> 
+> # test_runner.py 产出的（输出）—— 跟 test_cases 一一对应
+> case_results = [
+>     {
+>         "name": "查询水文分区信息",            # 从 input 透传
+>         "steps": [
+>             {
+>                 "name": "查询分区",            # 从 input 透传
+>                 "scene_id": "hydrologic_data_001",
+>                 "success": True,              # 跑出来的
+>                 "status_code": 200,           # 跑出来的
+>                 "duration_ms": 87,            # 跑出来的
+>                 "request_path": "/business/hydrologic/get-hydrologic-data",
+>                 "response_data": {...},       # 跑出来的
+>                 "validation": {               # 跑出来的
+>                     "schema_valid": True,
+>                     "schema_errors": [],
+>                     "compare_valid": True,
+>                     "compare_diff": [],
+>                 },
+>                 "error": None,
+>             }
+>         ],
+>         "case_success": True,                  # 所有 step 都 success 才算真成功
+>     }
+> ]
+> ```
+>
+> 
 
 ```python
 # test_def/test_runner.py
@@ -362,6 +468,27 @@ def execute_step(step: Dict[str, Any], client: HttpClient) -> Dict[str, Any]:
 - `report_generator.py`：负责生成 HTML 报告。
 
 分层设计的最终收益是：调用链清晰，职责边界明确。接口新增、参数调整、校验规则调整、报告样式调整都能在对应层处理，不会互相污染。
+
+> schema校验：
+>
+> ```
+> # 实际 hydrologic_schemas.py
+> "fields": {
+>     "catchmentId": {"type": int},
+>     "projectId":   {"type": str},
+>     "ki":          {"type": float},
+>     "k":           {"type": [int, float]},
+>     # ...
+> }
+> ```
+>
+> 在 Python 里**用一份"声明式的字典 schema"（声明形态借鉴 TS）**+ 一个运行时遍历器**（*`ResponseValidator`*）做**结构断言**——不依赖任何 TS 工具链，不编译，不跨语言。
+
+| 校验层          | 在哪                                                         | 做什么                                   | 失败时                                                       |
+| :-------------- | :----------------------------------------------------------- | :--------------------------------------- | :----------------------------------------------------------- |
+| 业务 code 校验  | `base_api.py:42-46`                                          | `resp_json.code != 200` 就抛 `Exception` | 整个 `func` 调用直接抛错，被 `try/except` 捕获，记 `success=False` |
+| Schema 结构校验 | `test_runner.py:174-186` + `ResponseValidator` + `test_def/schemas/*.py` | 拿 `result`（data 字段）对照 schema      | `step_result["success"] = False`，但不中断下一步             |
+| 历史结果比对    | `test_runner.py:198-`（后文）                                | `compare_with_previous`                  | 同样把 `success` 置 False，不中断                            |
 
 ## 4. 配置驱动：用配置管理环境、项目和测试参数
 
@@ -653,9 +780,7 @@ HTTP 层检查
 - 第一类是引入标准化 schema 工具，例如 `jsonschema`、`pydantic` 或基于 OpenAPI 文档做 contract validation，替代部分手写递归校验。
 - 第二类是给关键接口增加业务断言，尤其是修改类接口采用“先修改、再查询、再断言”的闭环校验，确保接口不只是返回成功，而是真实业务状态也发生了正确变化。
 
-面试时可以这样总结：
 
-> 我们当前工具主要做了业务状态码检查、响应结构 schema 校验和历史基线比对。成熟商业项目通常还会在此基础上增加标准化 contract validation 和业务断言。尤其是对修改类接口，不能只看接口返回成功，还要再调用查询接口验证数据是否真的更新，这样才能形成完整的接口正确性校验闭环。
 
 ## 8. 历史基线比对：自动发现回归差异
 

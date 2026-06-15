@@ -1306,7 +1306,7 @@ os.uptime()      // 系统运行时间
 
 URL 模块用于解析和操作 URL。
 
-![ChatGPT Image 2026.5.4 17_39_51](./assets/ChatGPT Image 2026.5.4 17_39_51.png)
+![ChatGPT Image 2026.5.4 17_39_51](./assets/ChatGPT_Image_2026.5.4_17_39_51.png)
 
 ```javascript
 import { URL } from 'url'
