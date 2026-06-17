@@ -5,7 +5,7 @@ updated: 2026-05-11
 description: 'ORM 是什么？Prisma 是数据库吗？一篇搞懂 ORM 核心概念'
 image: ''
 tags: [ORM, Prisma]
-category: '后端'
+category: '后端/数据库'
 draft: false
 ---
 # ORM 介绍

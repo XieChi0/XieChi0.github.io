@@ -5,6 +5,10 @@ import { getCategoryUrl } from "@utils/url-utils.ts";
 import type { MarkdownHeading } from "astro";
 import { getExternalEntriesWithExternal } from "./externYamlRead-utils";
 
+function getPostSortTime(data: { published: Date; updated?: Date }): number {
+	return new Date(data.updated ?? data.published).getTime();
+}
+
 // 文件职责： 提供获取博客文章列表、分类列表、标签列表的工具函数，是内容层的数据中枢。
 
 // // Retrieve posts and sort them by publication date
@@ -14,9 +18,7 @@ async function getRawSortedPosts() {
 	});
 
 	const sorted = allBlogPosts.sort((a, b) => {
-		const dateA = new Date(a.data.published);
-		const dateB = new Date(b.data.published);
-		return dateA > dateB ? -1 : 1;
+		return getPostSortTime(b.data) - getPostSortTime(a.data);
 	});
 	return sorted;
 }
@@ -91,9 +93,7 @@ export async function getSortedPosts(includeExternal?: boolean) {
 
 		// 按日期倒序排列
 		merged.sort((a, b) => {
-			const dateA = new Date(a.data.published).getTime();
-			const dateB = new Date(b.data.published).getTime();
-			return dateB - dateA;
+			return getPostSortTime(b.data) - getPostSortTime(a.data);
 		});
 
 		// 注入 prev/next
