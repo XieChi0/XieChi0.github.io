@@ -1,5 +1,24 @@
 # Commit History
 
+## [2026-06-25] 补充 React 学习笔记与产品经理文档的 YAML frontmatter
+
+**Commit ID**: `9277a7fcca8e793db27f89ef66825b375dd38f5b`
+**变更文件数**: 5
+**主要需求**: 为之前遗漏的 React 学习笔记和产品经理文档补充完整的 YAML frontmatter 元数据。
+
+### 变更详情
+| 文件 | 变更类型 | 说明 |
+|-----|---------|------|
+| src/content/posts/业务/产品经理/产品经理2.md | 修改 | 补充 frontmatter 元数据 |
+| src/content/posts/前端/React/react速学.md | 修改 | 补充 frontmatter 元数据 |
+| src/content/posts/前端/React/概念混淆解清.md | 修改 | 补充 frontmatter 元数据 |
+| src/content/posts/前端/React/自学习.md | 修改 | 补充 frontmatter 元数据 |
+| src/content/posts/ai/harness.md | 修改 | 更新文档内容 |
+
+### 实现方式
+- 为所有遗漏的文章添加符合 Astro 规范的 YAML frontmatter。
+---
+
 ## [2026-06-25] 新增 AI 项目分析文档与 React 学习笔记，完善文章元数据
 
 **Commit ID**: `02ecea09aa6fdfe523727a931b40e78574384be6`
