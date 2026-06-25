@@ -1,5 +1,37 @@
 # Commit History
 
+## [2026-06-25] 新增 AI 项目分析文档与 React 学习笔记，完善文章元数据
+
+**Commit ID**: (留空，提交后补充)
+**变更文件数**: 14
+**主要需求**: 新增多个 AI 项目分析文档和 React 学习笔记，为所有新增文章补充 YAML frontmatter 元数据，同时删除重复的旧 React 文档。
+
+### 变更详情
+| 文件 | 变更类型 | 说明 |
+|-----|---------|------|
+| src/content/posts/业务/正式/ai项目1.md | 新增 | 路书编辑器 AI 架构分析文档 |
+| src/content/posts/业务/正式/ai项目2.md | 新增 | AI 会话系统与 SSE 通信分析 |
+| src/content/posts/业务/正式/wch1d-面试讲解.md | 修改 | 更新面试讲解文档 |
+| src/content/posts/业务/产品经理/产品经理2.md | 新增 | 产品经理与 AI 产品经理能力差异文档 |
+| src/content/posts/前端/React/自学习.md | 新增 | React 入门学习笔记 |
+| src/content/posts/前端/React/react速学.md | 新增 | React 速学笔记 |
+| src/content/posts/前端/React/概念混淆解清.md | 新增 | React 状态概念澄清 |
+| src/content/posts/前端/React/吴悠1-React核心语法.md | 新增 | 吴悠 React 视频核心语法整理 |
+| src/content/posts/前端/React/assets/image-20260623180314588.png | 新增 | React 学习笔记配图 |
+| src/content/posts/前端/React/React-Crash-Course-CN.md | 删除 | 删除重复的旧文档 |
+| src/content/posts/ai/MCP.md | 修改 | 更新 MCP 相关文档 |
+| src/content/posts/ai/harness.md | 修改 | 更新 harness 相关文档 |
+| src/content/posts/前端/JavaScript/js篇.md | 修改 | 更新 JS 笔记 |
+| src/content/posts/前端/Vue/vue篇.md | 修改 | 更新 Vue 笔记 |
+| commit-history.md | 修改 | 在顶部插入本次提交摘要 |
+
+### 实现方式
+- 为所有新增文章添加符合 Astro 规范的 YAML frontmatter（title、published、updated、description、tags、category、draft）。
+- 根据文章内容提取核心关键词作为 tags。
+- 删除仓库中已存在的重复 React 文档，避免内容冗余。
+- 同步更新相关的 AI 和前端学习笔记文档。
+---
+
 ## [2026-06-10] 整理全部文章的分类
 
 **Commit ID**: `b1d5c9c068b48535e6f514a414b82b9965141081`

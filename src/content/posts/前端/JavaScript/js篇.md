@@ -162,7 +162,6 @@ for (const fruit of fruits) {
 
 ```
 while(){
-
 }
 
 do{	}while(	)

@@ -113,21 +113,13 @@ Host 可以是：
 
 ### 能暴露什么能力
 
-| 能力 | 作用 | 简单理解 |
+| 能力 | 描述 | 简单理解 |
 |------|------|---------|
-| tools | 让 AI 执行动作 | "帮我查订单" |
-| resources | 给 AI 读取资料 | "这里有项目文件" |
-| prompts | 给 AI 提供提示词模板 | "按代码审查格式回答" |
+| tools | 让 Host AI 执行动作 | **让 AI 做事**，比如“帮我查订单”“帮我创建日程” |
+| resources | Server 暴露给 Host/模型读取的“上下文数据” | **给 AI 看资料**，比如“读取项目 README”“查看订单表结构” |
+| prompts | Server 暴露给 Host/用户使用的“提示词模板/任务模板”，用于让 AI 按固定方式完成任务 | "按代码审查格式回答" |
 
-**tools** 是最常用的，可以理解成带标准描述的"函数调用"：
-
-```ts
-async function add(a: number, b: number) {
-  return a + b;
-}
-```
-
-只不过 MCP 把函数包装成 AI 能理解和调用的标准格式。
+> 每次 Host 连接 MCP Server 时，会向 Server 询问：你有哪些 tools？然后 Host 把这些 tool 的名称、描述、参数 schema 临时放进当前会话/当前连接的可用工具列表里。
 
 ---
 
@@ -179,6 +171,32 @@ https://example.com/mcp
 Host 不负责启动，只负责连接。适合公司内部系统、云端服务、多人共用场景。
 
 ---
+
+是的，这是 Cursor 中 MCP 的**运行时配置格式**，定义在用户设置文件里。
+
+## 8. 字段含义
+
+```json
+{
+  "mcpServers": {
+    "figma": {           // MCP 服务器名称（可自定义）
+      "type": "http",    // 连接类型：http | sse |stdio
+      "url": "https://mcp.figma.com/mcp",        // MCP 服务端点 URL
+      "oauth_resource": "https://mcp.figma.com/mcp"  // OAuth 认证资源地址
+    }
+  }
+}
+```
+
+
+
+| 字段             | 说明                                                         |
+| ---------------- | ------------------------------------------------------------ |
+| `type`           | 传输协议类型：`http`（HTTP POST）、`sse`（Server-Sent Events）、`stdio`（标准输入输出） |
+| `url`            | MCP 服务器的 HTTP 端点，用于 `http` 或 `sse` 类型            |
+| `oauth_resource` | OAuth 认证资源地址，用于需要 OAuth 授权的 MCP 服务           |
+
+
 
 ## 9. 用 TypeScript 写一个最小 MCP Server
 
@@ -235,7 +253,7 @@ MCP 本身不是模型，只是让模型更容易连接外部工具和数据。
 **MCP 不等于 function calling**
 
 - function calling：模型怎么决定调用函数
-- MCP：外部工具怎么标准化地提供给 AI 应用
+- MCP：**外部工具怎么标准化地提供给 AI 应用**
 
 两者可以配合使用。
 

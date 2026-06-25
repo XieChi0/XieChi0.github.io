@@ -2291,3 +2291,6 @@ Terrain/index.vue
 - 2dm 结果会生成本地 `node.json`、`shp.json`、`edge.json`，用于二维地形和结果渲染。
 
 它同样有 `sourceProj`，同样会把外部坐标统一到 EPSG:3857。不同点是：它还会写 `meta-info.json`，把 `sourceProj` 和生成的文件路径持久化下来。这样工程重新打开时，不需要重新问用户这批地形文件是什么坐标系。
+
+# 多模态
+

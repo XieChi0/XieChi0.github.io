@@ -345,7 +345,7 @@ CDN 的全称是 Content Delivery Network，也就是内容分发网络。当前
 
 ###### 多个script可以共享同一作用域
 
-在这段代码中，第二个 `<script>` 标签**不需要**再次指定 Vue 的 `src`，它会自动使用第一个 `<script>` 标签中加载的 Vue 库。这是因为浏览器在加载外部 JavaScript 文件（如 Vue.js）后，已经将其添加到全局作用域中，后续的 `<script>` 标签可以直接使用这个库中的功能和语法。
+在这段代码中，第二个 `<script>` 标签不需要再次指定 Vue 的 `src`，它会自动使用第一个 `<script>` 标签中加载的 Vue 库。这是因为浏览器在加载外部 JavaScript 文件（如 Vue.js）后，已经将其添加到全局作用域中，后续的 `<script>` 标签可以直接使用这个库中的功能和语法。
 
 ![image 20240928205209588](https://s1.imagehub.cc/images/2024/11/25/801d9bb00318f0c0477eb65aefd562ba.png)
 
