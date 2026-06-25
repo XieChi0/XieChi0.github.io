@@ -1,3 +1,14 @@
+---
+title: react速学
+published: 2026-06-25
+updated: 2026-06-25
+description: 'React速学笔记：State与渲染关系、Context、useReducer等核心概念'
+image: ''
+tags: [React, State, Context]
+category: '前端/React'
+draft: false
+---
+
 ### State与渲染的关系
 
 1. 数据(state)变了 不一定 触发渲染（新旧值相同会跳过）；
