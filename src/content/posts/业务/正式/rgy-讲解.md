@@ -563,7 +563,8 @@ router.beforeEach((to, from, next) => {
 
 **结果校验**：算法返回结果后，页面通过结果列表和甘特图展示任务安排、时间分布和资源占用情况，方便继续核对是否存在时间冲突、人员超限、任务分布不合理等问题。
 
-<img src="./assets/image-20260614205206447.png" alt="image-20260614205206447" style="zoom: 67%;" /><img src="./assets/image-20260614205218297.png" alt="image-20260614205218297" style="zoom:67%;" />
+![image-20260614205206447](./assets/image-20260614205206447.png)
+![image-20260614205218297](./assets/image-20260614205218297.png)
 
 ![image-20260614205244407](./assets/image-20260614205244407.png)
 
@@ -673,11 +674,11 @@ ws://${window.location.hostname}/stream_proxy/camera/${s}.live.mp4
 
 组件大致职责：
 
-1. 接收外部传入的 `stream`。
-2. 根据 `stream` 生成 WebSocket 播放地址。
+1. 接收外部传入的 `streamID`。
+2. 根据 `streamID` 生成 WebSocket 播放地址。
 3. 初始化 `window.EasyPlayerPro` 播放器。
 4. 自动播放。
-5. 监听 `stream` 变化，切换摄像头时重新播放。
+5. 监听 `streamID` 变化，切换摄像头时重新播放。
 6. 组件销毁时释放播放器实例。
 
 代码示例：

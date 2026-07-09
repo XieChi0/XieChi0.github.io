@@ -90,7 +90,7 @@ mounted
 
 ![image-20241202205607324](./assets/image-20241202205607324.png)
 
-<img src="./assets/image-20241202205807492.png" alt="image-20241202205807492" style="zoom:80%;" />
+![image-20241202205807492](./assets/image-20241202205807492.png)
 
 ![image-20241219204102921](./assets/image-20241219204102921.png)
 
@@ -424,7 +424,7 @@ $route包含当前路由对象，比如路径、参数、查询字符串
 
 
 
-<img src="./assets/image-20241202221042515.png" alt="image-20241202221042515" style="zoom:80%;" />
+![image-20241202221042515](./assets/image-20241202221042515.png)
 
 ![image-20241202221300464](./assets/image-20241202221300464.png)
 

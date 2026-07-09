@@ -226,7 +226,7 @@ app.listen(PORT, () => {
 >
 > ![image-20260505140554422](./assets/image-20260505140554422.png)
 >
-> <img src="./assets/ChatGPT Image 2026.5.5 14_04_48.png" alt="ChatGPT Image 2026.5.5 14_04_48" style="zoom:150%;" />
+> ![ChatGPT Image 2026.5.5 14_04_48](./assets/ChatGPT Image 2026.5.5 14_04_48.png)
 
 ### 运行服务器
 
@@ -343,6 +343,8 @@ res.status(200).json({ posts: [] });
 - **201** - Created（创建成功）
 - **204** - No Content（删除成功）
 - **400** - Bad Request（客户端错误）
+- **401** - Unauthorized（未认证 / 未登录）
+- **403** - Forbidden（禁止访问 / 无权限）
 - **404** - Not Found
 - **500** - Internal Server Error
 
@@ -435,7 +437,7 @@ app.use('/api/posts', postRoutes);
 
 ### 使用 ES Modules
 
-如果想用 `import/export` 语法，在 `package.json` 添加：
+如果想用 ES Modules标准  `import/export` 语法，在 `package.json` 添加：
 
 ```json
 {
@@ -443,7 +445,7 @@ app.use('/api/posts', postRoutes);
 }
 ```
 
-然后改写为：
+配置好之后，你就可以把原来用 `require` 引入的方式，全部光明正大地替换成更优雅的 `import ... from ...` 语法了。
 
 ```javascript
 import express from 'express';
@@ -458,12 +460,14 @@ app.use('/api/posts', postRoutes);
 Express 内置了 body-parser，只需添加中间件：
 
 ```javascript
-// 解析 JSON
+// 专门翻译 JSON 格式的数据。
 app.use(express.json());
 
-// 解析 URL 编码的表单
+// 专门翻译 传统的 HTML 表单提交的数据
 app.use(express.urlencoded({ extended: false }));
 ```
+
+以前，这两行代码不属于 Express 自带的功能。开发者必须在终端里运行 `npm install body-parser` 下载一个第三方库，然后才能使用它。现在你不需要额外安装任何东西，直接用 `express.json()` 就可以了。
 
 ---
 
@@ -478,7 +482,6 @@ function middleware(req,res,next){
 	do sth...
 	next()
 }
-
 ```
 
 **核心参数**
