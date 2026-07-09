@@ -143,6 +143,8 @@ V8 引擎用 C++ 编写，它负责将 JavaScript 代码转换成机器码，让
 >
 > Node.js 的底层依赖 C++（V8 + libuv + bindings）
 
+
+
 ### 非阻塞 I/O
 
 Node.js 是**非阻塞**的，这意味着它不会等待 I/O 操作完成。

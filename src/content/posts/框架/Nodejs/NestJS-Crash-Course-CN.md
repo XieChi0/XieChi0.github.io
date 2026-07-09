@@ -2083,6 +2083,8 @@ export class EmailService {
 }
 ```
 
+ 在 `@Module` 的 `providers` 数组里，明确将 `ItemsService` 和 `EmailService` 都注册了进去
+
 ```typescript
 @Module({
   providers: [ItemsService, EmailService],  // 两个都注册
@@ -2090,6 +2092,10 @@ export class EmailService {
 })
 export class ItemsModule {}
 ```
+
+在它的构造函数 `constructor` 中，声明了参数 `private readonly emailService: EmailService`。当框架实例化 `ItemsService` 时，会自动把准备好的 `EmailService` 实例传进这个构造函数里。
+
+在下方的 `create` 方法中，执行完保存数据库逻辑后，直接通过 `this.emailService.send(...)` 就能成功调用另一个服务里的发邮件方法了。
 
 ```typescript
 @Injectable()
@@ -2121,7 +2127,7 @@ NestJS 默认使用**单例模式**，这意味着：
 
 单例的意思是：
 
-一个类在应用运行期间通常只创建一个实例，后续请求都会复用这个实例。
+一个类（比如itemsService）在应用运行期间通常只创建一个实例，后续请求都会复用这个实例。
 
 ```
 const itemsService = new ItemsService()
@@ -2649,7 +2655,7 @@ export class ItemsModule {}
 
 ### 根 Module（AppModule）
 
-> 修改意见：这里的appmodule以及内里的结构，含义要写在##什么是Module这个标题里，在里面介绍清除
+> 修改意见：这里的appmodule以及内里的结构，含义要写在##什么是Module这个标题里，在里面介绍清楚
 
 Nest 应用有一个根 Module，叫 `AppModule`：
 

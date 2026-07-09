@@ -17,7 +17,7 @@ draft: false
   ```
    数值（number）：整数和小数
    字符串（string）
-   布尔值
+   布尔值（boolean）
   ```
 * 合成类型（complex type）
   
@@ -69,6 +69,8 @@ null表示一个变量明确的被赋值成空值，所以返回0.
 
    null表示变量明确被赋值为空。
 
+
+
 ## MDN
 
 ## JS第一步🦘
@@ -119,18 +121,93 @@ null表示一个变量明确的被赋值成空值，所以返回0.
 
 **常见定义解释**
 
-* 解释&编译：分别是interpret，compile。编译型语言是说代码要转化成另一种形式才能运行。比如C和C++先要编译成机器码，然后才能由计算机运行。解释型语言是说，代码自上而下运行，且**实时返回运行结果**。
+* 编译&解释：分别是compile，interpret。
+
+  编译型语言是说代码要转化成另一种形式才能运行。比如C和C++先要编译成机器码，然后才能由计算机运行。
+
+  解释型语言是说，代码自上而下运行，且**实时返回运行结果**。
+
+> JS 早年是纯解释型；
+>
+> 现代 V8 引擎采用解释器 + JIT 即时编译，现代 JS 引擎（比如V8）会一边解释，一边把热点代码编译优化。
+>
+> > 热点代码：运行时被频繁重复执行的函数 / 循环，V8 通过计数识别后，触发 JIT 编译为本地机器码，提升运行速度。
+>
+> > JS代码 → 先解释执行 → 发现高频代码 → JIT即时编译成机器码 → 加速执行
+
+## JS引擎
+
+**V8 是 Google 的 JS 引擎**，Chrome 和 Node.js 都用它。
+
+> Chrome 浏览器 = 浏览器外壳 + 渲染引擎 Blink + JS 引擎 V8
+>
+> Node.js = JS 运行时 + JS 引擎 V8
+
+JS 引擎只负责：`解析 JS → 执行 JS → 优化 JS`，而浏览器还要负责页面渲染、DOM、CSS、网络请求；
+
+Node.js 还要负责文件系统、服务器、模块系统等。
 
 
 
-**脚本阻塞**
+## 浏览器运行过程
 
-由于HTML是自上而下运行，所以有时候遇见js了就不往下运行了，这时候常用defer，不过是外部js的时候。
+```
+请求 HTML
+  ↓
+边下载 HTML，边解析 HTML
+  ↓
+解析过程中发现 CSS / JS / 图片
+  ↓
+并行下载这些资源
+  ↓
+构建 DOM + CSSOM
+  ↓
+执行 JS
+  ↓
+布局 Layout：计算位置和大小
+  ↓
+绘制 Paint：绘制到屏幕
+  ↓
+页面显示出来
+```
 
-*  `DOMContentLoaded` 事件，表示HTML 文档体完全加载和解析。（一般用在html加载完毕再运行js的时候）
-* `defer`：（仅对外部脚本有效）常见于`<script src="script.js" defer></script>`。defer告知浏览器在遇到 `<script>` 元素时先把HTML 内容解析完以后再下载执行js脚本，而不是遇见脚本就立即执行。（适用于脚本中有很多DOM的情况）有助于减缓阻塞。（defer的翻译是推迟，延缓）
-* `async`：脚本下载完就立即执行。也就是可能会边解析HTML文档边解析脚本。
-* 如果你直接把js脚本文件放在HTML代码底端，那上面的都是浮云，完全不需要使用了，因为计算机直接运行完上面的再运行js。
+浏览器不是等 HTML 全部下载完才开始工作，而是可以**边下载边解析**，把它们变成DOM节点。
+
+CSS是不会阻塞HTML的下载的，
+
+但有时候在下载的过程中遇见`<script src="/main.js"></script>`，浏览器有可能会暂停HTML解析去下载 JS，所以说 JS要放到body底部，或者加defer。
+
+> 1. 把js放到body底部
+>
+> ```
+> <body>
+>   <h1 id="title">你好</h1>
+>   <button id="btn">点击</button>
+> 
+>   <script src="./main.js"></script>		//hi，我是js
+> </body>
+> ```
+>
+> 2. 用到defer
+>
+> ```
+> <script src="script.js" defer></script>
+> ```
+
+
+
+### 重排和重绘
+
+```
+重排 = 重新计算元素的位置和大小
+重绘 = 重新画元素的外观
+```
+
+重排发生在元素的尺寸、位置、布局结构发生变化时。
+
+重绘发生在元素的外观变了，但位置和大小没变时。
+
+**重排一定会导致重绘**，反之则不一定。
 
 
 
@@ -141,7 +218,7 @@ null表示一个变量明确的被赋值成空值，所以返回0.
 
 例子
 
-```
+```js
 const fruits = ["apples", "bananas", "cherries"];
 for (const fruit of fruits) {
   console.log(fruit);
@@ -412,15 +489,9 @@ name();	//开始使用
 
 常见一点的知识就不写了。
 
-参数(parameter) 我们也可以叫做属性(property)、argument、特性(attribute)。
+参数（parameter）我们也可以叫做属性（property）、argument 、特性（attribute）。
 
-有时候也可以设置默认参数
 
-```
-function hello（name）{		};	//指的是name是默认属性
-
-function hello（name="克里斯"）{		}；	//指的是name是默认属性，克里斯是默认值
-```
 
 **实参和形参**
 
@@ -465,15 +536,15 @@ const add = function(a, b) {
 **3.箭头函数**
 
 ```
-const add = function (a,b){
-	return a+b;
+const add = (a, b) => {
+  return a + b;
 }
 ```
 
 如果只有一句返回，还可以简写
 
 ```
-const add= (a,b)=> a+b;
+const add= (a,b) => a+b;
 ```
 
 > 在这里想要讲一下函数声明和函数表达式的区别，
@@ -496,12 +567,10 @@ const add= (a,b)=> a+b;
 > };
 > ```
 >
-> 
->
 > - 如果你希望函数在代码中任何地方都可以被调用（因为函数声明会被提升），可以使用函数声明。
-> - 如果你希望在一个表达式中定义函数（比如将函数赋值给变量），或者希望定义匿名函数，可以使用函数表达式。
+>- 如果你希望在一个表达式中定义函数（比如将函数赋值给变量），或者希望定义匿名函数，可以使用函数表达式。
 > - 如果你希望使用更现代的语法，尤其是在处理简单函数时，可以考虑使用箭头函数。
->
+> 
 > 在实际应用中，通常会根据具体的需求和代码风格来选择适合的方式来定义函数。
 
 
@@ -589,9 +658,9 @@ const result = nums.map(n => n * 2);
 
 
 
-### 闭包
+### 闭包⭐
 
-闭包=函数+它能访问的外部变量
+闭包的定义其实很简单：**外面函数套了里面的函数，里面的函数可以访问到外面函数中的变量，那么里面这个函数就是闭包**。
 
 ```
 function outer() {
@@ -621,8 +690,7 @@ const fn = outer();
 
 这一步里：
 
-- `outer()` 被调用了
-- `outer()` 执行后返回了 `inner`
+- `outer()` 被调用了，执行后返回了 `inner`
 - 所以 `fn` 就指向了那个 `inner` 函数
 
 相当于：
@@ -641,10 +709,7 @@ const fn = outer();
 > - 它还记得定义时周围的变量
 > - 这就是闭包
 
-**闭包的作用**
-
-- 保存状态
-- 封装数据
+**在JS中，闭包存在的意义就是让我们间接可以访问函数内部的变量。**
 
 
 
@@ -988,7 +1053,7 @@ const objectName = {
 
 
 
-### 点表示法
+**点表示法**
 
 点表示法可以访问对象的属性和方法，对象表现为一个**命名空间**。
 
@@ -1027,7 +1092,7 @@ person.name[0];
 
 
 
-### 括号表示法
+**方括号表示法**
 
 person.age变成 person["age"];
 
@@ -1039,8 +1104,6 @@ person.name.first变成 person["name"] ["first"]
 - `person.name[0]` 是先取到 `name` 属性的值，再访问数组第 0 项
 
 点表示法通常更简洁，可读性更好；但当属性名来自**变量**时，只能使用括号表示法。
-
-
 
 ```
 const person = {
@@ -1070,6 +1133,8 @@ logProperty("age");
 
 对于普通函数，`this` 的值通常由**函数的调用方式**决定，而不是由函数写在哪里决定。
 
+这里通过 `person.introduceSelf()` 调用方法，因此方法中的 `this` 指向点号前面的 `person`。
+
 ```js
 const person = {
   name: "Chris",
@@ -1080,8 +1145,6 @@ const person = {
 
 person.introduceSelf(); // 你好！我是 Chris。
 ```
-
-这里通过 `person.introduceSelf()` 调用方法，因此方法中的 `this` 指向点号前面的 `person`。
 
 
 
@@ -1115,43 +1178,13 @@ personB.introduceSelf(); // 你好！我是 Salva。
 >
 > 箭头函数没有自己的 `this`，它会沿用外层作用域中的 `this`。因此，需要根据调用者动态获取 `this` 的对象方法通常使用普通函数或方法简写。
 
-### 工厂函数
-
-对象字面量适合直接创建单个对象。如果要按照相同结构批量创建对象，可以先使用工厂函数：
-
-> 注：以下不是构造函数
-
-```js
-function createPerson(name) {
-  return {
-    name,
-    introduceSelf() {
-      console.log(`你好！我是 ${this.name}。`);
-    },
-  };
-}
-
-// 1. 调用工厂函数，创建一个 person 对象
-const salva = createPerson("Salva");
-
-// 2. 调用对象上的方法
-salva.introduceSelf(); // 输出：你好！我是 Salva。
-```
-
-每次调用 `createPerson()` 函数时，它都会创建并返回一个新对象。该对象将具有两个成员：
-
-- 一个 `name` 属性
-- 一个 `introduceSelf()` 方法。
-
-但是上面的方法还是很麻烦，因为你要先创建一个这样的函数，然后给它传入初始化值并且要返回值。
-
 
 
 ### 构造函数（new）
 
 这里讲的这个构造函数方法是偏传统的，后面我们会讲最新的es6的class语法。
 
-传统的构造函数则配合 `new` 创建对象。构造函数本质上仍然是函数，名称通常以大写字母开头。
+**构造函数就像一个对象工厂。`new` 一次，就生产一个对象。对象自己的属性放在构造函数里，共享的方法放在 prototype 上。**
 
 ```js
 function Person(name) {
@@ -1180,9 +1213,19 @@ frankie.introduceSelf();
 
 将 `introduceSelf()` 放在 `Person.prototype` 上后，所有实例都可以通过原型链共享这个方法，不必为每个实例重复创建一份函数。
 
+---
+
+这里把方法写到原型是因为，
+
+![image-20260630213335666](./assets/image-20260630213335666.png)
+
+但如果把方法写到原型上，`User.prototype.sayHi= 函数`，这时sayHi是共享的，多个对象共享这个方法。
+
 
 
 ### 构造函数（class）
+
+注意：class写法里的`constructor` 方法会自动执行。
 
 ```js
 // ES6 class 写法
@@ -1206,36 +1249,13 @@ salva.introduceSelf();   // 你好！我是 Salva。
 frankie.introduceSelf(); // 你好！我是 Frankie。
 ```
 
-**class 是 ES6 的语法糖，本质还是：构造函数 + 原型链**，只是换了一层更像 “传统面向对象语言（Java/C#）” 的外衣，让你写起来更直观。
 
-- 它没有改变 JS 基于原型的底层机制
-- 只是把 `function Person`、`prototype.xxx` 这种零散写法 **收拢、规范化** 了
-
-> 在这里面这个name要写到构造器里面是因为这个是实例自己的属性，而方法写到了外面是因为这个是构造函数的公共对象，所有实例共享它，
->
-> 所有 `new Person()` 出来的对象，**都能看到 `Person.prototype` 上的方法**，但**不会复制到自己身上**。
->
-> 内存里是
->
-> ```
-> salva:     { name: "Salva" }
-> frankie:   { name: "Frankie" }
-> 
-> Person.prototype: {
->   introduceSelf: function() { ... }  // 只有这一份！
-> }
-> ```
->
-> - `salva.introduceSelf()` → 自己身上没有，去 `Person.prototype` 找。
-> - `frankie.introduceSelf()` → 也是去同一个地方找。
->
-> 把方法作为公共的这样是为了省内存。
 
 
 
 ### 原型链
 
-**原型的本质：** JavaScript 中的对象内部都有一个隐藏的 `[[Prototype]]` 指针，指向另一个对象（它的“父亲”）。
+**原型的本质：** JavaScript 中的对象内部都有一个隐藏的 `[[Prototype]]` 指针，指向另一个对象（它的“父亲”），这个对象就是该对象的原型。
 
 原型本身也是一个对象，所以这个对象也有自己的原型。这就构成了**原型链**。
 
@@ -1533,7 +1553,7 @@ arr.forEach(function(item) {
 
 ##### async/await中的后续逻辑
 
-`async / await` 表面上看不到回调函数，但它本质上是 Promise 的更简洁写法。
+`async/await` 表面上看不到回调函数，但它本质上是 Promise 的更简洁写法。
 
 ```js
 async function main() {
