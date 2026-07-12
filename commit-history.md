@@ -1,5 +1,21 @@
 # Commit History
 
+## [2026-07-12] 新增 TB SSR 服务端渲染笔记文档
+
+**Commit ID**: `05bfdf0ea1afbfb82e52ffd5f80be59473adf7c9`
+**变更文件数**: 1
+**主要需求**: 新增 TB SSR 服务端渲染学习笔记，并补齐符合 Astro 规范的 YAML frontmatter。
+
+### 变更详情
+| 文件 | 变更类型 | 说明 |
+|-----|---------|------|
+| src/content/posts/业务/正式/tb-ssr.md | 新增 | SSR / SPA 心智模型、Vue/Nuxt SSR 实现与首屏性能优化笔记 |
+
+### 实现方式
+- 为新增文档添加 YAML frontmatter（title、published、updated、description、tags、category、draft），并设置 `private: true`，与同目录 `tb-面试讲解.md`、`wch1d-面试讲解.md` 等风格保持一致。
+- 文档内容覆盖 SPA 与 SSR 渲染差异、首屏白屏原因、Vue 路由懒加载、Nuxt SSR 同构思路与首屏性能优化要点，便于后续面试与学习复盘。
+---
+
 ## [2026-07-12] 新增ts、echarts、wch1d大文件复盘文档
 
 **Commit ID**: `fc32af2440935d3dc9bbd80fe55f71b510e78157`
