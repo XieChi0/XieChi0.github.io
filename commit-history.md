@@ -1,5 +1,35 @@
 # Commit History
 
+## [2026-07-12] 新增ts、echarts、wch1d大文件复盘文档
+
+**Commit ID**: `fc32af2440935d3dc9bbd80fe55f71b510e78157`
+**变更文件数**: 13
+**主要需求**: 新增 WCH1D 大文件与性能优化复盘文档、ECharts 面试题、TypeScript 速通教程与面试题汇总，并为全部新增文章补充 YAML frontmatter；同时整理 ECharts.md 的本地图片路径，迁移到同目录 assets 下。
+
+### 变更详情
+| 文件 | 变更类型 | 说明 |
+|-----|---------|------|
+| src/content/posts/业务/正式/wch1d-大文件与性能优化复盘.md | 新增 | WCH1D 大文件与性能优化链路复盘文档 |
+| src/content/posts/业务/面试/ECharts.md | 新增 | ECharts 大数据渲染优化面试题文档 |
+| src/content/posts/业务/面试/新建.md | 新增 | 组件封装、接口请求、性能优化、防抖节流、跨域面试题汇总 |
+| src/content/posts/前端/JavaScript/禹神：Typescript速通教程.md | 新增 | TypeScript 速通教程学习笔记 |
+| src/content/posts/业务/正式/assets/image-20260603110247578.png | 新增 | 复盘文档配图 |
+| src/content/posts/业务/正式/assets/image-20260603195730733.png | 新增 | 复盘文档配图 |
+| src/content/posts/业务/正式/assets/image-20260709232210829.png | 新增 | 复盘文档配图（KDTree 图示） |
+| src/content/posts/业务/正式/assets/image-20260709232224143.png | 新增 | 复盘文档配图（KDTree 图示） |
+| src/content/posts/业务/正式/assets/image-20260710172213587.png | 新增 | 复盘文档配图（节点水深聚合） |
+| src/content/posts/业务/面试/assets/image-20260712131318515.png | 新增 | ECharts 面试题配图 |
+| src/content/posts/业务/面试/assets/image-20260712131705877.png | 新增 | ECharts 面试题配图 |
+| src/content/posts/业务/面试/assets/image-20260712132129194.png | 新增 | ECharts 面试题配图 |
+| src/content/posts/业务/面试/assets/image-20260712132838991.png | 新增 | ECharts 面试题配图 |
+
+### 实现方式
+- 为所有新增文章添加符合 Astro 规范的 YAML frontmatter（title、published、updated、description、tags、category、draft），`业务/正式` 目录下文档同时设置 `private: true`，与同目录 wch1d-* 系列风格保持一致。
+- 将 ECharts.md 中原本指向 `/Users/xchi/Desktop/assets/...` 的本地图片路径统一改为相对路径 `./assets/...`，与项目其它面试笔记的图片引用方式一致。
+- 把 wch1d-大文件与性能优化复盘引用的图片资源从本地桌面集中放入 `业务/正式/assets/`，保证 Astro Build 可解析。
+- 复盘文档保留完整的链路一（NC 处理、流式交付、前端 Worker/R-Tree）与链路二（工程分块导入）叙事，便于后续按模块查找与讲解。
+---
+
 ## [2026-06-25] 补充 React 学习笔记与产品经理文档的 YAML frontmatter
 
 **Commit ID**: `9277a7fcca8e793db27f89ef66825b375dd38f5b`
